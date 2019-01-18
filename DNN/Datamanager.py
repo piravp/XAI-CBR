@@ -3,9 +3,10 @@ import numpy as np
 from sklearn import preprocessing
 from collections import defaultdict
 import pandas as pd
+import misc # helper functions
 
 class Datamanager():
-    """ Responsible for handling data inputs to network during training, evaluation """ 
+    """ Responsible for handling data inputs to network during training, evaluation and preprossesing the data """ 
     def __init__(self, dataframe_train, dataframe_test = None,dataset=None, in_mod = 1, out_mod=1,train_frac=0.9,freq_lim=3): # 90% to be used as training, 10 % testing/val
         self.df_train = dataframe_train # training data 
         self.df_test = dataframe_test # testing data 
@@ -18,19 +19,21 @@ class Datamanager():
         self.__find_limit() # find minimum number of classes.
         self.__init_data(train_frac)
 
+        # Preprocess dataset using assigned function. Dataset specific
         self.__pp_switcher = {
             "wine":self.wine
         }
 
-        # format data to correct input format
+        # format data to correct input format. Model specific
         self.__i_switcher = {
             1:self.bow_stem,
             2:self.bow
             }
         
-        # format data to correct output format
+        # format data to correct output format. Model specific
         self.__o_switcher = {
-            1:self.one_hot_vector
+            1:self.one_hot_vector,
+            2:self.float_value
         }
 
         #if(modus == 1):
@@ -199,7 +202,7 @@ class Datamanager():
         data_df_scaled = min_max_scaler.fit_transform(df_attributes) # Normalize Attributes.
         df_normalized = pd.DataFrame(data_df_scaled) # Transform np.array into dataframe
         
-        df.targets = df.targets.apply(lambda item: misc.gen_one_hot(int(item)),classes = 3)# 
+        df_targets = df_targets.apply(lambda item: misc.gen_one_hot(int(item)), classes=3)# 
 
     def bow(self,data_inputs):
         """ Return vecorized sentence using bagofwords """
@@ -241,10 +244,11 @@ class Datamanager():
 
         return torch.from_numpy(np.array(inputs)).float() # convert list to torch tensor
 
-    def normalized(self,data_inputs):
-        """ Return data as normalized float_value """
-        pass
 
-    def one_hot_vector(self,data_inputs):
+    def one_hot_vector(self,data_targets):
         """ Return output as one_hot_vector """
+        pass
+    
+    def float_value(self,data_targets):
+
         pass
