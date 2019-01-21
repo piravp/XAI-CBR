@@ -2,12 +2,15 @@ import pymongo
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
+# Connect to db
 mydb = myclient["Case-Base"]
 
-mycol = mydb["cases"]
+# Create collection
+# case_collection = mydb["cases"]
+iris_collection = mydb["irises"]
 
-mydict = { "classification": "1", "cancer": "1" }
-
-x = mycol.insert_one(mydict)
-
-print(myclient.list_database_names())
+# case = { "classification": "1", "cancer": "1", "malignant": "no" }
+#
+# # Add entries to collection
+# x = case_collection.insert_one(case)
+# print(myclient.list_database_names())
