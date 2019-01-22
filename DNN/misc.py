@@ -7,7 +7,7 @@ def int_to_one_hot_vector(value, size, zero_offset = 0,off_val=0, on_val=1): #
 # Size as 
     if int(value-zero_offset) < size and value >= zero_offset:
         v = [off_val] * size
-        v[int(value)] = on_val
+        v[int(value-zero_offset)] = on_val
         return v
     else:
         raise ValueError("Value is greater than size {} < {}".format(value, size))
