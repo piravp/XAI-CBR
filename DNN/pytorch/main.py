@@ -5,6 +5,11 @@ import pandas as pd
 import torch.optim as optim
 import torch.nn.modules.loss as t_loss
 
+import os,sys,inspect
+# add parent folder to path ( DNN )
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir)
 
 def read_data_pd(name,columns,encoding="latin-1"):
     data = pd.read_csv(name,delimiter=",",encoding=encoding) # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe5 in position 38: invalid continuation byte
@@ -34,7 +39,7 @@ def test_network():
     from Induction.IntGrad.integratedGradients import random_baseline_integrated_gradients, integrated_gradients
     exit()
 
-    df = read_data_pd("../Data/wine.csv",columns = columns)
+    df = read_data_pd("../../Data/wine.csv",columns = columns)
 
     df.columns = columns # Add columns to dataframe.
     #Cov.columns = ["Sequence", "Start", "End", "Coverage"]
@@ -51,10 +56,6 @@ def test_network():
     # model is trained, we want to figure out the attribute distributions.
 
     
-
-
-
-test_network()
 
 def test_accuracy():
     import numpy as np

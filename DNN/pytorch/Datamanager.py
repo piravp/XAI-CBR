@@ -1,4 +1,4 @@
-import torch
+import torch  # pytorch
 import numpy as np
 from sklearn import preprocessing
 from collections import defaultdict
@@ -29,8 +29,6 @@ class Datamanager():
         # format data to correct input format. Model specific
         self.__i_switcher = {
             1:self.normal,
-            2:self.bow_stem,
-            3:self.bow
         }
         
         # format data to correct output format. Model specific
@@ -81,41 +79,6 @@ class Datamanager():
         for rating in range(1,6):
             count_dict[rating] = len(self.df_train.loc[self.df_train["reviewScore"] == rating])
         self.limit = min(count_dict.items(),key =lambda item: item[1])[1]
-
-    def create_bag_of_words(self,stem=False, freq_lim=3): # create dictionary mapping between word and position in array.
-        # extract all words from df.
-        # assumes not tokenized.
-        df = self.df_train #
-        raw_str = df['reviewText'].str.cat(sep=" ").split(" ")
-        if(stem): # we need to itterate over the list of strings and stem everyone
-            from nltk.stem.snowball import SnowballStemmer
-            self.norStemmer = SnowballStemmer("norwegian")
-            raw_str = [self.norStemmer.stem(s) for s in raw_str] 
-        self.bow_dict = defaultdict(int) # "string":position
-
-        # we need to remove words that occur only a few times, to reduce vocabulary
-        count_dict = defaultdict(int)
-        for key in raw_str:
-            if(key in count_dict):
-                count_dict[key] += 1
-            else:
-                count_dict[key] = 1
-        
-        stopwords = misc.get_stop_words()
-
-        # create bag of words dictonary mapping
-        for key,freq in count_dict.items():
-            if(key in self.bow_dict):
-                continue
-            else:
-                if(freq > freq_lim and key not in stopwords): # remove words than occur few times
-                    self.bow_dict[key] = 1
-        #then we need to figure out the length of the dictionary.
-        for i,key in enumerate(self.bow_dict.keys()): # itterate every unique key
-            self.bow_dict[key] = i
-
-        self.dim = len(self.bow_dict) # input vector need to be this size to capture all words
-        print("bag of words size:",self.dim)
 
     def return_num(self, num, tot_size):
         """ Return number of cases we want to keep from total size. """
@@ -202,46 +165,6 @@ class Datamanager():
         #self.df_train = df
 
         return df_normalized,df_targets
-
-    def bow(self,data_inputs):
-        """ Return vecorized sentence using bagofwords """
-        if(self.bow_dict is None):
-            self.create_bag_of_words()
-        # we need to convert text to input vector
-        inputs = []
-        for string in data_inputs:
-            input_vector = [0] * self.dim 
-
-            if(isinstance(string,float)): # hack to deal with Nan fields
-                inputs.append(input_vector) # add vector coresponding to text string
-                continue
-
-            for word in string.split(" "):
-                if(word in self.bow_dict): # some stems arent in dictionary, since very low use
-                    input_vector[self.bow_dict[word]] = 1 # change 
-
-            inputs.append(input_vector) # add vector coresponding to text string
-
-        return torch.from_numpy(np.array(inputs)).float() # convert list to torch tensor
-    
-    def bow_stem(self,data_inputs):
-        """ Return vecorized stemmed sentence using bagofwords """
-        if(self.bow_dict is None):
-            self.create_bag_of_words(stem=True)
-        # we need to convert text to input vector
-        inputs = []
-        for string in data_inputs:
-            input_vector = [0] * self.dim 
-            if(isinstance(string,float)): # hack to deal with Nan fields
-                inputs.append(input_vector) # add vector coresponding to text string
-                continue
-            
-            for stem in [self.norStemmer.stem(word) for word in string.split(" ")]:
-                if(stem in self.bow_dict): # some stems arent in dictionary, since very low use
-                    input_vector[self.bow_dict[stem]] = 1 # change 
-            inputs.append(input_vector) # add vector coresponding to text string
-
-        return torch.from_numpy(np.array(inputs)).float() # convert list to torch tensor
 
     def normal(self,data_inputs):
         # we transform to np.array and to torch
