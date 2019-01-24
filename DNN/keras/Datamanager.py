@@ -130,6 +130,9 @@ class Datamanager():
     def return_keras(self): # return all data we have.
         return self.return_mod(self.data_t[0],self.data_t[1])
 
+    def return_background(self, num): # return examples from training set.
+        return self.training_data[:num]
+
 
     def return_val(self):
         """ Return two tensors(inputs,targets) from validationset """

@@ -5,23 +5,41 @@ from keras.optimizers import SGD,Adam,Adagrad,RMSprop
 from keras.models import model_from_json
 import Datamanager # handle preprosessing and generating data
 import os
+import misc
 class Model():
-    def __init__(self,model, optimizer, loss, name, filepath=None):
-        if(type(model) == list):
-            self.model = Sequential(model) # model should be an keras model
+    def __init__(self, name, optimizer=False, loss=False, model=None):
+        if(model is None): # we want to load from file instead.
+            modelpath = "models/"+name+"/"+name+".json"
+            print(modelpath)
+            if(os.path.exists(modelpath)): # means we want to load model.
+                # We want to load model from file
+                self.model = self.load_model(modelpath)
+                weightPath = misc.find_newest_model(name)
+                if(weightPath is not None and os.path.exists(modelpath)):
+                    self.load_weights(weightPath)
+            else:
+                raise ValueError("No filepath found from model name to load from")
+            
         else:
-            self.model = model
-        self.optimizer = optimizer
-        self.loss = loss
-        self.name = name
-        if(filepath is not None):
-            self.load(filepath)
-        else:
-            self.model.compile(loss=self.loss,optimizer=self.optimizer)
+            if(type(model) == list):
+                self.model = Sequential(model) # model should be an keras model
+            else:
+                self.model = model
+            if(optimizer or loss or name):
+                raise ValueError("We need an optimizer, and loss function and a name for the network")
+            self.optimizer = optimizer
+            self.loss = loss
+            self.name = name
+            # we need to make sure we have an optimizer etc.
+            self.model.compile(loss=self.loss,optimizer=self.optimizer,metrics=['accuracy'])
         print(self.model.summary())
+
         #self.input_shape= (height, width, depth)
         #if(K.image_data_format()=="channels_first"):
         #    self.input_shape = (depth, height, width)
+    def compile(self,**args): 
+        self.model.compile(**args)
+
 
     def store(self,epoch):
         # Store model at specific filepath.
@@ -33,14 +51,32 @@ class Model():
         if not os.path.exists(model_path):
             with open(model_path,"w") as json_file: # save model
                 json_file.write(self.model.to_json()) # write model to json file
+
         weight_path = save_dir+"/"+ self.name + "_" + str(epoch)+".h5" # save a new network with an unique ID, name + epoch
-        self.model.save_weights(weight_path) # save weights to .h5 file
+        # we store weights too if the don't already exists
+        if(not os.path.exists(weight_path)): # if path allready exists.
+            self.model.save_weights(weight_path) # save weights to .h5 file
+
+    # Load functions, we either load from file, or from start from scratch
 
     def load(self, filepath):
-        if(os.path.isfile(filepath)):
+        if(os.path.isfile(filepath)): # this is the folder of the model
+            # models/wine
+            # weights in models/wine_{epoch}.5
+            # model structure in wine.json # don't need to load this one
             # Dont need to open json file.
-            self.model.load_weights(filepath) # load weights
             self.model.compile(loss=self.loss,optimizer=self.optimizer) 
+
+    def load_model(self,filepath):
+        if(os.path.isfile(filepath)): # check if path exists.
+            with open(filepath,"r") as file:
+                json_data = file.read()
+                return model_from_json(json_data)
+        raise ValueError("modelpath is not a file:", filepath)
+
+    def load_weights(self,filepath):
+        if(os.path.isfile(filepath)): # this is the folder of the model
+            self.model.load_weights(filepath) # load weights
 
     def train(self, datamanager:Datamanager.Datamanager, epochs, batch_size):
         X,Y = datamanager.return_keras()# Return all data in CSV file. 
@@ -62,16 +98,6 @@ class Model():
     def predict(self, input): #takse an pid + board state as input and return distribution.
         return self.model.predict(input)
 
-
-def load_model(filepath, weight_path,optimizer, loss, name, input_type=1):
-    if os.path.exists(filepath):
-        json_file = open(filepath,"r")
-        load_model_json = json_file.read()
-        loaded_model = model_from_json(load_model_json)
-        print(loaded_model)
-        Model(loaded_model,optimizer, loss=loss,name=name,filepath=weight_path) # Load weights.
-        return Model
-    raise ValueError("Filepath doest exist", filepath)
 
 sgd = SGD(lr=0.01)
 rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)

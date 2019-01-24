@@ -1,6 +1,7 @@
 import numpy as np
 import glob
 import os
+import re
 # Misc functions
 def int_to_one_hot_vector(value, size, zero_offset = 0,off_val=0, on_val=1): #
 # Size as 
@@ -87,14 +88,16 @@ def get_legal_states(board): # [1,0,0,1] 1's and 2's
 def find_newest_model(name):
     # Look for network with similar name with different ending. E.g. TESTNET_xxxx
     # Find every file in directory of models with same name
-    result = glob.glob("models/"+name+"/"+name+"*")
+    result = glob.glob("models/"+name+"/"+name+"*.h5")
     if(len(result) == 0):
         return None
-    result_2 =[x.split("_") for x in result]
     # We need to use the second index to rank results.
-    result_3 = max(result_2,key=lambda x:int(x[1]))
-    path = "_".join(result_3)
-    if(os.path.isfile("_".join(result_3))):
+    print([re.findall(r'-?\d+', file)[0] for file in result])
+    result_2 = [re.findall(r'-?\d+', file)[0] for file in result]
+
+    index = result_2.index(max(result_2,key=lambda x:int(x)))
+    path = result[index]
+    if(path):
         return path
     else:
         print("{} is not a regular file".format(path))
