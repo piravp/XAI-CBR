@@ -10,7 +10,6 @@ class Model():
     def __init__(self, name, optimizer=False, loss=False, model=None):
         if(model is None): # we want to load from file instead.
             modelpath = "models/"+name+"/"+name+".json"
-            print(modelpath)
             if(os.path.exists(modelpath)): # means we want to load model.
                 # We want to load model from file
                 self.model = self.load_model(modelpath)
