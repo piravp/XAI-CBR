@@ -6,11 +6,10 @@ import misc # helper functions
 
 class Datamanager():
     """ Responsible for handling data inputs to network during training, evaluation and preprossesing the data """ 
-    def __init__(self, classes, reduce=False, dataset=None, 
+    def __init__(self, reduce=False, dataset=None, 
     in_mod = 1, out_mod="one-hot", train_frac=0.9,freq_lim=3): # 90% to be used as training, 10 % testing/val
         self.in_mod,self.out_mod = in_mod,out_mod # decides input/output pattern
         self.dataset = dataset
-        self.classes = classes
 
         self.reduce = reduce 
 
@@ -131,7 +130,7 @@ class Datamanager():
         return self.return_mod(self.data_t[0],self.data_t[1])
 
     def return_background(self, num): # return examples from training set.
-        return self.training_data[:num]
+        return self.validation_data[:num]
 
 
     def return_val(self):
@@ -151,6 +150,7 @@ class Datamanager():
         """ Read whine dataset and preprosess"""
         # class: followed by 13 attributes as floats.
         self.classes=3
+        self.input_dim=13
         # need to normalize
         """ Pre process wine dataset. return as [[0.1312,0.5,0.1,0.8],[0,0,1]] """
         columns = ["class","alch","malic","ash","alcash","mag","phen","flav","nfphens","proant","color","hue","dil","prol"]

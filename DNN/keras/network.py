@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten, Conv3D
+from keras.layers import Dense, Conv2D, Flatten, Conv3D, Activation
 from keras import backend as K
 from keras.optimizers import SGD,Adam,Adagrad,RMSprop
 from keras.models import model_from_json
@@ -7,7 +7,7 @@ import Datamanager # handle preprosessing and generating data
 import os
 import misc
 class Model():
-    def __init__(self, name, optimizer=False, loss=False, model=None):
+    def __init__(self, name, optimizer=None, loss=None, model=None):
         if(model is None): # we want to load from file instead.
             modelpath = "models/"+name+"/"+name+".json"
             if(os.path.exists(modelpath)): # means we want to load model.
@@ -23,8 +23,9 @@ class Model():
             if(type(model) == list):
                 self.model = Sequential(model) # model should be an keras model
             else:
+                print("model not list")
                 self.model = model
-            if(optimizer or loss or name):
+            if(optimizer is None or loss is None or name is None):
                 raise ValueError("We need an optimizer, and loss function and a name for the network")
             self.optimizer = optimizer
             self.loss = loss
@@ -94,8 +95,8 @@ class Model():
         score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
         print(score)
     
-    def predict(self, input): #takse an pid + board state as input and return distribution.
-        return self.model.predict(input)
+    def predict(self,**kwargs): 
+        return self.model.predict(**kwargs)
 
 
 sgd = SGD(lr=0.01)
@@ -113,30 +114,15 @@ def CNN_50_25(name="CNN-50-25",dim=5,optimizer=adam):
     ], 
     optimizer=optimizer, loss="categorical_crossentropy",name=name)
 
-def NN_50_25(name="NN-50-25",dim=5,optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
-    return Model(model=[
-        Dense(50, activation="sigmoid"),
-        Dense(dim*dim, activation="softmax")
-    ],
-    optimizer=optimizer, loss="categorical_crossentropy",name=name)
-
-
-def NN_3_20(input_dim, name="NN-50-25",classes=5,optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_3_20(input_dim, output_dim, name="NN-50-25",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
     return Model(model=[
         Dense(20, input_dim=input_dim, activation="relu"),
         Dense(10, activation="relu"),
-        Dense(classes, activation="softmax") # output layer
+        Dense(output_dim), # output layer
+        Activation('softmax')
     ],
     optimizer=optimizer, loss="categorical_crossentropy",name=name)
 
-
-def NN_90_50_25(name="NN-90-50",dim=5): # input -> linear(90) -> relu ->  ->linear(dim*dim) -> softmax
-    return Model(model=[
-        Dense(90, activation="sigmoid"),
-        Dense(50, activation="sigmoid"),
-        Dense(dim*dim, activation="softmax")
-    ],
-    optimizer=adam, loss="categorical_crossentropy",name=name,input_type=3)
 
 def CNN_25(name="CNN-25",dim=5):
     return Model(model=[
