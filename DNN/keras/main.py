@@ -9,6 +9,7 @@ from keras import losses
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
+        
 def test_network():
     dataman = Datamanager.Datamanager(classes=3,dataset="wine")
     sgd = SGD(lr=0.01)
@@ -76,7 +77,7 @@ def test_shapley_deepExplainer():
 def train_wine_model():
     """ Train wine model for testing other functions """
     dataman = Datamanager.Datamanager(dataset="wine")
-
+    
     sgd= SGD(lr=0.01)
     rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
     adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
@@ -90,7 +91,7 @@ def train_wine_model():
     model.store(50)
 
 def test_DeepExplain():
-    sgd= SGD(lr=0.01)
+    sgd = SGD(lr=0.01)
     rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
     adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     adagrad = Adagrad(lr=0.01, epsilon=None, decay=0.0)
@@ -136,7 +137,7 @@ def test_deepLift():
     # pip install git+https://github.com/marcoancona/DeepExplain.git#egg=deepexplain
     from deepexplain.tensorflow import DeepExplain
 
-    model = network.Model(name="wineI") # collect pretrained model from file
+    model = network.Model(name="wine") # collect pretrained model from file
     model.compile(loss=mse, optimizer=adam,metrics=['accuracy'])
 
     dataman = Datamanager.Datamanager(dataset="wine")
@@ -147,6 +148,26 @@ def test_deepLift():
     from deeplift.layers import NonLinearMxtsMode
     from deeplift.conversion import kerasapi_conversion as kc
 
+
+def test_anchors():
+    #pip install anchor_exp
+    #from anchor import utils as autils
+    import utils
+    from anchor import anchor_tabular
+
+    dataset_folder = "../../Data/"
+    dataset = utils.load_dataset("adult",balance=True, dataset_folder=dataset_folder)
+    #print(dataset.__dict__)
+    #model = network.Model(name="wine")
+    #dataman = Datamanager.Datamanager(dataset="wine")
+
+    # anchor stuffs
+    #explainer = anchor_tabular.AnchorTabularExplanier(dataman.class_name, dataman.feature_names, dataman.data)
+
+
+
 #train_wine_model()
 #test_network()
-test_DeepExplain()
+#test_DeepExplain()
+
+test_anchors()

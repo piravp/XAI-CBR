@@ -19,7 +19,7 @@ class Model():
             else:
                 raise ValueError("No filepath found from model name to load from")
             
-        else:
+        else: # We want to create a new model.
             if(type(model) == list):
                 self.model = Sequential(model) # model should be an keras model
             else:
@@ -83,10 +83,10 @@ class Model():
         self.model.fit(X,Y,shuffle=True,epochs=epochs,batch_size=batch_size, validation_split = 0.2) # assumes all data fit in memory.
         #self.model.train_on_batch(batch_size)
 
-    def train_batch(self, Datamanager):
+    def train_batch(self, datamanager:Datamanager.Datamanager, batch_size): # better for task requiring alot of memory
         # TODO: train with a loop
         
-        X,Y = datamanager.return_batch(self.input_type)# Return all data in CSV file. 
+        X,Y = datamanager.return_batch(batch_size)# Return all data in CSV file. 
         self.model.train_on_batch(X,Y)
 
     
@@ -131,7 +131,7 @@ def CNN_25(name="CNN-25",dim=5):
     Flatten(),
     Dense(dim*dim, activation="softmax") # 50 -> 25
     ],
-    optimizer=adam, loss="categorical_crossentropy",name=name,input_type=2)
+    optimizer=adam, loss="categorical_crossentropy",name=name, input_type=2)
 
 
 def try_training():
