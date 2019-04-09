@@ -91,12 +91,7 @@ def load_csv_dataset(data, target_idx, delimiter=',',
         disc = lime.lime_tabular.QuartileDiscretizer(data, #init discretiziser
                                                     categorical_features,
                                                     feature_names)
-        print(categorical_features, feature_names)
-        print(disc.to_discretize)
-        print(data[:,0][0:100])
         data = disc.discretize(data) # discretize all data
-        print(disc.names, disc.mins, disc.maxs)
-        print(data[:,0][0:100])
         ordinal_features = [x for x in range(data.shape[1]) # Loop trough number of cols (features)
                             if x not in categorical_features] # resulting list of features not catagorical.
         categorical_features = range(data.shape[1]) # get list corresponding to number of catecorical features.
@@ -121,28 +116,33 @@ def load_csv_dataset(data, target_idx, delimiter=',',
         labels = labels[idxs] # keep only corresonding indexes
         ret.data = data # store data in object
         ret.labels = labels # store labels in object
-    # Split data, into 2 parts, validation and training
+    # Split data, into 2 parts, training and validation 80/20 
     splits = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                 test_size=.2,
                                                 random_state=1)
+    # get first generated split indexes. 
     train_idx, test_idx = [x for x in splits.split(data)][0]
-    ret.train = data[train_idx]
-    ret.labels_train = ret.labels[train_idx]
-    # Split the remaining data into test and validation set.
+    ret.train = data[train_idx] # train_idx split used as training data
+    ret.labels_train = ret.labels[train_idx] # corresponding labels indexes data.
+
+    # Split the remaining validation data into test and validation set. 50/50
     cv_splits = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                     test_size=.5,
                                                     random_state=1)
+    #get first generated split indexes. 
     cv_idx, ntest_idx = [x for x in cv_splits.split(test_idx)][0]
-    cv_idx = test_idx[cv_idx]
-    test_idx = test_idx[ntest_idx]
+    cv_idx = test_idx[cv_idx] # select validation indexes split
+    test_idx = test_idx[ntest_idx] # select test index split
 
-    ret.validation = data[cv_idx]
-    ret.labels_validation = ret.labels[cv_idx]
-    ret.test = data[test_idx]
-    ret.labels_test = ret.labels[test_idx]
-    ret.test_idx = test_idx
-    ret.validation_idx = cv_idx
-    ret.train_idx = train_idx
+    # store datasets into bunch object. (directory object)
+    ret.validation = data[cv_idx] # store validation data directory
+    ret.labels_validation = ret.labels[cv_idx] # store corresponding labels.
+    ret.test = data[test_idx] # store test set data
+    ret.labels_test = ret.labels[test_idx] # store corresponding test labels
+
+    ret.test_idx = test_idx # store test_indexes
+    ret.validation_idx = cv_idx # store validation indexes
+    ret.train_idx = train_idx # store training indexes
 
     # ret.train, ret.test, ret.labels_train, ret.labels_test = (
     #     sklearn.cross_validation.train_test_split(data, ret.labels,
@@ -150,8 +150,8 @@ def load_csv_dataset(data, target_idx, delimiter=',',
     # ret.validation, ret.test, ret.labels_validation, ret.labels_test = (
     #     sklearn.cross_validation.train_test_split(ret.test, ret.labels_test,
     #                                               train_size=.5))
-    ret.data = data
-    return ret
+    ret.data = data # store all data.
+    return ret # return bunch object with all data.
 
 def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='../../Data/'):
     
@@ -224,7 +224,7 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
             14: lambda x: map_array_values(x, label_map),
         }
         dataset = load_csv_dataset(
-            os.path.join(dataset_folder, 'adult.csv'), -1, ', ',
+            os.path.join(dataset_folder, 'adult/adult.data'), -1, ', ',
             feature_names=feature_names, features_to_use=features_to_use,
             categorical_features=categorical_features, discretize=discretize,
             balance=balance, feature_transformations=transformations)
@@ -313,7 +313,6 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
             categorical_features=categorical_features, discretize=discretize,
             filter_fn=filter_fn, balance=True)
         dataset.class_names = ['Good Loan', 'Bad Loan']
-
 
     return dataset
 

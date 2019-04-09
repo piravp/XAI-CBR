@@ -1,15 +1,23 @@
-from keras.models import Sequential
+#from keras.models import Sequential
+from keras import Sequential
 from keras.layers import Dense, Conv2D, Flatten, Conv3D, Activation
 from keras import backend as K
 from keras.optimizers import SGD,Adam,Adagrad,RMSprop
 from keras.models import model_from_json
-import Datamanager # handle preprosessing and generating data
+import datamanager # handle preprosessing and generating data
 import os
 import misc
+import pathlib
 class Model():
+    def __del__(self):
+        print("Deleting Model class")
+
     def __init__(self, name, optimizer=None, loss=None, model=None):
         if(model is None): # we want to load from file instead.
-            modelpath = "models/"+name+"/"+name+".json"
+            #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
+
+            path = name+"/"+name+".json" # str path
+            modelpath = pathlib.Path(__file__).parent/"models"/path
             if(os.path.exists(modelpath)): # means we want to load model.
                 # We want to load model from file
                 self.model = self.load_model(modelpath)
@@ -33,6 +41,7 @@ class Model():
             # we need to make sure we have an optimizer etc.
             self.model.compile(loss=self.loss,optimizer=self.optimizer,metrics=['accuracy'])
         print(self.model.summary())
+
 
         #self.input_shape= (height, width, depth)
         #if(K.image_data_format()=="channels_first"):
@@ -78,19 +87,19 @@ class Model():
         if(os.path.isfile(filepath)): # this is the folder of the model
             self.model.load_weights(filepath) # load weights
 
-    def train(self, datamanager:Datamanager.Datamanager, epochs, batch_size):
+    def train(self, datamanager:datamanager.Datamanager, epochs, batch_size):
         X,Y = datamanager.return_keras()# Return all data in CSV file. 
         self.model.fit(X,Y,shuffle=True,epochs=epochs,batch_size=batch_size, validation_split = 0.2) # assumes all data fit in memory.
         #self.model.train_on_batch(batch_size)
 
-    def train_batch(self, datamanager:Datamanager.Datamanager, batch_size): # better for task requiring alot of memory
+    def train_batch(self, datamanager:datamanager.Datamanager, batch_size): # better for task requiring alot of memory
         # TODO: train with a loop
         
         X,Y = datamanager.return_batch(batch_size)# Return all data in CSV file. 
         self.model.train_on_batch(X,Y)
 
     
-    def evaluate(self, datamanager:Datamanager.Datamanager, batch_size=None, steps=None):
+    def evaluate(self, datamanager:datamanager.Datamanager, batch_size=None, steps=None):
         X,Y = datamanager.return_keras(self.input_type)
         score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
         print(score)

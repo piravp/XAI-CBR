@@ -3,7 +3,8 @@ from sklearn import preprocessing
 from collections import defaultdict
 import pandas as pd
 import misc # helper functions
-
+import os
+import pathlib
 class Datamanager():
     """ Responsible for handling data inputs to network during training, evaluation and preprossesing the data """ 
     def __init__(self, reduce=False, dataset=None, 
@@ -132,7 +133,6 @@ class Datamanager():
     def return_background(self, num): # return examples from training set.
         return self.validation_data[:num]
 
-
     def return_val(self):
         """ Return two tensors(inputs,targets) from validationset """
         data = self.validation_data 
@@ -172,7 +172,12 @@ class Datamanager():
             12)OD280/OD315 of diluted wines
             13)Proline    
         """
-        df = read_data_pd("../../Data/wine.csv",columns = columns)
+
+        #filename = os.path.join(pathlib.Path(__file__).parents[2], "Data/wine/wine.csv")
+        # Get path of parent nr 2, and append corresponding data path
+        filename = pathlib.Path(__file__).parents[2]/"Data/wine/wine.csv"
+        #os.path.
+        df = read_data_pd(filename,columns = columns)
 
         df.columns = columns # Add columns to dataframe.
         #Cov.columns = ["Sequence", "Start", "End", "Coverage"]
@@ -195,7 +200,7 @@ class Datamanager():
         #print(self.data_df.head())
         #self.df_train = df
 
-        return df_normalized,df_targets
+        return df_normalized, df_targets
 
     def adults(self):
         #39, State-gov, 77516, Bachelors, 13, Never-married, Adm-clerical, Not-in-family, White, Male, 2174, 0, 40, United-States, <=50K
