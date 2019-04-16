@@ -6,7 +6,7 @@ from keras.models import model_from_json
 import Datamanager # handle preprosessing and generating data
 import os
 import misc
-class Model():
+class Model(): # TODO: rename Model class to something else, since model.model is a pain to use
     def __init__(self, name, optimizer=None, loss=None, model=None):
         if(model is None): # we want to load from file instead.
             modelpath = "models/"+name+"/"+name+".json"
