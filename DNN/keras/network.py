@@ -104,7 +104,7 @@ class Model():
         score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
         print(score)
     
-    def predict(self,**kwargs): 
+    def predict(self,**kwargs): # use model to do a prediction.
         return self.model.predict(**kwargs)
 
 

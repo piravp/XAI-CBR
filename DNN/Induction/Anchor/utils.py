@@ -6,6 +6,7 @@ import lime.lime_tabular
 # import string
 import os
 import sys
+import pathlib
 
 class Bunch(object):
     """bla"""
@@ -15,11 +16,19 @@ class Bunch(object):
 def load_csv_dataset(data, target_idx, delimiter=',',
                     feature_names=None, categorical_features=None,
                     features_to_use=None, feature_transformations=None,
-                    discretize=False, balance=False, fill_na='-1', filter_function=None, skip_first=False):
+                    discretize=None, balance=False, fill_na='-1', filter_function=None, skip_first=False):
     """if not feature names, takes 1st line as feature names
     if not features_to_use, use all except for target
     if not categorical_features, consider everything < 20 as categorical
-    filter_function fn"""
+    filter_function fn
+    
+    Preprocess dataset:
+        transform features with mapping
+        fill Nan values
+        filter data
+        encode label
+
+    """
     if feature_transformations is None: # Dont transform anything
         feature_transformations = {}
     try: # load data from text file with missing values handled as specified.
@@ -87,10 +96,17 @@ def load_csv_dataset(data, target_idx, delimiter=',',
 
     data = data.astype(float) # transform data to float values.
     ordinal_features = []
-    if discretize: # ? turn continous values into discrete ranges (quartiles)
-        disc = lime.lime_tabular.QuartileDiscretizer(data, #init discretiziser
+    print(data)
+    if discretize is not None: # ? turn continous values into discrete ranges (quartiles)
+        print("Discretisize")
+        disc = lime.lime_tabular.EntropyDiscretizer(data,
                                                     categorical_features,
-                                                    feature_names)
+                                                    feature_names,
+                                                    labels=labels)
+
+        #disc = lime.lime_tabular.QuartileDiscretizer(data, #init discretiziser
+        #                                                categorical_features,
+        #                                                feature_names)
         data = disc.discretize(data) # discretize all data
         ordinal_features = [x for x in range(data.shape[1]) # Loop trough number of cols (features)
                             if x not in categorical_features] # resulting list of features not catagorical.
@@ -160,9 +176,10 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
                         "Education-Num", "Marital Status", "Occupation",
                         "Relationship", "Race", "Sex", "Capital Gain",
                         "Capital Loss", "Hours per week", "Country", 'Income']
-        features_to_use = [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        categorical_features = [1, 3, 5, 6, 7, 8, 9, 10, 11, 13]
-        education_map = {
+        features_to_use = [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13] # explode those not in list
+        categorical_features = [1, 3, 5, 6, 7, 8, 9, 10, 11, 13] # discrete features with predefined categories
+        # Simplification 
+        education_map = { # Simpliflication of dataset mapping.
             '10th': 'Dropout', '11th': 'Dropout', '12th': 'Dropout', '1st-4th':
             'Dropout', '5th-6th': 'Dropout', '7th-8th': 'Dropout', '9th':
             'Dropout', 'Preschool': 'Dropout', 'HS-grad': 'High School grad',
@@ -224,9 +241,9 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
             14: lambda x: map_array_values(x, label_map),
         }
         dataset = load_csv_dataset(
-            os.path.join(dataset_folder, 'adult/adult.data'), -1, ', ',
+            os.path.join(dataset_folder, 'adult/adult.data'), target_idx=-1, delimiter=', ',
             feature_names=feature_names, features_to_use=features_to_use,
-            categorical_features=categorical_features, discretize=discretize,
+            categorical_features=categorical_features, discretize=True,
             balance=balance, feature_transformations=transformations)
     elif dataset_name == 'diabetes':
         categorical_features = [2, 3, 4, 5, 6, 7, 8, 10, 11, 18, 19, 20, 22,
@@ -306,6 +323,7 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
         }
         features_to_use = [2, 12, 13, 19, 29, 35, 51, 52, 109]
         categorical_features = [12, 109]
+        #path = pathlib.Path(__file__).parents[3]
         dataset = load_csv_dataset(
             os.path.join(dataset_folder, 'lendingclub/LoanStats3a_securev1.csv'),
             16, ',',  features_to_use=features_to_use,

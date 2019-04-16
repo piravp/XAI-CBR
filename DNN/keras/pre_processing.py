@@ -5,18 +5,29 @@ import pandas as pd
 import misc # helper functions
 import os
 import pathlib
+from collections import defaultdict
+
+class Set(object): # Set of variables.
+    """ object that contain all variables we need """
+    def __init__(self, adict):
+        self.__dict__.update(adict)
+
 class Datamanager():
     """ Responsible for handling data inputs to network during training, evaluation and preprossesing the data """ 
     def __init__(self, reduce=False, dataset=None, 
     in_mod = 1, out_mod="one-hot", train_frac=0.9,freq_lim=3): # 90% to be used as training, 10 % testing/val
         self.in_mod,self.out_mod = in_mod,out_mod # decides input/output pattern
         self.dataset = dataset
-
         self.reduce = reduce 
+
+        # Directory to store the required variables.
+        self.ret = Set({}) #defaultdict() # create empty directory.
 
         # Preprocess dataset using assigned function. Dataset specific
         self.__pp_switcher = {
-            "wine":self.wine
+            "wine":self.wine,
+            "adults":self.adults,
+            "parity":self.parity
         }
 
         # format data to correct input format. Model specific
@@ -95,7 +106,7 @@ class Datamanager():
             return num
         return tot_size # Know we want all cases.
 
-    def return_mod(self,data_inputs,data_targets): # direct input to corresponding function
+    def return_mod(self, data_inputs, data_targets): # direct input to corresponding function
         # Depending on modus: 
         t_inputs = self.__i_switcher.get(self.in_mod)(data_inputs) # Get inputs in correct format
         # target is transformed from a number to a vector
@@ -144,8 +155,16 @@ class Datamanager():
         #return torch.from_numpy(np.array(data_inputs)).float(), torch.from_numpy(np.array(data_targets)).float()
         return self.return_mod(data_inputs = data[0], data_targets=data[1])
     
-    # Pre processing functions
-
+    #################################################
+    # Pre processing functions specific to datasets #
+    #   class_names: list of strings
+    #   feature_names: list of strings
+    #   data: used to build one hot encoder
+    #   categorical_names: map from integer to list of strings, names for each
+    #        value of the categorical features. Every feature that is not in
+    #        this map will be considered as ordinal, and thus discretized.
+    #    ordinal_features: list of integers, features that were/should be discretized.
+    #################################################
     def wine(self):
         """ Read whine dataset and preprosess"""
         # class: followed by 13 attributes as floats.
@@ -263,6 +282,12 @@ class Datamanager():
             d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
                             right=True).astype('|S128')
             return map_array_values(d, {'0': 'None', '1': 'Low', '2': 'High'})
+        
+        def priors_fn(x):
+            x = x.astype(float)
+            d = np.digitize(x, [-1, 0, 5, float('inf')],
+                            right=True).astype('|S128')
+            return map_array_values(d, {'0': 'UNKNOWN', '1': 'NO', '2': '1 to 5', '3': 'More than 5'})
 
         transformations = { # Mapping collumns to dict maps or functions.
             3: lambda x: map_array_values(x, education_map),
@@ -279,6 +304,49 @@ class Datamanager():
             feature_names=feature_names, features_to_use=features_to_use,
             categorical_features=categorical_features, discretize=discretize,
             balance=balance, feature_transformations=transformations)
+
+    def parity(self): # Requre a number and .
+        #num_bits, double=True
+        # Parity, is simly x number of bits
+        print("Using Parity...!")
+    #   class_names: list of strings
+    #   feature_names: list of strings
+    #   data: used to build one hot encoder
+    #   categorical_names: map from integer to list of strings, names for each
+    #        value of the categorical features. Every feature that is not in
+    #        this map will be considered as ordinal, and thus discretized.
+    #    ordinal_features: list of integers, features that were/should be discretized.
+        from Data import generator 
+        n_bits = 10
+        data = generator.gen_all_parity_cases(num_bits=n_bits,double=True)
+        data = pd.DataFrame(np.array(data))
+        df_attributes = data[0]
+        df_targets = data[1]
+        
+        #   df_normalized, df_targets
+        def capital_gain(x):
+            x = x.astype(float)
+            d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
+                                right=True).astype('|S128')
+            print(np.median(x[x > 0]))
+            print(d)
+
+        self.feature_names = ["bit-"+str(i) for i in range(n_bits)]
+
+        self.class_names = ["even","odd"] 
+        #label_map = {[1,0]: "even", [0,1]: "odd"}
+        self.categorical_features = [i for i in range(n_bits)] # all features are in this list
+        #self.ret.class_names = ["even","odd"] 
+        #   df_normalized, df_targets
+        capital_gain(np.array([1,2,5,10,2,3]))
+        transformations = {
+            #n_bits:label_map
+        }
+
+        exit()
+        return df_attributes, df_targets
+
+   
 
     def normal(self,data_inputs):
         # we transform to np.array and to torch
@@ -300,3 +368,10 @@ def read_data_pd(name,columns,encoding="latin-1"):
     data = pd.read_csv(name,delimiter=",",encoding=encoding) # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe5 in position 38: invalid continuation byte
     df = pd.DataFrame(data=data) # collect panda dataframes
     return df
+
+def map_array_values(array, value_map):
+    # value map must be { src : target }
+    ret = array.copy()
+    for src, target in value_map.items():
+        ret[ret == src] = target
+    return ret

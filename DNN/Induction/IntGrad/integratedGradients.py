@@ -24,27 +24,22 @@ for deep neuron networks".
 '''
 class integrated_gradients:
 
-    def __del__(self):
-        print("Deleting self")
-        print(self)
-        print(self.backend)
-        print(self.model)
-
     # model: Keras model that you wish to explain.
     # outchannels: In case the model are multi tasking, you can specify which output you want explain .
     def __init__(self, model, outchannels=[], verbose=1):
         
         #get backend info (either tensorflow or theano)
         self.backend = K.backend()
+        self.session = K.get_session()
+
+        print(self.session)
         
         #load model supports keras.Model and keras.Sequential
-        if isinstance(model, Sequential):
-            self.model = model.model
-        elif isinstance(model, Model):
+        if isinstance(model, (Sequential,Model)):
             self.model = model
         else:
             print("Invalid input model")
-            return -1
+            return
         
         #load input tensors
         self.input_tensors = []
@@ -111,7 +106,6 @@ class integrated_gradients:
         
         # If multiple inputs are present, feed them as list of np arrays. 
         if isinstance(sample, list):
-            print("Is list")
             #If reference is present, reference and sample size need to be equal.
             if reference != False: 
                 assert len(sample) == len(reference)
@@ -126,7 +120,6 @@ class integrated_gradients:
         
         # Or you can feed just a single numpy arrray. 
         elif isinstance(sample, np.ndarray):
-            print("Is nd.array")
             _output = integrated_gradients.linearly_interpolate(sample, reference, num_steps)
             samples.append(_output[0])
             numsteps.append(_output[1])
@@ -142,7 +135,7 @@ class integrated_gradients:
         for s in samples:
             _input.append(s)
         _input.append(0)
-        print("TEst 2")
+
         if K.backend() == "tensorflow": 
             gradients = self.get_gradients[outc](_input)
         elif K.backend() == "theano":
@@ -150,12 +143,11 @@ class integrated_gradients:
             if len(self.model.inputs) == 1:
                 gradients = [gradients]
 
-        print("Test 3")
         explanation = []
         for i in range(len(gradients)):
             _temp = np.sum(gradients[i], axis=0)
             explanation.append(np.multiply(_temp, step_sizes[i]))
-        print("Ex", explanation)
+        print("Explanation", explanation)
 
         # Format the return values according to the input sample.
         if isinstance(sample, list):
@@ -163,7 +155,6 @@ class integrated_gradients:
         elif isinstance(sample, np.ndarray):
             return explanation[0]
         return -1
-
     
     '''
     Input: numpy array of a sample
@@ -175,7 +166,8 @@ class integrated_gradients:
     @staticmethod
     def linearly_interpolate(sample, reference=False, num_steps=50):
         # Use default reference values if reference is not specified
-        if reference is False: reference = np.zeros(sample.shape);
+        if reference is False: 
+            reference = np.zeros(sample.shape)
 
         # Reference and sample shape needs to match exactly
         assert sample.shape == reference.shape

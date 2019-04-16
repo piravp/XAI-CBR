@@ -1,9 +1,14 @@
-from . import anchor_base
-from . import anchor_explanation
+#######################
+# Code from repository https://github.com/marcotcr/anchor/tree/master/anchor
+# Commented to fit our needs
+import anchor_base
+import anchor_explanation
 import utils
 
+# pip install lime
 import lime
 import lime.lime_tabular
+
 import collections
 import sklearn
 import numpy as np
@@ -28,7 +33,7 @@ class AnchorTabularExplainer(object):
         categorical_names: map from integer to list of strings, names for each
             value of the categorical features. Every feature that is not in
             this map will be considered as ordinal, and thus discretized.
-        ordinal_features: list of integers, features that were
+        ordinal_features: list of integers, features that were 
     """
     def __init__(self, class_names, feature_names, data=None,
                 categorical_names=None, ordinal_features=[]):
@@ -41,13 +46,16 @@ class AnchorTabularExplainer(object):
             # TODO: Check if this n_values is correct!!
             cat_names = sorted(categorical_names.keys())
             n_values = [len(categorical_names[i]) for i in cat_names]
+            print("encoder:",cat_names,n_values)
             self.encoder = sklearn.preprocessing.OneHotEncoder(
                 categorical_features=cat_names,
                 n_values=n_values)
             self.encoder.fit(data)
             self.categorical_features = self.encoder.categorical_features
+            #self.categorical_features = self.encoder.ColumnTransformer
         if len(ordinal_features) == 0:
             self.ordinal_features = [x for x in range(len(feature_names)) if x not in self.categorical_features]
+        # Init vars
         self.feature_names = feature_names
         self.class_names = class_names
         self.categorical_names = categorical_names
@@ -55,18 +63,42 @@ class AnchorTabularExplainer(object):
     def fit(self, train_data, train_labels, validation_data,
             validation_labels, discretizer='quartile'):
         """
-        bla
+        Fit the anchor_tabular object to the dataset, and discretize as needed.
+        Args:
+            train_data: numpy 2d array
+            train_labels: labels for training data. May be
+                used by discretizer.
+            feature_selection: feature selection method. can be
+                'forward_selection', 'lasso_path', 'none' or 'auto'.
+                See function 'explain_instance_with_data' in lime_base.py for
+                details on what each of the options does.
+            discretize_continuous: if True, all non-categorical features will
+                be discretized into quartiles.
+            discretizer:  Options are 'quartile', 'decile', 'entropy' or a BaseDiscretizer
+                instance.
+            sample_around_instance: if True, will sample continuous features
+                in perturbed samples from a normal centered at the instance
+                being explained. Otherwise, the normal is centered on the mean
+                of the feature data.
+            random_state: an integer or numpy.RandomState that will be used to
+                generate random numbers. If None, the random state will be
+                initialized using the internal numpy seed.
         """
-        self.min = {}
-        self.max = {}
-        self.std = {}
+        self.min = {} # min value
+        self.max = {} # max value
+        self.std = {} # standard deviation
+        # init variables
         self.train = train_data
         self.train_labels = train_labels
         self.validation = validation_data
         self.validation_labels = validation_labels
+        # Init StandarScalar, Standardize features by removing the mean and scaling to unit variance
         self.scaler = sklearn.preprocessing.StandardScaler()
+        # Compute the mean and std to be used for later scaling.
         self.scaler.fit(train_data)
-        if discretizer == 'quartile':
+        # Discretizise training_data with corresponding discretiziser
+        print(train_data)
+        if discretizer == 'quartile': 
             self.disc = lime.lime_tabular.QuartileDiscretizer(train_data,
                                                         self.categorical_features,
                                                         self.feature_names)
@@ -74,37 +106,52 @@ class AnchorTabularExplainer(object):
             self.disc = lime.lime_tabular.DecileDiscretizer(train_data,
                                                     self.categorical_features,
                                                     self.feature_names)
+        # Discretize with entropy, instead of percentiles. This will split on information gain, against the labels.
+        elif discretizer == 'entropy':
+            self.disc = lime.lime_tabular.EntropyDiscretizer(train_data,
+                                                    self.categorical_features,
+                                                    self.feature_names,
+                                                    labels=train_labels)
         else:
-            raise ValueError('Discretizer must be quartile or decile')
-
+            raise ValueError('Discretizer must be quartile, decile or entropy')
+        # Discretizise training and validation datasets
         self.d_train = self.disc.discretize(self.train)
         self.d_validation = self.disc.discretize(self.validation)
-        val = self.disc.discretize(validation_data)
+        print(self.d_train)
         self.categorical_names.update(self.disc.names)
-        self.ordinal_features = [x for x in range(val.shape[1])
+        # Ordinal_features is every feature that is not categorical. (that have been discretized)
+        self.ordinal_features = [x for x in range(self.d_validation.shape[1])
                             if x not in self.categorical_features]
         self.categorical_features += self.ordinal_features
 
-        for f in range(train_data.shape[1]):
+        for f in range(train_data.shape[1]): # for each feature. (column)
+            # if feature is categorical and not ordinal feature.
             if f in self.categorical_features and f not in self.ordinal_features:
                 continue
+            print("find min,max, std...")
             self.min[f] = np.min(train_data[:, f])
             self.max[f] = np.max(train_data[:, f])
             self.std[f] = np.std(train_data[:, f])
+        
+        # Print values, to check what we got.
 
 
     def sample_from_train(self, conditions_eq, conditions_neq, conditions_geq,
                         conditions_leq, num_samples, validation=True):
         """
-        bla
+        Select sample from training set, to be used to train?
         """
+        print("anchor_tab:sample_from_train",conditions_eq, conditions_neq, conditions_geq, conditions_leq)
+        # set training_set to self.train if not validations set present.
         train = self.train if not validation else self.validation
+        # set discretized training set to training if not discretized validation set present.
         d_train = self.d_train if not validation else self.d_validation
+        # Index of which training exaples to choose (rows), 
         idx = np.random.choice(range(train.shape[0]), num_samples,
-                            replace=True)
-        sample = train[idx]
-        d_sample = d_train[idx]
-        for f in conditions_eq:
+                            replace=True) # select n random unique index values in dataset.
+        sample = train[idx] # Select sample from dataset
+        d_sample = d_train[idx] # Select corresponding samples discretized
+        for f in conditions_eq: # 
             sample[:, f] = np.repeat(conditions_eq[f], num_samples)
         for f in conditions_geq:
             idx = d_sample[:, f] <= conditions_geq[f]
@@ -140,9 +187,9 @@ class AnchorTabularExplainer(object):
             sample[idx, f] = to_rep
         return sample
 
-
     def transform_to_examples(self, examples, features_in_anchor=[],
                             predicted_label=None):
+        print("anchor_tab:transform_to_examples")
         ret_obj = []
         if len(examples) == 0:
             return ret_obj
@@ -157,6 +204,7 @@ class AnchorTabularExplainer(object):
         return ret_obj
 
     def to_explanation_map(self, exp):
+        print("anchor_tab:to_explaintion_map")
         def jsonize(x): return json.dumps(x)
         instance = exp['instance']
         predicted_label = exp['prediction']
@@ -231,25 +279,26 @@ class AnchorTabularExplainer(object):
 
 
     def get_sample_fn(self, data_row, classifier_fn, desired_label=None):
-        def predict_fn(x):
+        print("anchor_tabular:get_sample_fn")
+        def predict_fn(x): # define function, to predict input predict(encode(input))
             return classifier_fn(self.encoder.transform(x))
-        true_label = desired_label
-        if true_label is None:
+        true_label = desired_label # 
+        if true_label is None: # If we don't know the labels of the input, do a prediction.
             true_label = predict_fn(data_row.reshape(1, -1))[0]
         # must map present here to include categorical features (for conditions_eq), and numerical features for geq and leq
         mapping = {}
         data_row = self.disc.discretize(data_row.reshape(1, -1))[0]
-        for f in self.categorical_features:
-            if f in self.ordinal_features:
+        for f in self.categorical_features: # for every feature that is categorical
+            if f in self.ordinal_features: # if the feature is a bin.
                 for v in range(len(self.categorical_names[f])):
                     idx = len(mapping)
                     if data_row[f] <= v and v != len(self.categorical_names[f]) - 1:
-                        mapping[idx] = (f, 'leq', v)
+                        mapping[idx] = (f, 'leq', v) # less than or equal to
                         # names[idx] = '%s <= %s' % (self.feature_names[f], v)
                     elif data_row[f] > v:
-                        mapping[idx] = (f, 'geq', v)
+                        mapping[idx] = (f, 'geq', v) # greater than or equal to
                         # names[idx] = '%s > %s' % (self.feature_names[f], v)
-            else:
+            else: # if the feature is categorical
                 idx = len(mapping)
                 mapping[idx] = (f, 'eq', data_row[f])
             # names[idx] = '%s = %s' % (
@@ -257,6 +306,7 @@ class AnchorTabularExplainer(object):
             #     self.categorical_names[f][int(data_row[f])])
 
         def sample_fn(present, num_samples, compute_labels=True, validation=True):
+            print("anchor_tabular:sample_fn", num_samples)
             conditions_eq = {}
             conditions_leq = {}
             conditions_geq = {}
@@ -298,6 +348,7 @@ class AnchorTabularExplainer(object):
                         max_anchor_size=None,
                         desired_label=None,
                           beam_size=4, **kwargs):
+        print("anchor_tabular:explain_instance !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         # It's possible to pass in max_anchor_size
         sample_fn, mapping = self.get_sample_fn(
             data_row, classifier_fn, desired_label=desired_label)
@@ -308,7 +359,10 @@ class AnchorTabularExplainer(object):
             **kwargs)
         self.add_names_to_exp(data_row, exp, mapping)
         exp['instance'] = data_row
+        # Store prediction from network, on dataset
+        print("data",data_row.reshape(1, -1))
         exp['prediction'] = classifier_fn(self.encoder.transform(data_row.reshape(1, -1)))[0]
+        print("exp_map",exp)
         explanation = anchor_explanation.AnchorExplanation('tabular', exp, self.as_html)
         return explanation
 
@@ -328,6 +382,7 @@ class AnchorTabularExplainer(object):
                 ordinal_ranges[f][0] = max(ordinal_ranges[f][0], v)
             if op == 'leq':
                 ordinal_ranges[f][1] = min(ordinal_ranges[f][1], v)
+        print(ordinal_ranges.values())        
         handled = set()
         for idx in idxs:
             f, op, v = mapping[idx]
