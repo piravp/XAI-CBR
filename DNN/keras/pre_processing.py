@@ -3,6 +3,14 @@ from sklearn import preprocessing
 from collections import defaultdict
 import pandas as pd
 import misc # helper functions
+import os
+import pathlib
+from collections import defaultdict
+
+class Set(object): # Set of variables.
+    """ object that contain all variables we need """
+    def __init__(self, adict):
+        self.__dict__.update(adict)
 
 class Datamanager():
     """ Responsible for handling data inputs to network during training, evaluation and preprossesing the data """ 
@@ -10,12 +18,16 @@ class Datamanager():
     in_mod = 1, out_mod="one-hot", train_frac=0.9,freq_lim=3): # 90% to be used as training, 10 % testing/val
         self.in_mod,self.out_mod = in_mod,out_mod # decides input/output pattern
         self.dataset = dataset
-
         self.reduce = reduce 
+
+        # Directory to store the required variables.
+        self.ret = Set({}) #defaultdict() # create empty directory.
 
         # Preprocess dataset using assigned function. Dataset specific
         self.__pp_switcher = {
-            "wine":self.wine
+            "wine":self.wine,
+            "adults":self.adults,
+            "parity":self.parity
         }
 
         # format data to correct input format. Model specific
@@ -94,7 +106,7 @@ class Datamanager():
             return num
         return tot_size # Know we want all cases.
 
-    def return_mod(self,data_inputs,data_targets): # direct input to corresponding function
+    def return_mod(self, data_inputs, data_targets): # direct input to corresponding function
         # Depending on modus: 
         t_inputs = self.__i_switcher.get(self.in_mod)(data_inputs) # Get inputs in correct format
         # target is transformed from a number to a vector
@@ -132,7 +144,6 @@ class Datamanager():
     def return_background(self, num): # return examples from training set.
         return self.validation_data[:num]
 
-
     def return_val(self):
         """ Return two tensors(inputs,targets) from validationset """
         data = self.validation_data 
@@ -144,13 +155,23 @@ class Datamanager():
         #return torch.from_numpy(np.array(data_inputs)).float(), torch.from_numpy(np.array(data_targets)).float()
         return self.return_mod(data_inputs = data[0], data_targets=data[1])
     
-    # Pre processing functions
-
+    #################################################
+    # Pre processing functions specific to datasets #
+    #   class_names: list of strings
+    #   feature_names: list of strings
+    #   data: used to build one hot encoder
+    #   categorical_names: map from integer to list of strings, names for each
+    #        value of the categorical features. Every feature that is not in
+    #        this map will be considered as ordinal, and thus discretized.
+    #    ordinal_features: list of integers, features that were/should be discretized.
+    #################################################
     def wine(self):
         """ Read whine dataset and preprosess"""
         # class: followed by 13 attributes as floats.
         self.classes=3
         self.input_dim=13
+        self.class_names = ["class 1","class 2","class 3"]
+        self.feature_names = ["alch","malic","ash","alcash","mag","phen","flav","nfphens","proant","color","hue","dil","prol"]
         # need to normalize
         """ Pre process wine dataset. return as [[0.1312,0.5,0.1,0.8],[0,0,1]] """
         columns = ["class","alch","malic","ash","alcash","mag","phen","flav","nfphens","proant","color","hue","dil","prol"]
@@ -170,7 +191,12 @@ class Datamanager():
             12)OD280/OD315 of diluted wines
             13)Proline    
         """
-        df = read_data_pd("../../Data/wine.csv",columns = columns)
+
+        #filename = os.path.join(pathlib.Path(__file__).parents[2], "Data/wine/wine.csv")
+        # Get path of parent nr 2, and append corresponding data path
+        filename = pathlib.Path(__file__).parents[2]/"Data/wine/wine.csv"
+        #os.path.
+        df = read_data_pd(filename,columns = columns)
 
         df.columns = columns # Add columns to dataframe.
         #Cov.columns = ["Sequence", "Start", "End", "Coverage"]
@@ -193,7 +219,134 @@ class Datamanager():
         #print(self.data_df.head())
         #self.df_train = df
 
-        return df_normalized,df_targets
+        return df_normalized, df_targets
+
+    def adults(self):
+        #39, State-gov, 77516, Bachelors, 13, Never-married, Adm-clerical, Not-in-family, White, Male, 2174, 0, 40, United-States, <=50K
+        # From https://github.com/marcotcr/anchor/blob/master/anchor/utils.py
+        feature_names = ["Age", "Workclass", "fnlwgt", "Education",
+                        "Education-Num", "Marital Status", "Occupation",
+                        "Relationship", "Race", "Sex", "Capital Gain",
+                        "Capital Loss", "Hours per week", "Country", 'Income']
+        features_to_use = [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13] # col 2 (state weighting?) and 4 (duplicate of 5), not usefull.
+        categorical_features = [1, 3, 5, 6, 7, 8, 9, 10, 11, 13] # features that are catagorical (non-continous)
+        education_map = { # Mapping between category (simplification)
+            '10th': 'Dropout', '11th': 'Dropout', '12th': 'Dropout', '1st-4th':
+            'Dropout', '5th-6th': 'Dropout', '7th-8th': 'Dropout', '9th':
+            'Dropout', 'Preschool': 'Dropout', 'HS-grad': 'High School grad',
+            'Some-college': 'High School grad', 'Masters': 'Masters',
+            'Prof-school': 'Prof-School', 'Assoc-acdm': 'Associates',
+            'Assoc-voc': 'Associates',
+        }
+        occupation_map = { # Mapping between category (simplification)
+            "Adm-clerical": "Admin", "Armed-Forces": "Military",
+            "Craft-repair": "Blue-Collar", "Exec-managerial": "White-Collar",
+            "Farming-fishing": "Blue-Collar", "Handlers-cleaners":
+            "Blue-Collar", "Machine-op-inspct": "Blue-Collar", "Other-service":
+            "Service", "Priv-house-serv": "Service", "Prof-specialty":
+            "Professional", "Protective-serv": "Other", "Sales":
+            "Sales", "Tech-support": "Other", "Transport-moving":
+            "Blue-Collar",
+        }
+        country_map = { # update old name mapping.
+            'Cambodia': 'SE-Asia', 'Canada': 'British-Commonwealth', 'China':
+            'China', 'Columbia': 'South-America', 'Cuba': 'Other',
+            'Dominican-Republic': 'Latin-America', 'Ecuador': 'South-America',
+            'El-Salvador': 'South-America', 'England': 'British-Commonwealth',
+            'France': 'Euro_1', 'Germany': 'Euro_1', 'Greece': 'Euro_2',
+            'Guatemala': 'Latin-America', 'Haiti': 'Latin-America',
+            'Holand-Netherlands': 'Euro_1', 'Honduras': 'Latin-America',
+            'Hong': 'China', 'Hungary': 'Euro_2', 'India':
+            'British-Commonwealth', 'Iran': 'Other', 'Ireland':
+            'British-Commonwealth', 'Italy': 'Euro_1', 'Jamaica':
+            'Latin-America', 'Japan': 'Other', 'Laos': 'SE-Asia', 'Mexico':
+            'Latin-America', 'Nicaragua': 'Latin-America',
+            'Outlying-US(Guam-USVI-etc)': 'Latin-America', 'Peru':
+            'South-America', 'Philippines': 'SE-Asia', 'Poland': 'Euro_2',
+            'Portugal': 'Euro_2', 'Puerto-Rico': 'Latin-America', 'Scotland':
+            'British-Commonwealth', 'South': 'Euro_2', 'Taiwan': 'China',
+            'Thailand': 'SE-Asia', 'Trinadad&Tobago': 'Latin-America',
+            'United-States': 'United-States', 'Vietnam': 'SE-Asia'
+        }
+        married_map = { # simplification mapping
+            'Never-married': 'Never-Married', 'Married-AF-spouse': 'Married',
+            'Married-civ-spouse': 'Married', 'Married-spouse-absent':
+            'Separated', 'Separated': 'Separated', 'Divorced':
+            'Separated', 'Widowed': 'Widowed'
+        }
+        # Label category mapping (common notation)
+        label_map = {'<=50K': 'Less than $50,000', '>50K': 'More than $50,000'}
+
+        def cap_gains_fn(x):
+            x = x.astype(float)
+            d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
+                            right=True).astype('|S128')
+            return map_array_values(d, {'0': 'None', '1': 'Low', '2': 'High'})
+        
+        def priors_fn(x):
+            x = x.astype(float)
+            d = np.digitize(x, [-1, 0, 5, float('inf')],
+                            right=True).astype('|S128')
+            return map_array_values(d, {'0': 'UNKNOWN', '1': 'NO', '2': '1 to 5', '3': 'More than 5'})
+
+        transformations = { # Mapping collumns to dict maps or functions.
+            3: lambda x: map_array_values(x, education_map),
+            5: lambda x: map_array_values(x, married_map),
+            6: lambda x: map_array_values(x, occupation_map),
+            10: cap_gains_fn,
+            11: cap_gains_fn,
+            13: lambda x: map_array_values(x, country_map),
+            14: lambda x: map_array_values(x, label_map),
+        }
+        # ?
+        dataset = load_csv_dataset(
+            os.path.join(dataset_folder, 'adult/adult.data'), target_idx=-1, delimiter=', ',
+            feature_names=feature_names, features_to_use=features_to_use,
+            categorical_features=categorical_features, discretize=discretize,
+            balance=balance, feature_transformations=transformations)
+
+    def parity(self): # Requre a number and .
+        #num_bits, double=True
+        # Parity, is simly x number of bits
+        print("Using Parity...!")
+    #   class_names: list of strings
+    #   feature_names: list of strings
+    #   data: used to build one hot encoder
+    #   categorical_names: map from integer to list of strings, names for each
+    #        value of the categorical features. Every feature that is not in
+    #        this map will be considered as ordinal, and thus discretized.
+    #    ordinal_features: list of integers, features that were/should be discretized.
+        from Data import generator 
+        n_bits = 10
+        data = generator.gen_all_parity_cases(num_bits=n_bits,double=True)
+        data = pd.DataFrame(np.array(data))
+        df_attributes = data[0]
+        df_targets = data[1]
+        
+        #   df_normalized, df_targets
+        def capital_gain(x):
+            x = x.astype(float)
+            d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
+                                right=True).astype('|S128')
+            print(np.median(x[x > 0]))
+            print(d)
+
+        self.feature_names = ["bit-"+str(i) for i in range(n_bits)]
+
+        self.class_names = ["even","odd"] 
+        #label_map = {[1,0]: "even", [0,1]: "odd"}
+        self.categorical_features = [i for i in range(n_bits)] # all features are in this list
+        #self.ret.class_names = ["even","odd"] 
+        #   df_normalized, df_targets
+        capital_gain(np.array([1,2,5,10,2,3]))
+        transformations = {
+            #n_bits:label_map
+        }
+
+        exit()
+        return df_attributes, df_targets
+
+   
 
     def normal(self,data_inputs):
         # we transform to np.array and to torch
@@ -215,3 +368,10 @@ def read_data_pd(name,columns,encoding="latin-1"):
     data = pd.read_csv(name,delimiter=",",encoding=encoding) # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe5 in position 38: invalid continuation byte
     df = pd.DataFrame(data=data) # collect panda dataframes
     return df
+
+def map_array_values(array, value_map):
+    # value map must be { src : target }
+    ret = array.copy()
+    for src, target in value_map.items():
+        ret[ret == src] = target
+    return ret

@@ -1,15 +1,23 @@
-from keras.models import Sequential
+#from keras.models import Sequential
+from keras import Sequential
 from keras.layers import Dense, Conv2D, Flatten, Conv3D, Activation
 from keras import backend as K
 from keras.optimizers import SGD,Adam,Adagrad,RMSprop
 from keras.models import model_from_json
-import Datamanager # handle preprosessing and generating data
+import datamanager # handle preprosessing and generating data
 import os
 import misc
-class Model(): # TODO: rename Model class to something else, since model.model is a pain to use
+import pathlib
+class Model():
+    def __del__(self):
+        print("Deleting Model class")
+
     def __init__(self, name, optimizer=None, loss=None, model=None):
         if(model is None): # we want to load from file instead.
-            modelpath = "models/"+name+"/"+name+".json"
+            #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
+
+            path = name+"/"+name+".json" # str path
+            modelpath = pathlib.Path(__file__).parent/"models"/path
             if(os.path.exists(modelpath)): # means we want to load model.
                 # We want to load model from file
                 self.model = self.load_model(modelpath)
@@ -19,7 +27,7 @@ class Model(): # TODO: rename Model class to something else, since model.model i
             else:
                 raise ValueError("No filepath found from model name to load from")
             
-        else:
+        else: # We want to create a new model.
             if(type(model) == list):
                 self.model = Sequential(model) # model should be an keras model
             else:
@@ -33,6 +41,7 @@ class Model(): # TODO: rename Model class to something else, since model.model i
             # we need to make sure we have an optimizer etc.
             self.model.compile(loss=self.loss,optimizer=self.optimizer,metrics=['accuracy'])
         print(self.model.summary())
+
 
         #self.input_shape= (height, width, depth)
         #if(K.image_data_format()=="channels_first"):
@@ -78,24 +87,24 @@ class Model(): # TODO: rename Model class to something else, since model.model i
         if(os.path.isfile(filepath)): # this is the folder of the model
             self.model.load_weights(filepath) # load weights
 
-    def train(self, datamanager:Datamanager.Datamanager, epochs, batch_size):
+    def train(self, datamanager:datamanager.Datamanager, epochs, batch_size):
         X,Y = datamanager.return_keras()# Return all data in CSV file. 
         self.model.fit(X,Y,shuffle=True,epochs=epochs,batch_size=batch_size, validation_split = 0.2) # assumes all data fit in memory.
         #self.model.train_on_batch(batch_size)
 
-    def train_batch(self, Datamanager):
+    def train_batch(self, datamanager:datamanager.Datamanager, batch_size): # better for task requiring alot of memory
         # TODO: train with a loop
         
-        X,Y = datamanager.return_batch(self.input_type)# Return all data in CSV file. 
+        X,Y = datamanager.return_batch(batch_size)# Return all data in CSV file. 
         self.model.train_on_batch(X,Y)
 
     
-    def evaluate(self, datamanager:Datamanager.Datamanager, batch_size=None, steps=None):
+    def evaluate(self, datamanager:datamanager.Datamanager, batch_size=None, steps=None):
         X,Y = datamanager.return_keras(self.input_type)
         score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
         print(score)
     
-    def predict(self,**kwargs): 
+    def predict(self,**kwargs): # use model to do a prediction.
         return self.model.predict(**kwargs)
 
 
@@ -131,7 +140,7 @@ def CNN_25(name="CNN-25",dim=5):
     Flatten(),
     Dense(dim*dim, activation="softmax") # 50 -> 25
     ],
-    optimizer=adam, loss="categorical_crossentropy",name=name,input_type=2)
+    optimizer=adam, loss="categorical_crossentropy",name=name, input_type=2)
 
 
 def try_training():
