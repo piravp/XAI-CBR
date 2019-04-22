@@ -55,15 +55,18 @@ def test_lore():
     print(evaluation.evaluate_explanation(x, blackbox, dfZ, dt, tree_path, leaf_nodes, bb_outcome, cc_outcome,
                             y_pred_bb, y_pred_cc, diff_outcome, dataset, explanation[1]))
 
-#   Step 1. 
+#   Step 1: 
 #       Preprocess dataset: Discretazise, and relable.
-#   Step 2
+#   Step 2:
 #       Fit the dataset to the explainer. 
-#   Step 3.
+#   Step 3:
 #       Fit BlackBox to the dataset.
-#   Step 4
-#
-#
+#   Step 4:
+#       Use explainer to explain decision of black-box.
+#   Step 5:
+#       Store explanation along with input/output in CBR system.
+#   Step 6:
+#       Utilise explanation/prediction on new problems.
 
 def test_anchors():
     import numpy as np
@@ -140,7 +143,7 @@ def test_anchors_nn():
     from DNN.keras import pre_processing
     print(pre_processing)
 
-    datamanager = pre_processing.Datamanager(dataset="parity")
+    datamanager = pre_processing.Datamanager(dataset="adults")
     
     #dataman = preprocessing.datamanager()
     exit()
@@ -256,8 +259,8 @@ def test_autoencoder():
 
 
 #test_lore()
-test_anchors()
-#test_anchors_nn()
+#test_anchors()
+test_anchors_nn()
 #test_integrated_gradients()
 
 #test_autoencoder()
