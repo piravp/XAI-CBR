@@ -61,12 +61,13 @@ def load_csv_dataset(data, target_idx, delimiter=',',
     for feature, function in feature_transformations.items():
         data[:, feature] = function(data[:, feature]) # Send each column at a time.
     print(data)
-    exit()
+
     labels = data[:, target_idx] # Select labels from data.
     le = sklearn.preprocessing.LabelEncoder() # init label encoder
     le.fit(labels) # fit label encoder
     ret.labels = le.transform(labels) # set store transformed labels with encoder.
     labels = ret.labels # swap original labels.
+
     ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
     ret.class_target = feature_names[target_idx] #
     if features_to_use is not None: # check if using all features.
@@ -82,7 +83,8 @@ def load_csv_dataset(data, target_idx, delimiter=',',
         if categorical_features: # if catagorical features
             categorical_features = ([x if x < target_idx else x - 1 # reshuffle indexes that are after removed label col
                                     for x in categorical_features]) # 0,1,2,x,4 -> 0,1,2,3 
-
+    
+    exit()
     if categorical_features is None: # If not any catagorical features.
         categorical_features = []
         for f in range(data.shape[1]): # select every column

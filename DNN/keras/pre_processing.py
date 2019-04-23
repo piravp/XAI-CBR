@@ -3,9 +3,9 @@ from sklearn import preprocessing
 from collections import defaultdict
 import pandas as pd
 import misc # helper functions
-import os
 import pathlib
 from collections import defaultdict
+import sklearn
 import lime
 class Set(object): # Set of variables.
     """ object that contain all variables we need for anchor etc"""
@@ -229,15 +229,17 @@ class Datamanager():
             except AttributeError:
                 return text
 
-        columns = ["Age", "Workclass", "fnlwgt", "Education",
-                        "Education-Num", "Marital Status", "Occupation",
-                        "Relationship", "Race", "Sex", "Capital Gain",
-                        "Capital Loss", "Hours per week", "Country", 'Income']
+        columns = ["age", "workclass", "fnlwgt", "education",
+                        "education-num", "marital status", "occupation",
+                        "relationship", "race", "sex", "capital gain",
+                        "capital loss", "hours per week", "country", 'income']
 
         #39, State-gov, 77516, Bachelors, 13, Never-married, Adm-clerical, Not-in-family, White, Male, 2174, 0, 40, United-States, <=50K
         # From https://github.com/marcotcr/anchor/blob/master/anchor/utils.py
         features_to_use = [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13] # col 2 (state weighting?) and 4 (duplicate of 5), not usefull.
         categorical_features = [1, 3, 5, 6, 7, 8, 9, 10, 11, 13] # features that are catagorical (non-continous)
+        non_categorical = [0, 10] # Rest are categorical
+        target_idx = 13
         education_map = smart_dict({ # Mapping between category (simplification)
             '10th': 'Dropout', '11th': 'Dropout', '12th': 'Dropout', '1st-4th':
             'Dropout', '5th-6th': 'Dropout', '7th-8th': 'Dropout', '9th':
@@ -297,65 +299,12 @@ class Datamanager():
         df = df[df.ne('?').all(1)] 
         df_test = df_test[df_test.ne('?').all(1)]
 
-        #print(df["Capital Gain"])
-
-        #print(df['Capital Loss'])
-
-        #labels = df.values[:,-1] # last index is the target values
-        #print(labels)
         """
         disc = lime.lime_tabular.EntropyDiscretizer(df.values,
                                                     categorical_features,
                                                     feature_names,
                                                     labels=labels)
         """
-
-
-        #TODO: Measure how many categories we should keep
-        #TODO: Fix cap_gain and cap_loss medial value discretization.
-
-        # Select column and only keep rows with value greater than 0, and calculate the median.
-        cap_gain_median = np.median(df[df['Capital Gain']>0]['Capital Gain'].values)    
-        cap_loss_median = np.median(df[df['Capital Loss']>0]['Capital Loss'].values)
-
-        print(cap_gain_median, cap_loss_median)
-
-
-        def cap_gains_fn(x):
-            pass
-
-        def cap_gain_fn(x, cap_gain_median): # one value at a time
-            x = np.float(x)
-            d = np.digitize(x,[0,cap_gain_median, float('inf')])
-            return cap_gain_map.get(d)
-            
-        def cap_gains_fn_old(x,cap_gain_median):
-            print("CAP_GAIN",type(x))
-            x = x.astype(float)
-            d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
-                            right=True).astype('|S128')
-            print(d)
-            return map_array_values(d,cap_gain_map)
-            #return cap_gain_map.get(d)
-
-        cap_gain = df['Capital Gain'].values
-        #print(cap_gain)
-
-        #cap_gains_fn_old(cap_gain, cap_gain_median)
-        #cap_gain_fn.applymap
-        #print(df[[3]])
-        #df[[10]] = df_test.iloc[:,[10]].applymap(cap_gain_fn)
-        #print(df[10])
-        #exit()
-        def cap_loss_fn(x):
-            x = np.float(x)
-            d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
-                            right=True).astype('|S128')
-            print(d)
-    
-            return cap_gain_map.get(d)
-
-
         transformations = { # Mapping collumns to dict maps or functions.
             3: lambda x: education_map.get(x), #3
             5: lambda x: married_map.get(x), # 5
@@ -364,21 +313,67 @@ class Datamanager():
             14: lambda x: label_map.get(x), # 14
         }
 
-        # We need to find the median from
-
-        # Transformation that must happen column wise
-        transformation_c = {
-            10: cap_gains_fn,
-            11: cap_gains_fn,
-        }
         # Apply transformation dictionary, with corresponding transformation functions to each item in column
-        data = df.values
         for feature, function in transformations.items(): # Aply mapping to each element in each column.
             df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function) # Apply transformer to each item in column.
             df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
 
+
+        # Select column and only keep rows with value greater than 0, and calculate the median.
+        cap_gain_median = np.median(df[df['capital gain']>0]['capital gain'].values)
+        cap_loss_median = np.median(df[df['capital loss']>0]['capital loss'].values)
+
+        def cap_gain_fn(x, median): # one value at a time
+            x = np.float(x)
+            d = np.digitize(x,[0, median, float('inf')],right=True).astype(str)
+            #print(d, cap_gain_map.items(), cap_gain_map.get(d))
+            return cap_gain_map.get(d)
+
+        def cap_loss_fn(x, median):
+            x = np.float(x)
+            d = np.digitize(x, [0, median, float('inf')],
+                            right=True).astype(str)
+            return cap_gain_map.get(d)
+
+        # Transformation that must happen column wise
+        transformation_c = {
+            10: lambda x: cap_gain_fn(x,cap_gain_median),
+            11: lambda x: cap_loss_fn(x,cap_loss_median),
+        }
+        # perform transformation to each element in features
         for feature, function in transformation_c.items():
-            pass
+            df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function)
+
+        #! Remove useless columns
+        #df = df.drop(columns=['fnlwgt','education-num'])
+        #df_test = df_test.drop(columns=['fnlwgt','education-num'])
+
+
+        labels = df.values[:,-1] # last index is the target values
+        labels_test = df.values[:,-1]
+        #print(labels)
+
+        le = sklearn.preprocessing.LabelEncoder() # init label encoder
+        le.fit(labels) # fit label encoder: targets -> encodings
+        self.ret.labels = le.transform(labels)
+        self.ret.labels_test = le.transform(labels_test)
+
+        self.ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
+        self.ret.class_target = columns[-1] # get column name of target
+
+        # Remove useless features.
+        df = df.drop(columns=['fnlwgt','education-num'])
+        df_test = df_test.drop(columns=['fnlwgt','education-num'])
+        
+        # Remove labels from data.
+        data = df.iloc[:, 0:12]
+
+        # Discretisize column age and hours per week.
+        print(categorical_features)
+        categorical_features = ([x if x < target_idx else x - 1 for x in categorical_features])
+        print(categorical_features)
+                
+        exit()
 
 
         # ?

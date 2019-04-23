@@ -147,7 +147,7 @@ def test_anchors_nn():
     
     #dataman = preprocessing.datamanager()
     exit()
-    dataset_folder = "Data/"+663
+    dataset_folder = "Data/"
 
     # get bunch object, with a dict containing interesting keypoints of the dataset.
     # training_set, validation_set, testing_set, feature_names, categories_per_feature etc.
