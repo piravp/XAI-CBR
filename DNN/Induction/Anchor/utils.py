@@ -56,16 +56,18 @@ def load_csv_dataset(data, target_idx, delimiter=',',
 
     if filter_function is not None: # Filter data if filter_function present
         data = filter_function(data)
-    
+    print(data)
     # Apply transformation dictionary, with corresponding transformation functions to each item (column)
     for feature, function in feature_transformations.items():
-        data[:, feature] = function(data[:, feature])
-    
+        data[:, feature] = function(data[:, feature]) # Send each column at a time.
+    print(data)
+
     labels = data[:, target_idx] # Select labels from data.
     le = sklearn.preprocessing.LabelEncoder() # init label encoder
     le.fit(labels) # fit label encoder
     ret.labels = le.transform(labels) # set store transformed labels with encoder.
     labels = ret.labels # swap original labels.
+
     ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
     ret.class_target = feature_names[target_idx] #
     if features_to_use is not None: # check if using all features.
@@ -81,7 +83,8 @@ def load_csv_dataset(data, target_idx, delimiter=',',
         if categorical_features: # if catagorical features
             categorical_features = ([x if x < target_idx else x - 1 # reshuffle indexes that are after removed label col
                                     for x in categorical_features]) # 0,1,2,x,4 -> 0,1,2,3 
-
+    
+    exit()
     if categorical_features is None: # If not any catagorical features.
         categorical_features = []
         for f in range(data.shape[1]): # select every column
@@ -226,9 +229,12 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
         label_map = {'<=50K': 'Less than $50,000', '>50K': 'More than $50,000'}
 
         def cap_gains_fn(x):
+            print(x,type(x))
             x = x.astype(float)
             d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
                             right=True).astype('|S128')
+            print(d)
+            exit()
             return map_array_values(d, {'0': 'None', '1': 'Low', '2': 'High'})
 
         transformations = {
