@@ -3,12 +3,12 @@ from sklearn import preprocessing
 from collections import defaultdict
 import pandas as pd
 import misc # helper functions
-import os
 import pathlib
 from collections import defaultdict
-
+import sklearn
+import lime
 class Set(object): # Set of variables.
-    """ object that contain all variables we need """
+    """ object that contain all variables we need for anchor etc"""
     def __init__(self, adict):
         self.__dict__.update(adict)
 
@@ -53,6 +53,7 @@ class Datamanager():
 
     def __init_data(self,train_frac): # split dataframe into training data and validation data sets
         """ Split dataframes into datasets"""
+        # TODO: Handle datasets with a test set aswell
         data = self.__pp_switcher.get(self.dataset)()  # (attri, targets)
         if(data is None): 
             raise ValueError("Couldn't preprocess dataset")
@@ -196,7 +197,7 @@ class Datamanager():
         # Get path of parent nr 2, and append corresponding data path
         filename = pathlib.Path(__file__).parents[2]/"Data/wine/wine.csv"
         #os.path.
-        df = read_data_pd(filename,columns = columns)
+        df = read_data_pd(filename,columns = columns, header=False)
 
         df.columns = columns # Add columns to dataframe.
         #Cov.columns = ["Sequence", "Start", "End", "Coverage"]
@@ -222,22 +223,31 @@ class Datamanager():
         return df_normalized, df_targets
 
     def adults(self):
+        def strip(text):
+            try:
+                return text.strip()
+            except AttributeError:
+                return text
+
+        columns = ["age", "workclass", "fnlwgt", "education",
+                        "education-num", "marital status", "occupation",
+                        "relationship", "race", "sex", "capital gain",
+                        "capital loss", "hours per week", "country", 'income']
+
         #39, State-gov, 77516, Bachelors, 13, Never-married, Adm-clerical, Not-in-family, White, Male, 2174, 0, 40, United-States, <=50K
         # From https://github.com/marcotcr/anchor/blob/master/anchor/utils.py
-        feature_names = ["Age", "Workclass", "fnlwgt", "Education",
-                        "Education-Num", "Marital Status", "Occupation",
-                        "Relationship", "Race", "Sex", "Capital Gain",
-                        "Capital Loss", "Hours per week", "Country", 'Income']
         features_to_use = [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13] # col 2 (state weighting?) and 4 (duplicate of 5), not usefull.
         categorical_features = [1, 3, 5, 6, 7, 8, 9, 10, 11, 13] # features that are catagorical (non-continous)
-        education_map = { # Mapping between category (simplification)
+        non_categorical = [0, 10] # Rest are categorical
+        target_idx = 13
+        education_map = smart_dict({ # Mapping between category (simplification)
             '10th': 'Dropout', '11th': 'Dropout', '12th': 'Dropout', '1st-4th':
             'Dropout', '5th-6th': 'Dropout', '7th-8th': 'Dropout', '9th':
             'Dropout', 'Preschool': 'Dropout', 'HS-grad': 'High School grad',
             'Some-college': 'High School grad', 'Masters': 'Masters',
             'Prof-school': 'Prof-School', 'Assoc-acdm': 'Associates',
-            'Assoc-voc': 'Associates',
-        }
+            'Assoc-voc': 'Associates','Bachelors':'Bachelors'
+        })
         occupation_map = { # Mapping between category (simplification)
             "Adm-clerical": "Admin", "Armed-Forces": "Military",
             "Craft-repair": "Blue-Collar", "Exec-managerial": "White-Collar",
@@ -275,35 +285,103 @@ class Datamanager():
             'Separated', 'Widowed': 'Widowed'
         }
         # Label category mapping (common notation)
-        label_map = {'<=50K': 'Less than $50,000', '>50K': 'More than $50,000'}
+        label_map = {'<=50K': 'Less than $50,000', '>50K': 'More than $50,000', '<=50K.': 'Less than $50,000', '>50K.': 'More than $50,000'}
 
-        def cap_gains_fn(x):
-            x = x.astype(float)
-            d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
-                            right=True).astype('|S128')
-            return map_array_values(d, {'0': 'None', '1': 'Low', '2': 'High'})
-        
-        def priors_fn(x):
-            x = x.astype(float)
-            d = np.digitize(x, [-1, 0, 5, float('inf')],
-                            right=True).astype('|S128')
-            return map_array_values(d, {'0': 'UNKNOWN', '1': 'NO', '2': '1 to 5', '3': 'More than 5'})
+        cap_gain_map = {'0': 'None', '1': 'Low', '2': 'High'} 
 
+        # Path to data folder.
+        filename = pathlib.Path(__file__).parents[2]/"Data/adult"
+        # Get both datasets (test and training)
+        df = read_data_pd(filename/"adult.data",header=None, columns = columns)
+        df_test = read_data_pd(name=filename/"adult.test",header=None, columns=columns)
+
+        # Remove every row that has a '?' as its value.
+        df = df[df.ne('?').all(1)] 
+        df_test = df_test[df_test.ne('?').all(1)]
+
+        """
+        disc = lime.lime_tabular.EntropyDiscretizer(df.values,
+                                                    categorical_features,
+                                                    feature_names,
+                                                    labels=labels)
+        """
         transformations = { # Mapping collumns to dict maps or functions.
-            3: lambda x: map_array_values(x, education_map),
-            5: lambda x: map_array_values(x, married_map),
-            6: lambda x: map_array_values(x, occupation_map),
-            10: cap_gains_fn,
-            11: cap_gains_fn,
-            13: lambda x: map_array_values(x, country_map),
-            14: lambda x: map_array_values(x, label_map),
+            3: lambda x: education_map.get(x), #3
+            5: lambda x: married_map.get(x), # 5
+            6: lambda x: occupation_map.get(x), # 6
+            13: lambda x: country_map.get(x), # 13
+            14: lambda x: label_map.get(x), # 14
         }
+
+        # Apply transformation dictionary, with corresponding transformation functions to each item in column
+        for feature, function in transformations.items(): # Aply mapping to each element in each column.
+            df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function) # Apply transformer to each item in column.
+            df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
+
+
+        # Select column and only keep rows with value greater than 0, and calculate the median.
+        cap_gain_median = np.median(df[df['capital gain']>0]['capital gain'].values)
+        cap_loss_median = np.median(df[df['capital loss']>0]['capital loss'].values)
+
+        def cap_gain_fn(x, median): # one value at a time
+            x = np.float(x)
+            d = np.digitize(x,[0, median, float('inf')],right=True).astype(str)
+            #print(d, cap_gain_map.items(), cap_gain_map.get(d))
+            return cap_gain_map.get(d)
+
+        def cap_loss_fn(x, median):
+            x = np.float(x)
+            d = np.digitize(x, [0, median, float('inf')],
+                            right=True).astype(str)
+            return cap_gain_map.get(d)
+
+        # Transformation that must happen column wise
+        transformation_c = {
+            10: lambda x: cap_gain_fn(x,cap_gain_median),
+            11: lambda x: cap_loss_fn(x,cap_loss_median),
+        }
+        # perform transformation to each element in features
+        for feature, function in transformation_c.items():
+            df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function)
+
+        #! Remove useless columns
+        #df = df.drop(columns=['fnlwgt','education-num'])
+        #df_test = df_test.drop(columns=['fnlwgt','education-num'])
+
+
+        labels = df.values[:,-1] # last index is the target values
+        labels_test = df.values[:,-1]
+        #print(labels)
+
+        le = sklearn.preprocessing.LabelEncoder() # init label encoder
+        le.fit(labels) # fit label encoder: targets -> encodings
+        self.ret.labels = le.transform(labels)
+        self.ret.labels_test = le.transform(labels_test)
+
+        self.ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
+        self.ret.class_target = columns[-1] # get column name of target
+
+        # Remove useless features.
+        df = df.drop(columns=['fnlwgt','education-num'])
+        df_test = df_test.drop(columns=['fnlwgt','education-num'])
+        
+        # Remove labels from data.
+        data = df.iloc[:, 0:12]
+
+        # Discretisize column age and hours per week.
+        print(categorical_features)
+        categorical_features = ([x if x < target_idx else x - 1 for x in categorical_features])
+        print(categorical_features)
+                
+        exit()
+
+
         # ?
-        dataset = load_csv_dataset(
-            os.path.join(dataset_folder, 'adult/adult.data'), target_idx=-1, delimiter=', ',
-            feature_names=feature_names, features_to_use=features_to_use,
-            categorical_features=categorical_features, discretize=discretize,
-            balance=balance, feature_transformations=transformations)
+        #dataset = load_csv_dataset(
+        #    os.path.join(dataset_folder, 'adult/adult.data'), target_idx=-1, delimiter=', ',
+        #    feature_names=feature_names, features_to_use=features_to_use,
+        #    categorical_features=categorical_features, discretize=discretize,
+        #    balance=balance, feature_transformations=transformations)
 
     def parity(self): # Requre a number and .
         #num_bits, double=True
@@ -346,7 +424,6 @@ class Datamanager():
         exit()
         return df_attributes, df_targets
 
-   
 
     def normal(self,data_inputs):
         # we transform to np.array and to torch
@@ -364,10 +441,11 @@ class Datamanager():
         """ Return output as a float, with each class coresponding to an fraction between 0 and 1 """
         pass
 
-def read_data_pd(name,columns,encoding="latin-1"):
-    data = pd.read_csv(name,delimiter=",",encoding=encoding) # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe5 in position 38: invalid continuation byte
-    df = pd.DataFrame(data=data) # collect panda dataframes
-    return df
+def read_data_pd(name,columns,header, encoding="latin-1"):
+    # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte
+    data = pd.read_csv(name, header=header, delimiter=",", encoding=encoding, skipinitialspace=True) 
+    data.columns = columns
+    return data
 
 def map_array_values(array, value_map):
     # value map must be { src : target }
@@ -375,3 +453,12 @@ def map_array_values(array, value_map):
     for src, target in value_map.items():
         ret[ret == src] = target
     return ret
+
+class smart_dict(dict):
+    def __init__(self,*arg,**kw):
+        super(smart_dict,self).__init__(*arg,**kw)
+    
+    def get(self,key):
+        if(super().get(key) is None):
+            return key
+        return super().get(key)
