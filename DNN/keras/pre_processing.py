@@ -6,16 +6,20 @@ import misc # helper functions
 import pathlib
 from collections import defaultdict
 import sklearn
-import lime
+#import lime
+from DNN.Induction.Anchor import discretize
 class Set(object): # Set of variables.
     """ object that contain all variables we need for anchor etc"""
     def __init__(self, adict):
         self.__dict__.update(adict)
 
+    def items(self):
+        return self.__dict__.items()
+
 class Datamanager():
     """ Responsible for handling data inputs to network during training, evaluation and preprossesing the data """ 
     def __init__(self, reduce=False, dataset=None, 
-    in_mod = 1, out_mod="one-hot", train_frac=0.9,freq_lim=3): # 90% to be used as training, 10 % testing/val
+    in_mod = "normal", out_mod="one-hot", train_frac=0.9,freq_lim=3): # 90% to be used as training, 10 % testing/val
         self.in_mod,self.out_mod = in_mod,out_mod # decides input/output pattern
         self.dataset = dataset
         self.reduce = reduce 
@@ -32,7 +36,7 @@ class Datamanager():
 
         # format data to correct input format. Model specific
         self.__i_switcher = {
-            1:self.normal,
+            "normal":self.normal,
         }
         
         # format data to correct output format. Model specific
@@ -54,10 +58,11 @@ class Datamanager():
     def __init_data(self,train_frac): # split dataframe into training data and validation data sets
         """ Split dataframes into datasets"""
         # TODO: Handle datasets with a test set aswell
-        data = self.__pp_switcher.get(self.dataset)()  # (attri, targets)
-        if(data is None): 
+        self.__pp_switcher.get(self.dataset)()  # (attri, targets)
+        if(self.ret.data is None):
             raise ValueError("Couldn't preprocess dataset")
-
+        return
+        # Assumes we reduce and split the dataset in individual preprocessing steps.
         if(self.reduce):
             train_num = self.return_num(train_frac, self.reduce)
         else:
@@ -77,7 +82,7 @@ class Datamanager():
         # We need to handle multi-attributes
         self.training_data = [attributes_t.values, target_t.values]
         self.validation_data = [attributes_v.values, target_v.values]
-    
+
 
     def __find_limit(self,classes, class_position):
         # We need to figure out number of instances in each class, and limit each class to the lowest amount
@@ -233,13 +238,12 @@ class Datamanager():
                         "education-num", "marital status", "occupation",
                         "relationship", "race", "sex", "capital gain",
                         "capital loss", "hours per week", "country", 'income']
-
         #39, State-gov, 77516, Bachelors, 13, Never-married, Adm-clerical, Not-in-family, White, Male, 2174, 0, 40, United-States, <=50K
         # From https://github.com/marcotcr/anchor/blob/master/anchor/utils.py
-        features_to_use = [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13] # col 2 (state weighting?) and 4 (duplicate of 5), not usefull.
-        categorical_features = [1, 3, 5, 6, 7, 8, 9, 10, 11, 13] # features that are catagorical (non-continous)
+        # col 2 (state weighting?) and 4 (duplicate of 5), not usefull.
+        columns_to_remove = ["fnlwgt","education-num"] # column names do we not want to keep
+        categorical_features = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11] # features that are catagorical (non-continous) after transform
         non_categorical = [0, 10] # Rest are categorical
-        target_idx = 13
         education_map = smart_dict({ # Mapping between category (simplification)
             '10th': 'Dropout', '11th': 'Dropout', '12th': 'Dropout', '1st-4th':
             'Dropout', '5th-6th': 'Dropout', '7th-8th': 'Dropout', '9th':
@@ -248,7 +252,7 @@ class Datamanager():
             'Prof-school': 'Prof-School', 'Assoc-acdm': 'Associates',
             'Assoc-voc': 'Associates','Bachelors':'Bachelors'
         })
-        occupation_map = { # Mapping between category (simplification)
+        occupation_map = smart_dict({ # Mapping between category (simplification)
             "Adm-clerical": "Admin", "Armed-Forces": "Military",
             "Craft-repair": "Blue-Collar", "Exec-managerial": "White-Collar",
             "Farming-fishing": "Blue-Collar", "Handlers-cleaners":
@@ -257,8 +261,8 @@ class Datamanager():
             "Professional", "Protective-serv": "Other", "Sales":
             "Sales", "Tech-support": "Other", "Transport-moving":
             "Blue-Collar",
-        }
-        country_map = { # update old name mapping.
+        })
+        country_map = smart_dict({ # update old name mapping.
             'Cambodia': 'SE-Asia', 'Canada': 'British-Commonwealth', 'China':
             'China', 'Columbia': 'South-America', 'Cuba': 'Other',
             'Dominican-Republic': 'Latin-America', 'Ecuador': 'South-America',
@@ -277,13 +281,13 @@ class Datamanager():
             'British-Commonwealth', 'South': 'Euro_2', 'Taiwan': 'China',
             'Thailand': 'SE-Asia', 'Trinadad&Tobago': 'Latin-America',
             'United-States': 'United-States', 'Vietnam': 'SE-Asia'
-        }
-        married_map = { # simplification mapping
+        })
+        married_map = smart_dict({ # simplification mapping
             'Never-married': 'Never-Married', 'Married-AF-spouse': 'Married',
             'Married-civ-spouse': 'Married', 'Married-spouse-absent':
             'Separated', 'Separated': 'Separated', 'Divorced':
             'Separated', 'Widowed': 'Widowed'
-        }
+        })
         # Label category mapping (common notation)
         label_map = {'<=50K': 'Less than $50,000', '>50K': 'More than $50,000', '<=50K.': 'Less than $50,000', '>50K.': 'More than $50,000'}
 
@@ -298,6 +302,10 @@ class Datamanager():
         # Remove every row that has a '?' as its value.
         df = df[df.ne('?').all(1)] 
         df_test = df_test[df_test.ne('?').all(1)]
+
+        # Remove None/Nan values from datasets.
+        df = df.dropna()
+        df_test = df_test.dropna()
 
         """
         disc = lime.lime_tabular.EntropyDiscretizer(df.values,
@@ -318,7 +326,6 @@ class Datamanager():
             df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function) # Apply transformer to each item in column.
             df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
 
-
         # Select column and only keep rows with value greater than 0, and calculate the median.
         cap_gain_median = np.median(df[df['capital gain']>0]['capital gain'].values)
         cap_loss_median = np.median(df[df['capital loss']>0]['capital loss'].values)
@@ -326,13 +333,14 @@ class Datamanager():
         def cap_gain_fn(x, median): # one value at a time
             x = np.float(x)
             d = np.digitize(x,[0, median, float('inf')],right=True).astype(str)
-            #print(d, cap_gain_map.items(), cap_gain_map.get(d))
+            d = str(d) # otherwise wont match to dictionary of strings
             return cap_gain_map.get(d)
 
         def cap_loss_fn(x, median):
             x = np.float(x)
             d = np.digitize(x, [0, median, float('inf')],
                             right=True).astype(str)
+            d = str(d) # otherwise wont match to dictionary of strings
             return cap_gain_map.get(d)
 
         # Transformation that must happen column wise
@@ -340,52 +348,111 @@ class Datamanager():
             10: lambda x: cap_gain_fn(x,cap_gain_median),
             11: lambda x: cap_loss_fn(x,cap_loss_median),
         }
+
         # perform transformation to each element in features
         for feature, function in transformation_c.items():
             df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function)
-
+            df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
         #! Remove useless columns
         #df = df.drop(columns=['fnlwgt','education-num'])
         #df_test = df_test.drop(columns=['fnlwgt','education-num'])
 
-
         labels = df.values[:,-1] # last index is the target values
-        labels_test = df.values[:,-1]
-        #print(labels)
+        labels_test = df_test.values[:,-1]
 
         le = sklearn.preprocessing.LabelEncoder() # init label encoder
         le.fit(labels) # fit label encoder: targets -> encodings
-        self.ret.labels = le.transform(labels)
+        self.ret.labels = le.transform(labels) # store encoded labels
         self.ret.labels_test = le.transform(labels_test)
 
         self.ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
         self.ret.class_target = columns[-1] # get column name of target
 
         # Remove useless features.
-        df = df.drop(columns=['fnlwgt','education-num'])
-        df_test = df_test.drop(columns=['fnlwgt','education-num'])
+        df = df.drop(columns=columns_to_remove)
+        df_test = df_test.drop(columns=columns_to_remove)
         
         # Remove labels from data.
-        data = df.iloc[:, 0:12]
+        data = df.iloc[:, 0:12] # All data excluding label/targets
+        data_test = df_test.iloc[:,0:12]
+        print(data.columns)
 
         # Discretisize column age and hours per week.
-        print(categorical_features)
-        categorical_features = ([x if x < target_idx else x - 1 for x in categorical_features])
-        print(categorical_features)
-                
-        exit()
+        non_categorical = [0,10] # features that need to be discretizised.
+        categorical_features = [f for f in range(data.shape[1]) if f not in non_categorical]
 
+        # ? Display information of dataset
+        #print(data.groupby('country').agg(['count','size','nunique']).stack())
 
-        # ?
-        #dataset = load_csv_dataset(
-        #    os.path.join(dataset_folder, 'adult/adult.data'), target_idx=-1, delimiter=', ',
-        #    feature_names=feature_names, features_to_use=features_to_use,
-        #    categorical_features=categorical_features, discretize=discretize,
-        #    balance=balance, feature_transformations=transformations)
+        # * Discretisize non_categorical features using Lime Discretizer
+        self.ret.feature_names = data.columns.values
+        print(self.ret.feature_names)
+        disc = discretize.EntropyDiscretizer(data.values,
+                                                    categorical_features,
+                                                    self.ret.feature_names,
+                                                    labels=self.ret.labels)
+        
+        #print(disc.discretize(data.values))
+        disc_data = disc.discretize(data.values)
+        disc_data_test = disc.discretize(data_test.values)
+
+        # replace the data with the discretisized features from non_categorical
+        for feature in non_categorical:
+            data.iloc[:,feature] = disc_data[:,feature]
+            data_test.iloc[:,feature] = disc_data_test[:,feature]
+
+        ordinal_features = [x for x in range(data.shape[1])
+                            if x not in categorical_features]
+
+        # Create category mappings labels
+        categorical_names = {} 
+        for feature in categorical_features:
+            le = sklearn.preprocessing.LabelEncoder() # init label encoder
+            le.fit(data.iloc[:,feature]) # use column value as label encoder
+            data.iloc[:,feature] = le.transform(data.iloc[:,feature].astype(str))
+            data_test.iloc[:,feature] = le.transform(data_test.iloc[:,feature].astype(str))
+            #data.values[:,feature] = le.transform(data.values[:,feature])
+            categorical_names[feature] = le.classes_
+        categorical_names.update(disc.names) # update categorical_names with the discretized dict
+
+        # fill return Set
+        self.ret.ordinal_features = ordinal_features
+        self.ret.categorical_features = categorical_features
+        self.ret.categorical_names = categorical_names
+        self.ret.feature_names = df.columns.values
+
+        # Split part of training_set into validation.
+        np.random.seed(1) # reprodusabiliy
+
+        # We don't bother with balancing the dataset.
+        # ? Display information of the dataset
+        # print(df.groupby('income').agg(['count','size','nunique']).stack())
+
+        # Init splitter
+        split = sklearn.model_selection.ShuffleSplit(n_splits=1,
+                                                    test_size=0.5,
+                                                    random_state=1)
+
+        self.ret.data_train = data
+        self.ret.labels_train = self.ret.labels
+
+        # Split test dataset into test and validation set, 50/50.
+        test_idx, val_idx = [x for x in split.split(data_test.values)][0]
+        # Select data rows by index from datasets, with corresponding labels.
+        self.ret.data_test = data_test.values[test_idx]
+        self.ret.test_labels = self.ret.labels_test[test_idx]
+
+        self.ret.data_validation = data_test.values[val_idx]
+        self.ret.validation_labels = self.ret.labels_test[val_idx]
+        # Store indexes used.
+        self.ret.test_idx = test_idx
+        self.ret.validation_idx = val_idx
+        self.ret.train_idx = np.array(range(data.shape[0]))
+
 
     def parity(self): # Requre a number and .
-        #num_bits, double=True
-        # Parity, is simly x number of bits
+    #num_bits, double=True
+    # Parity, is simly x number of bits
         print("Using Parity...!")
     #   class_names: list of strings
     #   feature_names: list of strings

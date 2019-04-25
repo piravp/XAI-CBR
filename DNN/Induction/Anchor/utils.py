@@ -27,7 +27,6 @@ def load_csv_dataset(data, target_idx, delimiter=',',
         fill Nan values
         filter data
         encode label
-
     """
     if feature_transformations is None: # Dont transform anything
         feature_transformations = {}
@@ -56,12 +55,11 @@ def load_csv_dataset(data, target_idx, delimiter=',',
 
     if filter_function is not None: # Filter data if filter_function present
         data = filter_function(data)
-    print(data)
+
     # Apply transformation dictionary, with corresponding transformation functions to each item (column)
     for feature, function in feature_transformations.items():
         data[:, feature] = function(data[:, feature]) # Send each column at a time.
-    print(data)
-
+    
     labels = data[:, target_idx] # Select labels from data.
     le = sklearn.preprocessing.LabelEncoder() # init label encoder
     le.fit(labels) # fit label encoder
@@ -84,13 +82,13 @@ def load_csv_dataset(data, target_idx, delimiter=',',
             categorical_features = ([x if x < target_idx else x - 1 # reshuffle indexes that are after removed label col
                                     for x in categorical_features]) # 0,1,2,x,4 -> 0,1,2,3 
     
-    exit()
     if categorical_features is None: # If not any catagorical features.
         categorical_features = []
         for f in range(data.shape[1]): # select every column
             if len(np.unique(data[:, f])) < 20: # if less than 20 unique values, treat as catagorical feature.
                 categorical_features.append(f)
     categorical_names = {} # catagorical_names
+
     for feature in categorical_features:
         le = sklearn.preprocessing.LabelEncoder() # init label encoder
         le.fit(data[:, feature]) # use column values as label encoding
@@ -99,7 +97,7 @@ def load_csv_dataset(data, target_idx, delimiter=',',
 
     data = data.astype(float) # transform data to float values.
     ordinal_features = []
-    print(data)
+
     if discretize is not None: # ? turn continous values into discrete ranges (quartiles)
         print("Discretisize")
         disc = lime.lime_tabular.EntropyDiscretizer(data,
@@ -135,7 +133,7 @@ def load_csv_dataset(data, target_idx, delimiter=',',
         labels = labels[idxs] # keep only corresonding indexes
         ret.data = data # store data in object
         ret.labels = labels # store labels in object
-    # Split data, into 2 parts, training and validation 80/20 
+    # Split data, into 2 parts, training and test 80/20 
     splits = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                 test_size=.2,
                                                 random_state=1)
@@ -144,7 +142,7 @@ def load_csv_dataset(data, target_idx, delimiter=',',
     ret.train = data[train_idx] # train_idx split used as training data
     ret.labels_train = ret.labels[train_idx] # corresponding labels indexes data.
 
-    # Split the remaining validation data into test and validation set. 50/50
+    # Split the remaining test data into test and validation set. 50/50
     cv_splits = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                     test_size=.5,
                                                     random_state=1)
@@ -229,12 +227,9 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
         label_map = {'<=50K': 'Less than $50,000', '>50K': 'More than $50,000'}
 
         def cap_gains_fn(x):
-            print(x,type(x))
             x = x.astype(float)
             d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
                             right=True).astype('|S128')
-            print(d)
-            exit()
             return map_array_values(d, {'0': 'None', '1': 'Low', '2': 'High'})
 
         transformations = {
@@ -306,7 +301,6 @@ def load_dataset(dataset_name, balance=False, discretize=True, dataset_folder='.
             16: lambda x: replace_binary_values(x, ['No more crimes',
                                                     'Re-arrested'])
         }
-
         dataset = load_csv_dataset(
             os.path.join(dataset_folder, 'recidivism/Data_1980.csv'), 16,
             feature_names=feature_names, discretize=discretize,
