@@ -42,7 +42,8 @@ class Datamanager():
         # format data to correct output format. Model specific
         self.__o_switcher = {
             "one-hot":self.one_hot_vector,
-            "float":self.float_value
+            "float":self.float_value,
+            "normal":self.normal
         }
 
         #self.__find_limit() # find minimum number of classes.
@@ -55,33 +56,13 @@ class Datamanager():
 
         # We need to limit the data to our limit.
 
-    def __init_data(self,train_frac): # split dataframe into training data and validation data sets
+    def __init_data(self,train_frac): # Init data preprocessesing.
         """ Split dataframes into datasets"""
-        # TODO: Handle datasets with a test set aswell
         self.__pp_switcher.get(self.dataset)()  # (attri, targets)
-        if(self.ret.data is None):
+        if(self.ret.data_train is None):
             raise ValueError("Couldn't preprocess dataset")
         return
-        # Assumes we reduce and split the dataset in individual preprocessing steps.
-        if(self.reduce):
-            train_num = self.return_num(train_frac, self.reduce)
-        else:
-            # We want to split self.data into training and val.
-            train_num = self.return_num(train_frac, len(data[0]))
-        # Last column is the classes
-        # to use keras.fit function, we need everything in same
-        self.data_t = [data[0].values,data[1].values]
-
-        # we need to convert dataframe into the lists.
-        attributes_t = data[0][:train_num] # [0,train_num>
-        attributes_v = data[0][train_num:] # [train_num, end]
-        
-        target_t = data[1][:train_num] # [train_num, end] 
-        target_v = data[1][train_num:] # [0,train_num>
-
-        # We need to handle multi-attributes
-        self.training_data = [attributes_t.values, target_t.values]
-        self.validation_data = [attributes_v.values, target_v.values]
+        # TODO: check if we have validation and test dataset.
 
 
     def __find_limit(self,classes, class_position):
@@ -122,30 +103,26 @@ class Datamanager():
         return t_inputs, t_targets
 
     def return_batch(self, batch_size):
-        """ Return two tensors(inputs, targets) of size batch_size from training_data"""
+        """ Return two tensors(inputs, targets) of size batch_size from training dataset"""
 
-        #Handle converting data to correct network innput, CNN takes 3 channels.
-        # Non CNN takes current setting.
-        data = self.training_data # only train on data seperate from validation_set.
-        tot_size = len(self.training_data[0]) # Number of cases we got.
-        if(tot_size == 0):
-            raise ValueError("No training data")
-        # Num, is the amount of data we send back.)
-        num = self.return_num(batch_size, tot_size)
-        # Randomly select num unique cases
-        idx = np.random.choice(np.arange(tot_size),size=num,replace=False)
-        #ndata = np.array(data[1])
-        #idata = np.array(data[0])
-        #print(ndata[idx])
-        #print(idata[idx])
-        # split input and target
-        data_inputs = data[0][idx]
-        data_targets = data[1][idx]
-        #return torch.from_numpy(np.array(data_inputs)).float(), torch.from_numpy(np.array(data_targets)).float()
-        return self.return_mod(data_inputs,data_targets)
+        tot_size = self.ret.data_train.shape[0]
+
+        if(batch_size <= 0): # if 0 or smaller
+            raise ValueError("Batch size must be greater than 0")
+
+        num = self.return_num(batch_size, tot_size) # return how many we should return
+        idx = np.random.choice(np.arange(tot_size), size=num, replace=True) # Only want unique indexes
+
+        data_inputs = self.ret.data_train[idx]
+        data_targets = self.ret.train_labels[idx]
+
+        return self.return_mod(data_inputs, data_targets)
     
-    def return_keras(self): # return all data we have.
-        return self.return_mod(self.data_t[0],self.data_t[1])
+    def return_keras(self): # return all data we have. From train
+        return self.return_mod(self.ret.data_train, self.ret.train_labels)
+
+    def return_keras_val(self):
+        return self.return_mod(self.ret.data_validation, self.ret.validation_labels)
 
     def return_background(self, num): # return examples from training set.
         return self.validation_data[:num]
@@ -366,7 +343,7 @@ class Datamanager():
         self.ret.labels_test = le.transform(labels_test)
 
         self.ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
-        self.ret.class_target = columns[-1] # get column name of target
+        #self.ret.class_target = columns[-1] # get column name of target
 
         # Remove useless features.
         df = df.drop(columns=columns_to_remove)
@@ -375,7 +352,7 @@ class Datamanager():
         # Remove labels from data.
         data = df.iloc[:, 0:12] # All data excluding label/targets
         data_test = df_test.iloc[:,0:12]
-        print(data.columns)
+        #print(data.columns)
 
         # Discretisize column age and hours per week.
         non_categorical = [0,10] # features that need to be discretizised.
@@ -386,7 +363,7 @@ class Datamanager():
 
         # * Discretisize non_categorical features using Lime Discretizer
         self.ret.feature_names = data.columns.values
-        print(self.ret.feature_names)
+        #print(self.ret.feature_names)
         disc = discretize.EntropyDiscretizer(data.values,
                                                     categorical_features,
                                                     self.ret.feature_names,
@@ -412,7 +389,7 @@ class Datamanager():
             data.iloc[:,feature] = le.transform(data.iloc[:,feature].astype(str))
             data_test.iloc[:,feature] = le.transform(data_test.iloc[:,feature].astype(str))
             #data.values[:,feature] = le.transform(data.values[:,feature])
-            categorical_names[feature] = le.classes_
+            categorical_names[feature] = list(le.classes_)
         categorical_names.update(disc.names) # update categorical_names with the discretized dict
 
         # fill return Set
@@ -432,9 +409,9 @@ class Datamanager():
         split = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                     test_size=0.5,
                                                     random_state=1)
-
-        self.ret.data_train = data
-        self.ret.labels_train = self.ret.labels
+        # All numpy arrays.
+        self.ret.data_train = data.values 
+        self.ret.train_labels = self.ret.labels
 
         # Split test dataset into test and validation set, 50/50.
         test_idx, val_idx = [x for x in split.split(data_test.values)][0]
@@ -448,7 +425,7 @@ class Datamanager():
         self.ret.test_idx = test_idx
         self.ret.validation_idx = val_idx
         self.ret.train_idx = np.array(range(data.shape[0]))
-
+        self.classes = 2
 
     def parity(self): # Requre a number and .
     #num_bits, double=True
@@ -491,7 +468,6 @@ class Datamanager():
         exit()
         return df_attributes, df_targets
 
-
     def normal(self,data_inputs):
         # we transform to np.array and to torch
         if(isinstance(data_inputs,np.ndarray)):
@@ -499,7 +475,7 @@ class Datamanager():
         return np.array(data_inputs)
 
     def one_hot_vector(self,data_targets):
-        """ Return output as one_hot_vector """
+        """ Return output as one_hot_vector. classes = 2, 0-> [0,1], 1 -> [1,0] """
         data_targets = np.array([misc.int_to_one_hot_vector(int(item), size=self.classes, zero_offset=1) for item in data_targets])
         #data_targets = data_targets.apply(lambda item: misc.int_to_one_hot_vector(int(item), size=self.classes, zero_offset=1))# 
         return data_targets
@@ -507,6 +483,7 @@ class Datamanager():
     def float_value(self,data_targets):
         """ Return output as a float, with each class coresponding to an fraction between 0 and 1 """
         pass
+
 
 def read_data_pd(name,columns,header, encoding="latin-1"):
     # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte
@@ -520,6 +497,7 @@ def map_array_values(array, value_map):
     for src, target in value_map.items():
         ret[ret == src] = target
     return ret
+
 
 class smart_dict(dict):
     def __init__(self,*arg,**kw):

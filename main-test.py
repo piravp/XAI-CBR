@@ -69,12 +69,13 @@ def test_lore():
 #       Utilise explanation/prediction on new problems.
 
 def test_anchors():
+    import anchor
     import numpy as np
     # ! Old imports
     #pip install anchor_exp
-    #from anchor import utils
+    from anchor import utils, anchor_tabular
     #from DNN.Induction import Anchor
-    from DNN.Induction.Anchor import anchor_tabular, utils
+    #from DNN.Induction.Anchor import anchor_tabular, utils
     dataset_folder = "Data/"
 
     # get bunch object, with a dict containing interesting keypoints of the dataset.
@@ -85,7 +86,7 @@ def test_anchors():
     print(dataset.categorical_names)
     explainer = anchor_tabular.AnchorTabularExplainer(dataset.class_names, dataset.feature_names, dataset.data, dataset.categorical_names)
     explainer.fit(dataset.train, dataset.labels_train, dataset.validation, dataset.labels_validation,
-    discretizer='entropy')
+    discretizer='quartile')
     print(explainer.encoder)
     print(explainer.encoder.transform)
     #print(dataset.__dict__)
@@ -141,50 +142,109 @@ def test_anchors_nn():
     from DNN.Induction.Anchor import anchor_tabular, utils
 
     from DNN.keras import pre_processing
-    print(pre_processing)
-
-    datamanager = pre_processing.Datamanager(dataset="adults")
-    
-    #dataman = preprocessing.datamanager()
-    exit()
     dataset_folder = "Data/"
+    dataset_2 = utils.load_dataset("adult",balance=True, dataset_folder=dataset_folder)
+    datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
+    dataset = datamanager.ret
 
-    # get bunch object, with a dict containing interesting keypoints of the dataset.
-    # training_set, validation_set, testing_set, feature_names, categories_per_feature etc.
-    dataset = utils.load_dataset("adult", balance=True, dataset_folder=dataset_folder)
+    # TODO: Finn ulikhet i dataset som foresaker feil..
+    print(dataset_2.class_names)
+    print(dataset.class_names)
 
-    print(dataset.__dict__.keys())
+    print(dataset_2.labels)
+    print(dataset.labels)
 
-    explainer = anchor_tabular.AnchorTabularExplainer(dataset.class_names, dataset.feature_names, dataset.data ,dataset.categorical_names)
-    explainer.fit(dataset.train, dataset.labels_train, dataset.validation, dataset.labels_validation)
+    print(dataset_2.categorical_features)
+    print(dataset.categorical_features)
+
+    print(dataset_2.categorical_names)
+    print(dataset.categorical_names)
+
+    print(dataset_2.ordinal_features)
+    print(dataset.ordinal_features)
+
+    print(dataset_2.feature_names)
+    print(dataset.feature_names)
+
+    print(dataset_2.train,type(dataset_2.train),type(dataset_2.train[0]),type(dataset_2.train[0][0]))
+    print(dataset.data_train,type(dataset.data_train),type(dataset.data_train[0]),type(dataset.data_train[0][0]))
+
+
+    exit()
+    #dataman = preprocessing.datamanager()
+
+    # Fit the explainer to the dataset. 
+    explainer = anchor_tabular.AnchorTabularExplainer(
+        dataset.class_names, dataset.feature_names,
+        dataset.data_train, dataset.categorical_names)
+        
+    explainer.fit(dataset.data_train, dataset.train_labels, 
+                dataset.data_validation, dataset.validation_labels)
+
     print(explainer.encoder.transform)
     print(explainer.disc)
     #print(dataset.__dict__)
     #model = network.Model(name="wine")
     #dataman = Datamanager.Datamanager(dataset="wine")
-    import sklearn
+    """import sklearn
     from sklearn.ensemble import RandomForestClassifier
     model = RandomForestClassifier(n_estimators=50, n_jobs=5)
-    print(model)
-    model.fit(explainer.encoder.transform(dataset.train), dataset.labels_train)
-    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) # use the explainer.encoder to transform the data first.
-    print('Train', sklearn.metrics.accuracy_score(dataset.labels_train, predict_fn(dataset.train)))
-    print('Test', sklearn.metrics.accuracy_score(dataset.labels_test, predict_fn(dataset.test)))
+    print(model)"""
+    print(dataset.data_train[0])
+    print(explainer.encoder.transform(dataset.data_train)[0].shape)
+    print(explainer.encoder.transform(dataset.data_train)[0].toarray())
+    print(explainer.encoder.transformers[0])
 
-    # Anchor
+    from DNN.keras import network
+
+    nn = network.NN_adult_2(71,1)
+    nn.train_anchor(explainer.encoder.transform(dataset.data_train), dataset.train_labels,
+        explainer.encoder.transform(dataset.data_validation), dataset.validation_labels,
+        epochs=1, batch_size=100)
+    # ? Load pretrained model..
+    #model = network.Model(name="adults")
+    predict_fn = lambda i: nn.predict_classes(x=explainer.encoder.transform(i)) # use the explainer.encoder to transform the data first.
+
     idx = 0
-    #np.random.seed(1)
-    print(dataset.test[idx])
-    print(dataset.test[idx].reshape(1,-1))
-
-    print("prediction: ", explainer.class_names[predict_fn(dataset.test[idx].reshape(1,-1))[0]]) # predict on the first datapoint    
-    exp = explainer.explain_instance(dataset.test[idx], model.predict, threshold=0.95)
+    np.random.seed(1)
+    print(predict_fn(dataset.data_test[idx].reshape(1,-1))[0])
+    prediction = predict_fn(dataset.data_test[idx].reshape(1,-1))[0]
+    print(explainer.class_names)
+    print("prediction:", explainer.class_names[prediction])
+    
+    #print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint    
+    exp = explainer.explain_instance(dataset.data_test[idx], nn.predict_classes, threshold=0.95)
     print(exp.names())
     print("Anchor: %s" % (" AND ".join(exp.names())))
     print("Precision: %.2f" % exp.precision())
     print("Coverage: %.2f" % exp.coverage())
     print(exp.features())
 
+    exit()
+    # TODO: put explainer encoder in pre_processor 
+
+    model.fit(explainer.encoder.transform(dataset.data_train), dataset.train_labels)
+    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) # use the explainer.encoder to transform the data first.
+    print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))
+    print('Test', sklearn.metrics.accuracy_score(dataset.test_labels, predict_fn(dataset.data_test)))
+    # Anchor
+    idx = 0
+    np.random.seed(1)
+    print(dataset.test_labels[idx])
+    print(dataset.test_labels[idx].reshape(1,-1))
+
+    print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint    
+    exp = explainer.explain_instance(dataset.data_test[idx], model.predict, threshold=0.95)
+    print(exp.names())
+    print("Anchor: %s" % (" AND ".join(exp.names())))
+    print("Precision: %.2f" % exp.precision())
+    print("Coverage: %.2f" % exp.coverage())
+    print(exp.features())
+
+    
+
+    # TODO: list of catagories -> encoding -> one_hot_encoding.
+    exit()
     # Check that the ancor holds for other data points.
     all_np = np.all(dataset.test[:, exp.features()] == dataset.test[idx][exp.features()], axis=1)
     print(all_np)
@@ -255,6 +315,8 @@ def test_autoencoder():
 
     n_values = [4, 9, 16, 7, 15, 6, 5, 2, 3, 3, 3, 42] # values per category
     categorical_features = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+
 
 
 

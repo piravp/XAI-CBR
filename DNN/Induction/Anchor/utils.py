@@ -99,7 +99,6 @@ def load_csv_dataset(data, target_idx, delimiter=',',
     ordinal_features = []
 
     if discretize is not None: # ? turn continous values into discrete ranges (quartiles)
-        print("Discretisize")
         disc = lime.lime_tabular.EntropyDiscretizer(data,
                                                     categorical_features,
                                                     feature_names,

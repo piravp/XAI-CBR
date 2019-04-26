@@ -11,6 +11,7 @@ import lime.lime_tabular
 
 import collections
 import sklearn
+
 import numpy as np
 import os
 import copy
@@ -33,7 +34,7 @@ class AnchorTabularExplainer(object):
         categorical_names: map from integer to list of strings, names for each
             value of the categorical features. Every feature that is not in
             this map will be considered as ordinal, and thus discretized.
-        ordinal_features: list of integers, features that were 
+        ordinal_features: list of integers, features that were discretisized
     """
     def __init__(self, class_names, feature_names, data=None,
                 categorical_names=None, ordinal_features=[]):
@@ -41,20 +42,34 @@ class AnchorTabularExplainer(object):
                                             ['transform'])(lambda x: x)
         self.disc = collections.namedtuple('random_name2',
                                             ['discretize'])(lambda x: x)
-        self.categorical_features = []
-        if categorical_names:
+        self.categorical_features = [] # name of the different categories
+        if categorical_names: 
             # TODO: Check if this n_values is correct!!
+            # sort dictionary keys, to match with feature position.
+            print(feature_names)
             cat_names = sorted(categorical_names.keys())
             n_values = [len(categorical_names[i]) for i in cat_names]
-            print("encoder:",cat_names,n_values)
-            self.encoder = sklearn.preprocessing.OneHotEncoder(
-                categorical_features=cat_names,
-                n_values=n_values)
-            self.encoder.fit(data)
-            self.categorical_features = self.encoder.categorical_features
+            print(n_values,sum(n_values))
+            #Replace OneHotEncoder with ColumnTransformer, 
+            # and transform categorical features with OneHotEncoder
+            if(True):
+                from sklearn.compose import ColumnTransformer
+                categorical_transformer = sklearn.preprocessing.OneHotEncoder(categories="auto")
+                # Encode all categorical features using a OneHotEncoder. 
+                self.encoder = ColumnTransformer(
+                    [("cat", categorical_transformer, cat_names)])
+            else:
+                self.encoder = sklearn.preprocessing.OneHotEncoder(categories=n_values)
+                #self.encoder = sklearn.preprocessing.OneHotEncoder(
+                #    categorical_features=cat_names,
+                #    categories=n_values)
+            self.encoder.fit(data) # Fit one_hot_encoder to train_data
+            self.categorical_features = cat_names#self.encoder.categorical_features
             #self.categorical_features = self.encoder.ColumnTransformer
-        if len(ordinal_features) == 0:
-            self.ordinal_features = [x for x in range(len(feature_names)) if x not in self.categorical_features]
+        if len(ordinal_features) == 0: # If no list of features that are continous. 
+            self.ordinal_features = [ # get all features that are not categorical.
+                x for x in range(len(feature_names)) if x not in self.categorical_features]
+
         # Init vars
         self.feature_names = feature_names
         self.class_names = class_names
@@ -95,9 +110,8 @@ class AnchorTabularExplainer(object):
         # Init StandarScalar, Standardize features by removing the mean and scaling to unit variance
         self.scaler = sklearn.preprocessing.StandardScaler()
         # Compute the mean and std to be used for later scaling.
-        self.scaler.fit(train_data)
-        # Discretizise training_data with corresponding discretiziser
-        print(train_data)
+        self.scaler.fit(train_data) 
+        # Discretisize continous features with coresponding discretisizer.
         if discretizer == 'quartile': 
             self.disc = lime.lime_tabular.QuartileDiscretizer(train_data,
                                                         self.categorical_features,
@@ -114,11 +128,13 @@ class AnchorTabularExplainer(object):
                                                     labels=train_labels)
         else:
             raise ValueError('Discretizer must be quartile, decile or entropy')
-        # Discretizise training and validation datasets
+        # Discretizise training and validation datasets, if needed.
         self.d_train = self.disc.discretize(self.train)
         self.d_validation = self.disc.discretize(self.validation)
-        print(self.d_train)
-        self.categorical_names.update(self.disc.names)
+
+
+
+        self.categorical_names.update(self.disc.names) # Add discretized feature mapping of contious features.
         # Ordinal_features is every feature that is not categorical. (that have been discretized)
         self.ordinal_features = [x for x in range(self.d_validation.shape[1])
                             if x not in self.categorical_features]
@@ -134,7 +150,7 @@ class AnchorTabularExplainer(object):
             self.std[f] = np.std(train_data[:, f])
         
         # Print values, to check what we got.
-
+        print(self.min,self.max,self.std)
 
     def sample_from_train(self, conditions_eq, conditions_neq, conditions_geq,
                         conditions_leq, num_samples, validation=True):
@@ -277,11 +293,14 @@ class AnchorTabularExplainer(object):
         out += u'</body></html>'
         return out
 
-
     def get_sample_fn(self, data_row, classifier_fn, desired_label=None):
         print("anchor_tabular:get_sample_fn")
         def predict_fn(x): # define function, to predict input predict(encode(input))
-            return classifier_fn(self.encoder.transform(x))
+            print(x.shape,x,type(x))
+            print(classifier_fn)
+            x = self.encoder.transform(x)
+            print(x, classifier_fn(x=x))
+            return classifier_fn(x=x)
         true_label = desired_label # 
         if true_label is None: # If we don't know the labels of the input, do a prediction.
             true_label = predict_fn(data_row.reshape(1, -1))[0]
@@ -361,7 +380,7 @@ class AnchorTabularExplainer(object):
         exp['instance'] = data_row
         # Store prediction from network, on dataset
         print("data",data_row.reshape(1, -1))
-        exp['prediction'] = classifier_fn(self.encoder.transform(data_row.reshape(1, -1)))[0]
+        exp['prediction'] = classifier_fn(x=self.encoder.transform(data_row.reshape(1, -1)))[0]
         print("exp_map",exp)
         explanation = anchor_explanation.AnchorExplanation('tabular', exp, self.as_html)
         return explanation

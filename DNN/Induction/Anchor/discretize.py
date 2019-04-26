@@ -196,7 +196,7 @@ class EntropyDiscretizer(BaseDiscretizer):
                                     feature_names, labels=labels,
                                     random_state=random_state)
 
-    def bins(self, data, labels,max_depth):
+    def bins(self, data, labels):
         bins = []
         for feature in self.to_discretize:
             dt = sklearn.tree.DecisionTreeClassifier(criterion='entropy',
