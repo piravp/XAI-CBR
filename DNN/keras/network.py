@@ -1,15 +1,23 @@
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten, Conv3D, Activation
+#from keras.models import Sequential
+from keras import Sequential
+from keras.layers import Dense, Conv2D, Flatten, Conv3D, Activation,Dropout
 from keras import backend as K
 from keras.optimizers import SGD,Adam,Adagrad,RMSprop
 from keras.models import model_from_json
-import Datamanager # handle preprosessing and generating data
+import pre_processing # handle preprosessing and generating data
 import os
 import misc
+import pathlib
 class Model():
+    def __del__(self):
+        print("__del__ Model class")
+
     def __init__(self, name, optimizer=None, loss=None, model=None):
         if(model is None): # we want to load from file instead.
-            modelpath = "models/"+name+"/"+name+".json"
+            #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
+
+            path = name+"/"+name+".json" # str path
+            modelpath = pathlib.Path(__file__).parent/"models"/path
             if(os.path.exists(modelpath)): # means we want to load model.
                 # We want to load model from file
                 self.model = self.load_model(modelpath)
@@ -19,7 +27,7 @@ class Model():
             else:
                 raise ValueError("No filepath found from model name to load from")
             
-        else:
+        else: # We want to create a new model.
             if(type(model) == list):
                 self.model = Sequential(model) # model should be an keras model
             else:
@@ -33,6 +41,7 @@ class Model():
             # we need to make sure we have an optimizer etc.
             self.model.compile(loss=self.loss,optimizer=self.optimizer,metrics=['accuracy'])
         print(self.model.summary())
+
 
         #self.input_shape= (height, width, depth)
         #if(K.image_data_format()=="channels_first"):
@@ -78,31 +87,44 @@ class Model():
         if(os.path.isfile(filepath)): # this is the folder of the model
             self.model.load_weights(filepath) # load weights
 
-    def train(self, datamanager:Datamanager.Datamanager, epochs, batch_size):
+    def train_anchor(self, data_train, train_labels, data_validation, validation_labels,epochs, batch_size):
+        self.model.fit(data_train, train_labels, 
+        shuffle=True, epochs=epochs, batch_size=batch_size, validation_data=(data_validation, validation_labels))
+
+
+    def train(self, datamanager:pre_processing.Datamanager, epochs, batch_size):
         X,Y = datamanager.return_keras()# Return all data in CSV file. 
         self.model.fit(X,Y,shuffle=True,epochs=epochs,batch_size=batch_size, validation_split = 0.2) # assumes all data fit in memory.
         #self.model.train_on_batch(batch_size)
 
-    def train_batch(self, Datamanager):
+    def train_batch(self, datamanager:pre_processing.Datamanager, batch_size): # better for task requiring alot of memory
         # TODO: train with a loop
         
-        X,Y = datamanager.return_batch(self.input_type)# Return all data in CSV file. 
+        X,Y = datamanager.return_batch(batch_size)# Return all data in CSV file. 
         self.model.train_on_batch(X,Y)
 
     
-    def evaluate(self, datamanager:Datamanager.Datamanager, batch_size=None, steps=None):
+    def evaluate(self, datamanager:pre_processing.Datamanager, batch_size=None, steps=None):
         X,Y = datamanager.return_keras(self.input_type)
         score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
         print(score)
     
-    def predict(self,**kwargs): 
+    def predict(self,**kwargs): # use model to do a prediction.
+        print("p_kwargs",kwargs)
         return self.model.predict(**kwargs)
+    
+    def predict_classes(self,**kwargs): # use model to do a prediction
+        print("c_kwargs",kwargs)
+        return self.model.predict_classes(**kwargs)[0]
+        # We need to return int value of class (not probability mappings)
 
 
 sgd = SGD(lr=0.01)
 rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
 adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 adagrad = Adagrad(lr=0.01, epsilon=None, decay=0.0)
+
+from keras.regularizers import l1,l1_l2
 #    
 def CNN_50_25(name="CNN-50-25",dim=5,optimizer=adam):
     return Model(model=[
@@ -113,6 +135,53 @@ def CNN_50_25(name="CNN-50-25",dim=5,optimizer=adam):
     Dense(dim*dim, activation="softmax") # 50 -> 25
     ], 
     optimizer=optimizer, loss="categorical_crossentropy",name=name)
+
+def NN_adult(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    return Model(model=[
+        Dense(80, input_dim=input_dim, activation="relu",kernel_regularizer=l1(0.001),activity_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.5),
+        Dense(60, input_dim=input_dim, activation="relu",kernel_regularizer=l1(0.001),activity_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.5),
+        Dense(40, input_dim=input_dim, activation="relu",kernel_regularizer=l1(0.001),activity_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.5),
+        Dense(20, activation="relu",kernel_regularizer=l1(0.001),activity_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.5),
+        Dense(output_dim), # output layer
+        Activation('sigmoid')
+    ],
+    optimizer=optimizer, loss="binary_crossentropy",name=name)
+
+def NN_adult_1(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    return Model(model=[
+        Dense(60, input_dim=input_dim, activation="relu"),
+        Dropout(0.4),
+        Dense(40, input_dim=input_dim, activation="relu"),
+        Dropout(0.3),
+        Dense(20, input_dim=input_dim, activation="relu"),
+        Dropout(0.2),
+        Dense(10, activation="relu"),
+        Dropout(0.1),
+        Dense(output_dim), # output layer
+        Activation('sigmoid')
+    ],
+    optimizer=optimizer, loss="binary_crossentropy",name=name)    
+
+def NN_adult_2(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    return Model(model=[
+        Dense(256, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.5),
+        Dense(128, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.4),
+        Dense(64, input_dim=input_dim, activation="relu",activity_regularizer=l1(0.001)),
+        Dropout(0.3),
+        Dense(32, input_dim=input_dim, activation="relu",activity_regularizer=l1(0.001)),
+        Dropout(0.2),
+        Dense(8, activation="relu"),
+        Dropout(0.1),
+        Dense(output_dim), # output layer
+        Activation('sigmoid')
+    ],
+    optimizer=optimizer, loss="binary_crossentropy",name=name)
 
 def NN_3_20(input_dim, output_dim, name="NN-50-25",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
     return Model(model=[
@@ -131,7 +200,7 @@ def CNN_25(name="CNN-25",dim=5):
     Flatten(),
     Dense(dim*dim, activation="softmax") # 50 -> 25
     ],
-    optimizer=adam, loss="categorical_crossentropy",name=name,input_type=2)
+    optimizer=adam, loss="categorical_crossentropy",name=name, input_type=2)
 
 
 def try_training():

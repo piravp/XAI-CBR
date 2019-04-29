@@ -1,60 +1,180 @@
-# Pytorch implemetation of integradet gradients by https://github.com/TianhongDai/integrated-gradient-pytorch
-#  orginiating from https://github.com/ankurtaly/Attributions
+################################################################
+# Implemented by Naozumi Hiranuma (hiranumn@uw.edu)            #
+#                                                              #
+# Keras-compatible implmentation of Integrated Gradients       # 
+# proposed in "Axiomatic attribution for deep neuron networks" #
+# (https://arxiv.org/abs/1703.01365).                          #
+#                                                              #
+# Keywords: Shapley values, interpretable machine learning     #
+################################################################
 
+from __future__ import division, print_function
 import numpy as np
-import torch
+from time import sleep
+import sys
+import keras.backend as K
 
-# integrated gradients
-def integrated_gradients(inputs, model, target_label_idx, predict_and_gradients, baseline, steps=50, cuda=False):
-    """
-    Args:
-    inp: The specific input for which integrated gradients must be computed.
-    target_label_index: Index of the target class for which integrated gradients
-      must be computed.
-    predictions_and_gradients: This is a function that provides access to the
-      network's predictions and gradients. It takes the following
-      arguments:
-      - inputs: A batch of tensors of the same same shape as 'inp'. The first
-          dimension is the batch dimension, and rest of the dimensions coincide
-          with that of 'inp'.
-      - target_label_index: The index of the target class for which gradients
-        must be obtained.
-      and returns:
-      - predictions: Predicted probability distribution across all classes
-          for each input. It has shape <batch, num_classes> where 'batch' is the
-          number of inputs and num_classes is the number of classes for the model.
-      - gradients: Gradients of the prediction for the target class (denoted by
-          target_label_index) with respect to the inputs. It has the same shape
-          as 'inputs'.
-    baseline: [optional] The baseline input used in the integrated
-      gradients computation. If None (default), the all zero tensor with
-      the same shape as the input (i.e., 0*input) is used as the baseline.
-      The provided baseline and input must have the same shape. 
-    steps: [optional] Number of intepolation steps between the baseline
-      and the input used in the integrated gradients computation. These
-      steps along determine the integral approximation error. By default,
-      steps is set to 50.
-  Returns:
-    integrated_gradients: The integrated_gradients of the prediction for the
-      provided prediction label to the input. It has the same shape as that of
-      the input.
-    """
-    if baseline is None:
-        baseline = 0 * inputs 
-    # scale inputs and compute gradients
-    scaled_inputs = [baseline + (float(i) / steps) * (inputs - baseline) for i in range(0, steps + 1)]
-    grads, _ = predict_and_gradients(scaled_inputs, model, target_label_idx, cuda)
-    avg_grads = np.average(grads[:-1], axis=0)
-    avg_grads = np.transpose(avg_grads, (1, 2, 0))
-    integrated_grad = (inputs - baseline) * avg_grads
-    return integrated_grad
+from keras.models import Model
+from keras import Sequential
+'''
+Integrated gradients approximates Shapley values by integrating partial
+gradients with respect to input features from reference input to the
+actual input. The following class implements the paper "Axiomatic attribution
+for deep neuron networks".
+'''
+class integrated_gradients:
 
-def random_baseline_integrated_gradients(inputs, model, target_label_idx, predict_and_gradients, steps, num_random_trials, cuda):
-    all_intgrads = []
-    for i in range(num_random_trials):
-        integrated_grad = integrated_gradients(inputs, model, target_label_idx, predict_and_gradients, \
-                                                baseline=255.0 *np.random.random(inputs.shape), steps=steps, cuda=cuda)
-        all_intgrads.append(integrated_grad)
-        print('the trial number is: {}'.format(i))
-    avg_intgrads = np.average(np.array(all_intgrads), axis=0)
-    return avg_intgrads
+    # model: Keras model that you wish to explain.
+    # outchannels: In case the model are multi tasking, you can specify which output you want explain .
+    def __init__(self, model, outchannels=[], verbose=1):
+        
+        #get backend info (either tensorflow or theano)
+        self.backend = K.backend()
+        self.session = K.get_session()
+
+        print(self.session)
+        
+        #load model supports keras.Model and keras.Sequential
+        if isinstance(model, (Sequential,Model)):
+            self.model = model
+        else:
+            print("Invalid input model")
+            return
+        
+        #load input tensors
+        self.input_tensors = []
+        for i in self.model.inputs:
+            self.input_tensors.append(i)
+        # The learning phase flag is a bool tensor (0 = test, 1 = train)
+        # to be passed as input to any Keras function that uses 
+        # a different behavior at train time and test time.
+        self.input_tensors.append(K.learning_phase())
+        
+        #If outputchanels are specified, use it.
+        #Otherwise evalueate all outputs.
+        self.outchannels = outchannels
+        if len(self.outchannels) == 0: 
+            if verbose: print("Evaluated output channel (0-based index): All")
+            if K.backend() == "tensorflow":
+                self.outchannels = range(self.model.output.shape[1]._value)
+            elif K.backend() == "theano":
+                self.outchannels = range(self.model.output._keras_shape[1])
+        else:
+            if verbose: 
+                print("Evaluated output channels (0-based index):")
+                print(','.join([str(i) for i in self.outchannels]))
+                
+        #Build gradient functions for desired output channels.
+        self.get_gradients = {}
+        if verbose: print("Building gradient functions")
+
+        # Evaluate over all requested channels.
+        for c in self.outchannels:
+            # Get tensor that calculates gradient
+            if K.backend() == "tensorflow":
+                gradients = self.model.optimizer.get_gradients(self.model.output[:, c], self.model.input)
+
+            if K.backend() == "theano":
+                gradients = self.model.optimizer.get_gradients(self.model.output[:, c].sum(), self.model.input)
+                
+            # Build computational graph that computes the tensors given inputs
+            self.get_gradients[c] = K.function(inputs=self.input_tensors, outputs=gradients)
+            
+            # This takes a lot of time for a big model with many tasks.
+            # So lets print the progress.
+            if verbose:
+                sys.stdout.write('\r')
+                sys.stdout.write("Progress: "+str(int((c+1)*1.0/len(self.outchannels)*1000)*1.0/10)+"%")
+                sys.stdout.flush()
+        # Done
+        if verbose: 
+            print("\nDone.")
+
+    '''
+    Input: sample to explain, channel to explain
+    Optional inputs:
+        - reference: reference values (defaulted to 0s).
+        - steps: # steps from reference values to the actual sample (defualted to 50).
+    Output: list of numpy arrays to integrated over.
+    '''
+    def explain(self, sample, outc=0, reference=False, num_steps=50, verbose=0):
+        
+        # Each element for each input stream.
+        samples = []
+        numsteps = []
+        step_sizes = []
+        
+        # If multiple inputs are present, feed them as list of np arrays. 
+        if isinstance(sample, list):
+            #If reference is present, reference and sample size need to be equal.
+            if reference != False: 
+                assert len(sample) == len(reference)
+            for i in range(len(sample)):
+                if reference == False:
+                    _output = integrated_gradients.linearly_interpolate(sample[i], False, num_steps)
+                else:
+                    _output = integrated_gradients.linearly_interpolate(sample[i], reference[i], num_steps)
+                samples.append(_output[0])
+                numsteps.append(_output[1])
+                step_sizes.append(_output[2])
+        
+        # Or you can feed just a single numpy arrray. 
+        elif isinstance(sample, np.ndarray):
+            _output = integrated_gradients.linearly_interpolate(sample, reference, num_steps)
+            samples.append(_output[0])
+            numsteps.append(_output[1])
+            step_sizes.append(_output[2])
+            
+        # Desired channel must be in the list of outputchannels
+        assert outc in self.outchannels
+        if verbose: 
+            print("Explaning the "+str(self.outchannels[outc])+"th output.")
+            
+        # For tensorflow backend
+        _input = []
+        for s in samples:
+            _input.append(s)
+        _input.append(0)
+
+        if K.backend() == "tensorflow": 
+            gradients = self.get_gradients[outc](_input)
+        elif K.backend() == "theano":
+            gradients = self.get_gradients[outc](_input)
+            if len(self.model.inputs) == 1:
+                gradients = [gradients]
+
+        explanation = []
+        for i in range(len(gradients)):
+            _temp = np.sum(gradients[i], axis=0)
+            explanation.append(np.multiply(_temp, step_sizes[i]))
+        print("Explanation", explanation)
+
+        # Format the return values according to the input sample.
+        if isinstance(sample, list):
+            return explanation
+        elif isinstance(sample, np.ndarray):
+            return explanation[0]
+        return -1
+    
+    '''
+    Input: numpy array of a sample
+    Optional inputs:
+        - reference: reference values (defaulted to 0s).
+        - steps: # steps from reference values to the actual sample.
+    Output: list of numpy arrays to integrate over.
+    '''
+    @staticmethod
+    def linearly_interpolate(sample, reference=False, num_steps=50):
+        # Use default reference values if reference is not specified
+        if reference is False: 
+            reference = np.zeros(sample.shape)
+
+        # Reference and sample shape needs to match exactly
+        assert sample.shape == reference.shape
+
+        # Calcuated stepwise difference from reference to the actual sample.
+        ret = np.zeros(tuple([num_steps] +[i for i in sample.shape]))
+        for s in range(num_steps):
+            ret[s] = reference+(sample-reference)*(s*1.0/num_steps)
+
+        return ret, num_steps, (sample-reference)*(1.0/num_steps)
