@@ -42,13 +42,11 @@ class Model():
             self.model.compile(loss=self.loss,optimizer=self.optimizer,metrics=['accuracy'])
         print(self.model.summary())
 
-
         #self.input_shape= (height, width, depth)
         #if(K.image_data_format()=="channels_first"):
         #    self.input_shape = (depth, height, width)
     def compile(self,**args): 
         self.model.compile(**args)
-
 
     def store(self,epoch):
         # Store model at specific filepath.
@@ -109,6 +107,12 @@ class Model():
         score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
         print(score)
     
+    def predict(self, data):
+        return self.model.predict_classes(data).flatten()
+
+    #def predict(self,**kwargs): # return (N,1) ndarray
+    #    return self.model.predict_classes(**kwargs)
+    """ # TODO: Fix
     def predict(self,**kwargs): # use model to do a prediction.
         print("p_kwargs",kwargs)
         return self.model.predict(**kwargs)
@@ -117,7 +121,7 @@ class Model():
         print("c_kwargs",kwargs)
         return self.model.predict_classes(**kwargs)[0]
         # We need to return int value of class (not probability mappings)
-
+    """
 
 sgd = SGD(lr=0.01)
 rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
@@ -174,7 +178,7 @@ def NN_adult_2(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -
         Dropout(0.4),
         Dense(64, input_dim=input_dim, activation="relu",activity_regularizer=l1(0.001)),
         Dropout(0.3),
-        Dense(32, input_dim=input_dim, activation="relu",activity_regularizer=l1(0.001)),
+        Dense(32, input_dim=input_dim, activation="relu"),
         Dropout(0.2),
         Dense(8, activation="relu"),
         Dropout(0.1),
@@ -192,7 +196,6 @@ def NN_3_20(input_dim, output_dim, name="NN-50-25",optimizer=adam): # input -> l
     ],
     optimizer=optimizer, loss="categorical_crossentropy",name=name)
 
-
 def CNN_25(name="CNN-25",dim=5):
     return Model(model=[
     Conv2D(data_format="channels_first",filters=3,input_shape=(3,dim,dim),kernel_size=3,padding="same",activation="relu"), # (Bx 75)
@@ -201,7 +204,6 @@ def CNN_25(name="CNN-25",dim=5):
     Dense(dim*dim, activation="softmax") # 50 -> 25
     ],
     optimizer=adam, loss="categorical_crossentropy",name=name, input_type=2)
-
 
 def try_training():
     dataman = Datamanager("Data/random_15000_1.csv")
@@ -213,7 +215,6 @@ def try_training():
     
 #try_training()
 #model = load_model("models/CNN-50-25/CNN-50-25.json","models/CNN-50-25/CNN-50-25_0.h5",adam,"categorical_crossentropy","CNN-50-25",input_type=2)
-
 
 """
 model = Sequential()

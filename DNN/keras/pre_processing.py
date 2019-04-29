@@ -309,7 +309,8 @@ class Datamanager():
 
         def cap_gain_fn(x, median): # one value at a time
             x = np.float(x)
-            d = np.digitize(x,[0, median, float('inf')],right=True).astype(str)
+            d = np.digitize(x,[0, median, float('inf')],
+                            right=True).astype(str)
             d = str(d) # otherwise wont match to dictionary of strings
             return cap_gain_map.get(d)
 
@@ -330,9 +331,6 @@ class Datamanager():
         for feature, function in transformation_c.items():
             df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function)
             df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
-        #! Remove useless columns
-        #df = df.drop(columns=['fnlwgt','education-num'])
-        #df_test = df_test.drop(columns=['fnlwgt','education-num'])
 
         labels = df.values[:,-1] # last index is the target values
         labels_test = df_test.values[:,-1]
@@ -409,17 +407,19 @@ class Datamanager():
         split = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                     test_size=0.5,
                                                     random_state=1)
-        # All numpy arrays.
-        self.ret.data_train = data.values 
+        # All numpy arrays, as with float values.
+        self.ret.data_train = data.values.astype(float)
+        data_test = data_test.values.astype(float)
+
         self.ret.train_labels = self.ret.labels
 
         # Split test dataset into test and validation set, 50/50.
-        test_idx, val_idx = [x for x in split.split(data_test.values)][0]
+        test_idx, val_idx = [x for x in split.split(data_test)][0]
         # Select data rows by index from datasets, with corresponding labels.
-        self.ret.data_test = data_test.values[test_idx]
+        self.ret.data_test = data_test[test_idx]
         self.ret.test_labels = self.ret.labels_test[test_idx]
 
-        self.ret.data_validation = data_test.values[val_idx]
+        self.ret.data_validation = data_test[val_idx]
         self.ret.validation_labels = self.ret.labels_test[val_idx]
         # Store indexes used.
         self.ret.test_idx = test_idx
