@@ -269,8 +269,6 @@ def test_anchors_nn():
     print("Coverage: %.2f" % exp.coverage())
     print(exp.features())
 
-    
-
     # TODO: list of catagories -> encoding -> one_hot_encoding.
     exit()
     # Check that the ancor holds for other data points.
@@ -479,6 +477,16 @@ def test_autoencoder():
     categorical_features = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 def train_network():
+    import numpy as np
+    np.random.seed(1) 
+    import tensorflow as tf
+    tf.set_random_seed(1)
+
+    import sklearn
+    from DNN.keras import pre_processing
+    from DNN.Induction.Anchor import anchor_tabular, utils
+    
+    
     datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = datamanager.ret
 
@@ -491,14 +499,20 @@ def train_network():
                 dataset.data_validation, dataset.validation_labels)
 
     from DNN.keras import network
+    
+    #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
-    nn = network.NN_adult_2(n_values,1)
-    nn.train_anchor(explainer.encoder.transform(dataset.data_train), dataset.train_labels,
-            explainer.encoder.transform(dataset.data_validation), dataset.validation_labels,
-            epochs=10, batch_size=64)
-    print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))
-    print('Test', sklearn.metrics.accuracy_score(dataset.test_labels, predict_fn(dataset.data_test)))
+    model = network.NN_adult_3(n_values,1)
+    model.train_anchor(explainer.encoder.transform(dataset.data_train).toarray(), dataset.train_labels,
+            explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
+            epochs=100, batch_size=64)
+    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
+    model.evaluate(data_train=explainer.encoder.transform(dataset.data_train),train_labels=dataset.train_labels,
+                    data_test=explainer.encoder.transform(dataset.data_test),test_labels=dataset.test_labels)
+    
+    #print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))
+    #print('Test', sklearn.metrics.accuracy_score(dataset.test_labels, predict_fn(dataset.data_test)))
 #test_lore()
 #test_anchors()
 #test_anchors_nn()

@@ -205,11 +205,6 @@ class Datamanager():
         return df_normalized, df_targets
 
     def adults(self):
-        def strip(text):
-            try:
-                return text.strip()
-            except AttributeError:
-                return text
 
         columns = ["age", "workclass", "fnlwgt", "education",
                         "education-num", "marital status", "occupation",
@@ -270,7 +265,7 @@ class Datamanager():
 
         cap_gain_map = {'0': 'None', '1': 'Low', '2': 'High'} 
 
-        # Path to data folder.
+        # Path to data folder. Relative to file path.
         filename = pathlib.Path(__file__).parents[2]/"Data/adult"
         # Get both datasets (test and training)
         df = read_data_pd(filename/"adult.data",header=None, columns = columns)
@@ -484,7 +479,6 @@ class Datamanager():
         """ Return output as a float, with each class coresponding to an fraction between 0 and 1 """
         pass
 
-
 def read_data_pd(name,columns,header, encoding="latin-1"):
     # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte
     data = pd.read_csv(name, header=header, delimiter=",", encoding=encoding, skipinitialspace=True) 
@@ -498,12 +492,11 @@ def map_array_values(array, value_map):
         ret[ret == src] = target
     return ret
 
-
 class smart_dict(dict):
     def __init__(self,*arg,**kw):
         super(smart_dict,self).__init__(*arg,**kw)
     
-    def get(self,key):
+    def get(self,key): # return key if there is no value corresponding to key.
         if(super().get(key) is None):
             return key
         return super().get(key)

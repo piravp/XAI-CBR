@@ -1,4 +1,5 @@
 #from keras.models import Sequential
+import keras
 from keras import Sequential
 from keras.layers import Dense, Conv2D, Flatten, Conv3D, Activation,Dropout
 from keras import backend as K
@@ -9,20 +10,18 @@ import os
 import misc
 import pathlib
 class Model():
-    def __del__(self):
-        print("__del__ Model class")
-
     def __init__(self, name, optimizer=None, loss=None, model=None):
+        self.modelpath = pathlib.Path(__file__).parent/"models"
+        self.name = name
+        # Check if modelpath directory exists.
+        self.folder() 
         if(model is None): # we want to load from file instead.
             #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
-
-            path = name+"/"+name+".json" # str path
-            modelpath = pathlib.Path(__file__).parent/"models"/path
-            if(os.path.exists(modelpath)): # means we want to load model.
+            if(os.path.exists(self.modelpath)): # means we want to load model.
                 # We want to load model from file
-                self.model = self.load_model(modelpath)
+                self.model = self.load_model(self.modelpath)
                 weightPath = misc.find_newest_model(name)
-                if(weightPath is not None and os.path.exists(modelpath)):
+                if(weightPath is not None and os.path.exists(weightPath)):
                     self.load_weights(weightPath)
             else:
                 raise ValueError("No filepath found from model name to load from")
@@ -38,8 +37,8 @@ class Model():
             self.optimizer = optimizer
             self.loss = loss
             self.name = name
-            # we need to make sure we have an optimizer etc.
-            self.model.compile(loss=self.loss,optimizer=self.optimizer,metrics=['accuracy'])
+
+            self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
         print(self.model.summary())
 
         #self.input_shape= (height, width, depth)
@@ -48,13 +47,17 @@ class Model():
     def compile(self,**args): 
         self.model.compile(**args)
 
+    def folder(self): # generate folder for model path
+        save_dir = pathlib.Path(__file__).parent/"models"/self.name
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
     def store(self,epoch):
         # Store model at specific filepath.
-        print(self.name)
         save_dir = "models/"+self.name
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        model_path = save_dir+"/"+self.name+".json"
+        model_path = save_dir+"/"+self.name#+".json"
         if not os.path.exists(model_path):
             with open(model_path,"w") as json_file: # save model
                 json_file.write(self.model.to_json()) # write model to json file
@@ -85,10 +88,52 @@ class Model():
         if(os.path.isfile(filepath)): # this is the folder of the model
             self.model.load_weights(filepath) # load weights
 
-    def train_anchor(self, data_train, train_labels, data_validation, validation_labels,epochs, batch_size):
-        self.model.fit(data_train, train_labels, 
-        shuffle=True, epochs=epochs, batch_size=batch_size, validation_data=(data_validation, validation_labels))
+    def train_anchor(self, data_train, train_labels, data_validation, validation_labels, 
+        epochs, batch_size,verbose=1,use_gen=True):
+        from keras.callbacks import EarlyStopping,ModelCheckpoint,ReduceLROnPlateau
+        path = self.name+"/"+self.name+"-{val_acc:.3f}.hdf5" #+".json" # str path
+        save = ModelCheckpoint(
+            str(self.modelpath/path), monitor='val_acc', verbose=verbose, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+        print(save.filepath )
+        stop = EarlyStopping(monitor="val_loss",mode='min',patience=10,verbose=verbose)
+        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, verbose=verbose, min_lr=1e-6, mode='min')
+        
+        if(use_gen):
+            print(type(data_train),data_train.shape,type(train_labels))
+            history = self.model.fit_generator(generator(data_train, train_labels, batch_size=100),
+            validation_data=(data_validation, validation_labels),
+            epochs=100, steps_per_epoch=20,callbacks=[save,stop,reduce_lr])
+            #history = self.model.fit(generator(data_train, train_labels, batch_size=32), 
+            #validation_data=generator(data_validation, validation_labels, batch_size=200), validation_steps=10,
+            #epochs=epochs,steps_per_epoch=10,
+            #callbacks=[save,stop,reduce_lr])
+        else:
+            history = self.model.fit(data_train, train_labels, 
+            shuffle=True, epochs=epochs, batch_size=batch_size, validation_data=(data_validation, validation_labels),
+            callbacks=[save,stop,reduce_lr])
 
+        # Draw graph of training epochs.
+        if(verbose > 0):
+            import matplotlib.pyplot as plt
+            plt.figure(1)
+            plt.subplot(121)
+            plt.plot(history.history['acc'])
+            plt.plot(history.history['val_acc'])
+            plt.title('model accuracy')
+            plt.ylabel('accuracy')
+            plt.xlabel('epoch')
+            plt.legend(['train', 'test'], loc='upper left')
+
+            plt.subplot(122)
+            plt.plot(history.history['loss'])
+            plt.plot(history.history['val_loss'])
+            plt.title('model loss')
+            plt.ylabel('loss')
+            plt.xlabel('epoch')
+            plt.legend(['train', 'test'], loc='upper left')
+
+            plt.show()
+        
 
     def train(self, datamanager:pre_processing.Datamanager, epochs, batch_size):
         X,Y = datamanager.return_keras()# Return all data in CSV file. 
@@ -101,14 +146,28 @@ class Model():
         X,Y = datamanager.return_batch(batch_size)# Return all data in CSV file. 
         self.model.train_on_batch(X,Y)
 
-    
-    def evaluate(self, datamanager:pre_processing.Datamanager, batch_size=None, steps=None):
+    def evaluate(self, data_train, train_labels, data_test, test_labels, batch_size=1000):
+        score, acc = self.model.evaluate(data_train, train_labels, batch_size=batch_size)
+        score_test, acc_test = self.model.evaluate(data_test, test_labels, batch_size=batch_size)
+        print("loss_train {:.6f} loss_test {:6f} - acc_train {:.2f}%  acc_test {:.2f}%".format(score, score_test, acc*100, acc_test*100))
+
+
+
+    def evaluate_old(self, datamanager:pre_processing.Datamanager, batch_size=None, steps=None):
         X,Y = datamanager.return_keras(self.input_type)
         score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
         print(score)
     
-    def predict(self, data):
+    def predict(self, data): # return an class as a one dimention np.array (c,)
         return self.model.predict_classes(data).flatten()
+
+import numpy as np
+def generator(x, y, batch_size):
+    while True: # never ending loop
+        #Randomly select batch_size number of sentences
+        indx = np.random.choice(x.shape[0], batch_size, replace=False)
+        yield x[indx], y[indx] # return selected data and corresponding labes
+
 
     #def predict(self,**kwargs): # return (N,1) ndarray
     #    return self.model.predict_classes(**kwargs)
@@ -155,7 +214,7 @@ def NN_adult(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> 
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
 
-def NN_adult_1(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_1(input_dim, output_dim, name="NN-Adult-1",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
     return Model(model=[
         Dense(60, input_dim=input_dim, activation="relu"),
         Dropout(0.4),
@@ -170,7 +229,7 @@ def NN_adult_1(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)    
 
-def NN_adult_2(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_2(input_dim, output_dim, name="NN-Adult-2",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
     return Model(model=[
         Dense(256, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
         Dropout(0.5),
@@ -184,6 +243,23 @@ def NN_adult_2(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -
         Dropout(0.1),
         Dense(output_dim), # output layer
         Activation('sigmoid')
+    ],
+    optimizer=optimizer, loss="binary_crossentropy",name=name)
+
+def NN_adult_3(input_dim, output_dim, name="NN-Adult-3",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    return Model(model=[
+        Dense(128, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.5),
+        Dense(128, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.4),
+        Dense(64, input_dim=input_dim, activation="relu",activity_regularizer=l1(0.001)),
+        Dropout(0.3),
+        Dense(32, input_dim=input_dim, activation="relu"),
+        Dropout(0.2),
+        Dense(8, activation="relu"),
+        Dropout(0.1),
+        Dense(output_dim,activation="sigmoid") # output layer
+        #Activation('sigmoid)
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
 
