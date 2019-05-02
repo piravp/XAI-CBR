@@ -499,17 +499,16 @@ def train_network():
                 dataset.data_validation, dataset.validation_labels)
 
     from DNN.keras import network
-    
+    np.random.seed(1) 
     #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
     model = network.NN_adult_3(n_values,1)
     model.train_anchor(explainer.encoder.transform(dataset.data_train).toarray(), dataset.train_labels,
             explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
-            epochs=100, batch_size=64)
+            explainer.encoder.transform(dataset.data_test).toarray(), dataset.test_labels,
+            epochs=100, batch_size=90)
     predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
-    model.evaluate(data_train=explainer.encoder.transform(dataset.data_train),train_labels=dataset.train_labels,
-                    data_test=explainer.encoder.transform(dataset.data_test),test_labels=dataset.test_labels)
     
     #print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))
     #print('Test', sklearn.metrics.accuracy_score(dataset.test_labels, predict_fn(dataset.data_test)))

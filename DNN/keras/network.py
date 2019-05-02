@@ -9,6 +9,7 @@ import pre_processing # handle preprosessing and generating data
 import os
 import misc
 import pathlib
+import sklearn
 class Model():
     def __init__(self, name, optimizer=None, loss=None, model=None):
         self.modelpath = pathlib.Path(__file__).parent/"models"
@@ -84,25 +85,31 @@ class Model():
                 return model_from_json(json_data)
         raise ValueError("modelpath is not a file:", filepath)
 
+    def load_model_checkpoint(self,filepath):
+        # load model based on checkpoint.
+        if(os.path.isfile(filepath)):
+            self.model = keras.models.load_model(filepath)
+        raise ValueError("filepath is not a file",filepath)
+
     def load_weights(self,filepath):
         if(os.path.isfile(filepath)): # this is the folder of the model
             self.model.load_weights(filepath) # load weights
 
-    def train_anchor(self, data_train, train_labels, data_validation, validation_labels, 
-        epochs, batch_size,verbose=1,use_gen=True):
+    def train_anchor(self, data_train, train_labels, data_validation, validation_labels, data_test, test_labels,
+        epochs, batch_size,verbose=1, use_gen=True):
         from keras.callbacks import EarlyStopping,ModelCheckpoint,ReduceLROnPlateau
-        path = self.name+"/"+self.name+"-{val_acc:.3f}.hdf5" #+".json" # str path
+        #path = self.name+"/"+self.name+"-{val_acc:.3f}.hdf5" #+".json" # str path
+        path = self.name+"/"+self.name+"-best.hdf5" #+".json" # str path
         save = ModelCheckpoint(
             str(self.modelpath/path), monitor='val_acc', verbose=verbose, save_best_only=True, save_weights_only=False, mode='auto', period=1)
         print(save.filepath )
-        stop = EarlyStopping(monitor="val_loss",mode='min',patience=10,verbose=verbose)
-        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, verbose=verbose, min_lr=1e-6, mode='min')
+        stop = EarlyStopping(monitor="val_loss",mode='min',patience=8,verbose=verbose)
+        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, verbose=verbose, min_lr=1e-6, mode='min')
         
         if(use_gen):
-            print(type(data_train),data_train.shape,type(train_labels))
-            history = self.model.fit_generator(generator(data_train, train_labels, batch_size=100),
+            history = self.model.fit_generator(generator(data_train, train_labels, batch_size=batch_size),
             validation_data=(data_validation, validation_labels),
-            epochs=100, steps_per_epoch=20,callbacks=[save,stop,reduce_lr])
+            epochs=epochs, steps_per_epoch=40,callbacks=[save,stop,reduce_lr])
             #history = self.model.fit(generator(data_train, train_labels, batch_size=32), 
             #validation_data=generator(data_validation, validation_labels, batch_size=200), validation_steps=10,
             #epochs=epochs,steps_per_epoch=10,
@@ -112,11 +119,20 @@ class Model():
             shuffle=True, epochs=epochs, batch_size=batch_size, validation_data=(data_validation, validation_labels),
             callbacks=[save,stop,reduce_lr])
 
+
+        # TODO: load best model from ModelCheckpoint
+        self.model = self.load_model_checkpoint(str(self.modelpath/path))
+
+
+
+        self.evaluate(data_train=data_train,train_labels=train_labels,
+                    data_test=data_test,test_labels=test_labels)
+
         # Draw graph of training epochs.
         if(verbose > 0):
             import matplotlib.pyplot as plt
             plt.figure(1)
-            plt.subplot(121)
+            plt.subplot(131)
             plt.plot(history.history['acc'])
             plt.plot(history.history['val_acc'])
             plt.title('model accuracy')
@@ -124,7 +140,7 @@ class Model():
             plt.xlabel('epoch')
             plt.legend(['train', 'test'], loc='upper left')
 
-            plt.subplot(122)
+            plt.subplot(132)
             plt.plot(history.history['loss'])
             plt.plot(history.history['val_loss'])
             plt.title('model loss')
@@ -132,8 +148,23 @@ class Model():
             plt.xlabel('epoch')
             plt.legend(['train', 'test'], loc='upper left')
 
+            #ROC_curve
+
+            y_pred = self.model.predict(data_test).ravel()
+            from sklearn.metrics import roc_curve,auc
+            fpr_keras, tpr_keras, thresholds_keras = roc_curve(test_labels, y_pred)
+            auc_keras = auc(fpr_keras, tpr_keras)
+
+            plt.subplot(133)
+            plt.plot([0, 1], [0, 1], 'k--') # center line
+            plt.plot(fpr_keras, tpr_keras,label='Keras (area = {:.3f})'.format(auc_keras))
+            #plt.plot(fpr_rf, tpr_rf, label='RF (area = {:.3f})'.format(auc_rf))
+            plt.xlabel('False positive rate')
+            plt.ylabel('True positive rate')
+            plt.title('ROC curve')
+            plt.legend(loc='best')
+
             plt.show()
-        
 
     def train(self, datamanager:pre_processing.Datamanager, epochs, batch_size):
         X,Y = datamanager.return_keras()# Return all data in CSV file. 
@@ -187,7 +218,7 @@ rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
 adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 adagrad = Adagrad(lr=0.01, epsilon=None, decay=0.0)
 
-from keras.regularizers import l1,l1_l2
+from keras.regularizers import l1,l1_l2,l2
 #    
 def CNN_50_25(name="CNN-50-25",dim=5,optimizer=adam):
     return Model(model=[
@@ -249,12 +280,28 @@ def NN_adult_2(input_dim, output_dim, name="NN-Adult-2",optimizer=adam): # input
 def NN_adult_3(input_dim, output_dim, name="NN-Adult-3",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
     return Model(model=[
         Dense(128, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
-        Dropout(0.5),
-        Dense(128, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
-        Dropout(0.4),
-        Dense(64, input_dim=input_dim, activation="relu",activity_regularizer=l1(0.001)),
         Dropout(0.3),
+        Dense(128, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
+        Dropout(0.3),
+        Dense(64, input_dim=input_dim, activation="relu",activity_regularizer=l1(0.001)),
+        Dropout(0.2),
         Dense(32, input_dim=input_dim, activation="relu"),
+        Dropout(0.1),
+        Dense(8, activation="relu"),
+        Dense(output_dim,activation="sigmoid") # output layer
+        #Activation('sigmoid)
+    ],
+    optimizer=optimizer, loss="binary_crossentropy",name=name)
+
+def NN_adult_4(input_dim, output_dim, name="NN-Adult-4",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    return Model(model=[
+        Dense(128, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.5),
+        Dense(96, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.4),
+        Dense(64, input_dim=input_dim, activation="relu", bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.3),
+        Dense(32, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
         Dropout(0.2),
         Dense(8, activation="relu"),
         Dropout(0.1),
@@ -263,32 +310,28 @@ def NN_adult_3(input_dim, output_dim, name="NN-Adult-3",optimizer=adam): # input
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
 
-def NN_3_20(input_dim, output_dim, name="NN-50-25",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_5(input_dim, output_dim, name="NN-Adult-5",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
     return Model(model=[
-        Dense(20, input_dim=input_dim, activation="relu"),
-        Dense(10, activation="relu"),
-        Dense(output_dim), # output layer
-        Activation('softmax')
+        Dense(512, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.6),
+        Dense(256, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.5),
+        Dense(128, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.4),
+        Dense(96, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.3),
+        Dense(64, input_dim=input_dim, activation="relu", bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.1),
+        Dense(32, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.1),
+        Dense(16, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dropout(0.1),
+        Dense(8, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
+        Dense(output_dim,activation="sigmoid") # output layer
+        #Activation('sigmoid)
     ],
-    optimizer=optimizer, loss="categorical_crossentropy",name=name)
+    optimizer=optimizer, loss="binary_crossentropy",name=name)
 
-def CNN_25(name="CNN-25",dim=5):
-    return Model(model=[
-    Conv2D(data_format="channels_first",filters=3,input_shape=(3,dim,dim),kernel_size=3,padding="same",activation="relu"), # (Bx 75)
-    #Conv3D(data_format="channel_first",filters=5,input_shape=(3,25),kernel_size=(1,3,3),padding=1,activation="relu"),
-    Flatten(),
-    Dense(dim*dim, activation="softmax") # 50 -> 25
-    ],
-    optimizer=adam, loss="categorical_crossentropy",name=name, input_type=2)
-
-def try_training():
-    dataman = Datamanager("Data/random_15000_1.csv")
-    datamanager_test = Datamanager.Datamanager("Data/random_20000.csv")
-    model_1.evaluate(datamanager, steps=100)
-    model_1.train(datamanager=datamanager, epochs=100, batch_size=50)
-    model_1.evaluate(datamanager, steps=100)
-    model_1.store(epoch=0)
-    
 #try_training()
 #model = load_model("models/CNN-50-25/CNN-50-25.json","models/CNN-50-25/CNN-50-25_0.h5",adam,"categorical_crossentropy","CNN-50-25",input_type=2)
 
