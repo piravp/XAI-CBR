@@ -173,7 +173,6 @@ def test_anchors_nn():
 
     #print(dataset_2.labels_train)
     #print(dataset.train_labels)
-
     
     #dataman = preprocessing.datamanager()
 
@@ -503,11 +502,11 @@ def train_network():
     #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
-    model = network.NN_adult_3(n_values,1)
+    model = network.NN_adult_4(n_values,1)
     model.train_anchor(explainer.encoder.transform(dataset.data_train).toarray(), dataset.train_labels,
             explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
             explainer.encoder.transform(dataset.data_test).toarray(), dataset.test_labels,
-            epochs=100, batch_size=90)
+            epochs=200, batch_size=90)
     predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
     
     #print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))

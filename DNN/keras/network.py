@@ -10,20 +10,25 @@ import os
 import misc
 import pathlib
 import sklearn
+
 class Model():
-    def __init__(self, name, optimizer=None, loss=None, model=None):
+    def __init__(self, name, optimizer=None, loss=None, model=None,c_path=None):
         self.modelpath = pathlib.Path(__file__).parent/"models"
         self.name = name
+        # checkpoint callback variables.
+        self.best_val_acc = 0
+        self.epoch = 0
+
         # Check if modelpath directory exists.
         self.folder() 
         if(model is None): # we want to load from file instead.
             #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
             if(os.path.exists(self.modelpath)): # means we want to load model.
-                # We want to load model from file
-                self.model = self.load_model(self.modelpath)
-                weightPath = misc.find_newest_model(name)
-                if(weightPath is not None and os.path.exists(weightPath)):
-                    self.load_weights(weightPath)
+                if(c_path is None): # We simply want to load the best model availible.
+                    pass
+                else:
+                    if(os.path.exists(c_path)):
+                        self.load_model_checkpoint(c_path)                        
             else:
                 raise ValueError("No filepath found from model name to load from")
             
@@ -89,27 +94,42 @@ class Model():
         # load model based on checkpoint.
         if(os.path.isfile(filepath)):
             self.model = keras.models.load_model(filepath)
-        raise ValueError("filepath is not a file",filepath)
+            #self.model.compile(loss=self.loss, optimizer=self.optimizer)
+        else: # if the filepath does not exists.
+            raise ValueError("filepath is not a file",filepath)
 
     def load_weights(self,filepath):
         if(os.path.isfile(filepath)): # this is the folder of the model
             self.model.load_weights(filepath) # load weights
 
+    def checkPoint(self,epoch,logs):
+        val_acc = logs['val_acc']
+
+        if(val_acc > self.best_val_acc):
+            self.best_val_acc = val_acc
+            self.epoch = epoch
+            print("Epoch {}: val_acc increased from {:.4f} to {:.4f}, saving model to {}"
+                .format(epoch, val_acc, self.best_val_acc, self.path))
+            self.model.save(self.path)
+
     def train_anchor(self, data_train, train_labels, data_validation, validation_labels, data_test, test_labels,
         epochs, batch_size,verbose=1, use_gen=True):
-        from keras.callbacks import EarlyStopping,ModelCheckpoint,ReduceLROnPlateau
+        from keras.callbacks import EarlyStopping,ModelCheckpoint,ReduceLROnPlateau,LambdaCallback
         #path = self.name+"/"+self.name+"-{val_acc:.3f}.hdf5" #+".json" # str path
-        path = self.name+"/"+self.name+"-best.hdf5" #+".json" # str path
-        save = ModelCheckpoint(
-            str(self.modelpath/path), monitor='val_acc', verbose=verbose, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-        print(save.filepath )
+        #path = self.name+"/"+self.name+"-best.hdf5" #+".json" # str path
+        path = self.name+"/"+self.name
+        end = "-best.hdf5"
+        self.path = str(self.modelpath/path)+end
+        #save = ModelCheckpoint(
+        #    str(self.modelpath/path), monitor='val_acc', verbose=verbose, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+        #print(save.filepath)
         stop = EarlyStopping(monitor="val_loss",mode='min',patience=8,verbose=verbose)
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, verbose=verbose, min_lr=1e-6, mode='min')
         
         if(use_gen):
             history = self.model.fit_generator(generator(data_train, train_labels, batch_size=batch_size),
             validation_data=(data_validation, validation_labels),
-            epochs=epochs, steps_per_epoch=40,callbacks=[save,stop,reduce_lr])
+            epochs=epochs, steps_per_epoch=40,callbacks=[LambdaCallback(on_epoch_end=self.checkPoint),stop,reduce_lr])
             #history = self.model.fit(generator(data_train, train_labels, batch_size=32), 
             #validation_data=generator(data_validation, validation_labels, batch_size=200), validation_steps=10,
             #epochs=epochs,steps_per_epoch=10,
@@ -117,16 +137,22 @@ class Model():
         else:
             history = self.model.fit(data_train, train_labels, 
             shuffle=True, epochs=epochs, batch_size=batch_size, validation_data=(data_validation, validation_labels),
-            callbacks=[save,stop,reduce_lr])
+            callbacks=[LambdaCallback(on_epoch_end=self.checkPoint),stop,reduce_lr])
+
 
 
         # TODO: load best model from ModelCheckpoint
-        self.model = self.load_model_checkpoint(str(self.modelpath/path))
-
-
+        self.load_model_checkpoint(self.path)
 
         self.evaluate(data_train=data_train,train_labels=train_labels,
                     data_test=data_test,test_labels=test_labels)
+
+        self.rename_model(str(self.modelpath/path))
+
+        # we want to rename the file to something else.
+        #path = self.name+"/"+self.name+"-{val_acc:.3f}.hdf5" #+".json" # str path
+
+        
 
         # Draw graph of training epochs.
         if(verbose > 0):
@@ -135,10 +161,11 @@ class Model():
             plt.subplot(131)
             plt.plot(history.history['acc'])
             plt.plot(history.history['val_acc'])
+            plt.axvline(x=self.epoch,linestyle=":",color="g")
             plt.title('model accuracy')
             plt.ylabel('accuracy')
             plt.xlabel('epoch')
-            plt.legend(['train', 'test'], loc='upper left')
+            plt.legend(['train', 'test','checkpoint'], loc='lower right')
 
             plt.subplot(132)
             plt.plot(history.history['loss'])
@@ -161,10 +188,24 @@ class Model():
             #plt.plot(fpr_rf, tpr_rf, label='RF (area = {:.3f})'.format(auc_rf))
             plt.xlabel('False positive rate')
             plt.ylabel('True positive rate')
-            plt.title('ROC curve')
+            plt.title('ROC curve(checkpint)')
             plt.legend(loc='best')
 
+
+            acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
+
+            plt.savefig(str(self.modelpath/path)+"-"+str(acc)+'.png')
+
             plt.show()
+
+    def rename_model(self,path):
+        # We want to add accuaracy to the model save-point
+        if(os.path.isfile(self.path)):
+            acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
+            os.rename(self.path, path+"-"+str(acc)+".hdf5")
+        else:
+            raise ValueError("path is not a file",path)
+
 
     def train(self, datamanager:pre_processing.Datamanager, epochs, batch_size):
         X,Y = datamanager.return_keras()# Return all data in CSV file. 
@@ -173,16 +214,13 @@ class Model():
 
     def train_batch(self, datamanager:pre_processing.Datamanager, batch_size): # better for task requiring alot of memory
         # TODO: train with a loop
-        
         X,Y = datamanager.return_batch(batch_size)# Return all data in CSV file. 
         self.model.train_on_batch(X,Y)
 
     def evaluate(self, data_train, train_labels, data_test, test_labels, batch_size=1000):
         score, acc = self.model.evaluate(data_train, train_labels, batch_size=batch_size)
-        score_test, acc_test = self.model.evaluate(data_test, test_labels, batch_size=batch_size)
-        print("loss_train {:.6f} loss_test {:6f} - acc_train {:.2f}%  acc_test {:.2f}%".format(score, score_test, acc*100, acc_test*100))
-
-
+        score_test, self.acc_test = self.model.evaluate(data_test, test_labels, batch_size=batch_size)
+        print("loss_train {:.6f} loss_test {:6f} - acc_train {:.2f}%  acc_test {:.2f}%".format(score, score_test, acc*100, self.acc_test*100))
 
     def evaluate_old(self, datamanager:pre_processing.Datamanager, batch_size=None, steps=None):
         X,Y = datamanager.return_keras(self.input_type)
@@ -191,6 +229,16 @@ class Model():
     
     def predict(self, data): # return an class as a one dimention np.array (c,)
         return self.model.predict_classes(data).flatten()
+
+#best_val_loss = sys.float_info.max
+def checkPoint(epoch,logs,path):
+    val_acc = logs['val_acc']
+
+    if(val_acc > best_val_acc):
+        print("Epoch {}: val_acc increased from {} to {}, saving model to {}".format(epoch,val_acc,best_val_acc,path))
+        best_val_acc = val_acc
+        epoch = epoch
+        model.save(path)
 
 import numpy as np
 def generator(x, y, batch_size):
@@ -215,20 +263,10 @@ def generator(x, y, batch_size):
 
 sgd = SGD(lr=0.01)
 rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
-adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
 adagrad = Adagrad(lr=0.01, epsilon=None, decay=0.0)
 
 from keras.regularizers import l1,l1_l2,l2
-#    
-def CNN_50_25(name="CNN-50-25",dim=5,optimizer=adam):
-    return Model(model=[
-    Conv2D(data_format="channels_first",filters=3,input_shape=(3,dim,dim),kernel_size=3,padding="same",activation="relu"), # (Bx 75)
-    #Conv3D(data_format="channel_first",filters=5,input_shape=(3,25),kernel_size=(1,3,3),padding=1,activation="relu"),
-    Flatten(),
-    Dense(50,activation="relu"), # (75 -> 50)
-    Dense(dim*dim, activation="softmax") # 50 -> 25
-    ], 
-    optimizer=optimizer, loss="categorical_crossentropy",name=name)
 
 def NN_adult(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
     return Model(model=[
@@ -304,7 +342,6 @@ def NN_adult_4(input_dim, output_dim, name="NN-Adult-4",optimizer=adam): # input
         Dense(32, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
         Dropout(0.2),
         Dense(8, activation="relu"),
-        Dropout(0.1),
         Dense(output_dim,activation="sigmoid") # output layer
         #Activation('sigmoid)
     ],
@@ -331,16 +368,3 @@ def NN_adult_5(input_dim, output_dim, name="NN-Adult-5",optimizer=adam): # input
         #Activation('sigmoid)
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
-
-#try_training()
-#model = load_model("models/CNN-50-25/CNN-50-25.json","models/CNN-50-25/CNN-50-25_0.h5",adam,"categorical_crossentropy","CNN-50-25",input_type=2)
-
-"""
-model = Sequential()
-model.add(Conv2D(3,kernel_size=3,activation="relu",input_shape=(3,5,5)))
-model.add(Flatten())
-model.add(Dense(25,activation="softmax"))
-dataset_train = Datamanager.Datamanager("Data/random_15000.csv",dim=5, modus=2)
-model.compile(optimizer="adam",loss="categorical_crossentropy")
-model.fit()
-"""
