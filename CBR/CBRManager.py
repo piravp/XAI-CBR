@@ -1,5 +1,6 @@
 import uuid
 from CBR.dataloader2 import Datamanager
+from CBR.DBManager import DBManager
 
 # INFO: To have more than one cb, create another case-base and call it case-base2 or something
 
@@ -30,9 +31,10 @@ class CBRManager:
         # self.case = case
         self.cases = {}
         self.containers = {}           # All case-bases
+        self.db = DBManager()
 
     def retrieve_data(self, datamanager):
-        """ Retrieve data from datamanager """
+        """ Retrieve data from Datamanager class """
         cases = []
         for row in datamanager.ret.df_unencoded.itertuples(index=False):
             c = Case(age=row[0], workclass=row[1], education=row[2], marital_status=row[3], occupation=row[4],
@@ -44,11 +46,19 @@ class CBRManager:
             self.add_cases(cases=cases)
 
 
-    def create_container(self, name):
-        """ Create container """
+    def create_container(self, name, db=True):
+        """ Create container
+
+        Args:
+            db: Add to db if flag is true
+
+        """
 
         # Create new empty container
         self.containers[name] = {}
+
+        if db:
+            self.db.create_container_db(name)
 
     # ----------------------------------------------------------------------------------------------------- #
     #                                       C A S E  M A N A G E M E N T                                    #
@@ -83,7 +93,7 @@ class CBRManager:
             # Case in dict-format
             self.cases[case.id] = case
 
-        # Update case-base only after every case has been added to case-dict
+        # Update case-base only after each case has been added to case dictionary
         self.containers[cb].update(self.cases)
 
 
@@ -107,7 +117,8 @@ class CBRManager:
 
 dm = Datamanager(dataset='adults')
 
-cbrman = CBRManager()
-cbrman.retrieve_data(dm)
+cbr = CBRManager()
+cbr.create_container(name='test_contain', db=True)
+# cbrman.retrieve_data(dm)
 # cbrman.add_case(case)
 

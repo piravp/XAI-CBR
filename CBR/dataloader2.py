@@ -8,6 +8,11 @@ from collections import defaultdict
 import sklearn
 import sklearn.model_selection
 from DNN.Induction.Anchor import discretize
+import warnings
+
+# Suppress FutureWarning
+with warnings.catch_warnings():
+    warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 class Set(object):  # Set of variables.
@@ -322,6 +327,16 @@ class Datamanager():
         ordinal_features = [x for x in range(data.shape[1])
                             if x not in categorical_features]
 
+
+        # Save df before label encoding
+        self.ret.df_unencoded = data.copy(deep=True)
+        self.ret.df_unencoded['class'] = df.values[:, -1]
+        pd.set_option('display.max_rows', 500)
+        pd.set_option('display.max_columns', 500)
+        pd.set_option('display.width', 1000)
+        # print(data.head(n=100))
+
+
         # Create category mappings labels
         categorical_names = {}
         for feature in categorical_features:
@@ -452,5 +467,5 @@ class smart_dict(dict):
         return super().get(key)
 
 
-dm = Datamanager(dataset='adults')
-print()
+# dm = Datamanager(dataset='adults')
+# print()
