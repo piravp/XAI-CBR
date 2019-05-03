@@ -318,8 +318,8 @@ class Datamanager():
 
         # Transformation that must happen column wise
         transformation_c = {
-            10: lambda x: cap_gain_fn(x,cap_gain_median),
-            11: lambda x: cap_loss_fn(x,cap_loss_median),
+            10: lambda x: cap_gain_fn(x, cap_gain_median),
+            11: lambda x: cap_loss_fn(x, cap_loss_median),
         }
 
         # perform transformation to each element in features
@@ -330,8 +330,9 @@ class Datamanager():
         labels = df.values[:,-1] # last index is the target values
         labels_test = df_test.values[:,-1]
 
-        le = sklearn.preprocessing.LabelEncoder() # init label encoder
+        le = preprocessing.LabelEncoder() # init label encoder
         le.fit(labels) # fit label encoder: targets -> encodings
+        self.ret.label_encoder = le # store encoder
         self.ret.labels = le.transform(labels) # store encoded labels
         self.ret.labels_test = le.transform(labels_test)
 
@@ -363,8 +364,11 @@ class Datamanager():
                                                     labels=self.ret.labels)
         
         #print(disc.discretize(data.values))
+        print(data.values[1],data.values[1].shape)#, type(data.values[1]), type(data.values[1][0]))
+        #exit()
         disc_data = disc.discretize(data.values)
         disc_data_test = disc.discretize(data_test.values)
+        self.ret.ordinal_discretizer = disc
 
         # replace the data with the discretisized features from non_categorical
         for feature in non_categorical:
@@ -376,15 +380,19 @@ class Datamanager():
 
         # Create category mappings labels
         categorical_names = {} 
+        categorical_encoders = {}
         for feature in categorical_features:
-            le = sklearn.preprocessing.LabelEncoder() # init label encoder
-            le.fit(data.iloc[:,feature]) # use column value as label encoder
-            data.iloc[:,feature] = le.transform(data.iloc[:,feature].astype(str))
-            data_test.iloc[:,feature] = le.transform(data_test.iloc[:,feature].astype(str))
-            #data.values[:,feature] = le.transform(data.values[:,feature])
-            categorical_names[feature] = list(le.classes_)
+            le_f = preprocessing.LabelEncoder() # init new label encoder
+            le_f.fit(data.iloc[:,feature]) # use column value as label encoder
+            data.iloc[:,feature] = le_f.transform(data.iloc[:,feature].astype(str))
+            data_test.iloc[:,feature] = le_f.transform(data_test.iloc[:,feature].astype(str))
+            #data.values[:,feature] = le_f.transform(data.values[:,feature])
+            categorical_names[feature] = list(le_f.classes_)
+            categorical_encoders[feature] = le_f
         categorical_names.update(disc.names) # update categorical_names with the discretized dict
 
+        # store the label encoder
+        self.ret.categorical_encoders = categorical_encoders
         # fill return Set
         self.ret.ordinal_features = ordinal_features
         self.ret.categorical_features = categorical_features
@@ -398,7 +406,7 @@ class Datamanager():
         # ? Display information of the dataset
         # print(df.groupby('income').agg(['count','size','nunique']).stack())
 
-        # Init splitter
+        # Init splitter, random_state = 1 (seed)
         split = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                     test_size=0.5,
                                                     random_state=1)
@@ -478,6 +486,14 @@ class Datamanager():
     def float_value(self,data_targets):
         """ Return output as a float, with each class coresponding to an fraction between 0 and 1 """
         pass
+
+    #for i,v in enumerate(dataset.data_train[1]):
+    #    print("{}:{}, ".format(dataset.feature_names[i],dataset.categorical_names[i][int(v)]),end="")
+    def translate(self,row): # return translatet version of a list
+        row = row.astype(int) # to index dictionary properly
+        return [self.ret.categorical_names[i][v] for i,v in enumerate(row)]
+
+
 
 def read_data_pd(name,columns,header, encoding="latin-1"):
     # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte

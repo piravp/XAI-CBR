@@ -511,6 +511,58 @@ def train_network():
     
     #print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))
     #print('Test', sklearn.metrics.accuracy_score(dataset.test_labels, predict_fn(dataset.data_test)))
+
+def dataset_info():
+    import sklearn
+    import numpy as np
+    from sklearn import model_selection
+    from DNN.keras import pre_processing
+    
+    datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
+    dataset = datamanager.ret
+
+    print(dataset.__dict__.keys())
+    
+    #print(dataset.class_names)
+    print("feature names",dataset.feature_names)
+    cat_names = sorted(dataset.categorical_names.keys())
+    n_values = [len(dataset.categorical_names[i]) for i in cat_names]
+    print(len(n_values),n_values,sum(n_values))
+
+    print(dataset.categorical_names[10])
+
+    exit()
+    #for i in cat_names:
+    #    print(dataset.feature_names[i],dataset.categorical_names[i])
+    #50, Self-emp-not-inc, 83311, Bachelors, 13, Married-civ-spouse,
+    #Exec-managerial, Husband, White, Male, 0, 0, 13, United-States
+    print(datamanager.translate(dataset.data_train[1]))
+
+    #[50 'Self-emp-not-inc' 'Bachelors' 'Married' 'White-Collar' 'Husband'
+    #'White' 'Male' 'None' 'None' 13 'United-States']
+    import pandas as pd
+    d_instance = [50,"Self-emp-not-inc","Bachelors","Married","White-Collar",
+                            "Husband","White","Male","None","None",13,"United-States"]
+    d_instance_2 = [{"age":50, "workclass":"Self-emp-not-inc","education":"Bachelors",'marital status':"Married",
+                    'occupation':"White-Collar",'relationship':"Husband",'race':"White",
+                    'sex':"Male",'capital gain':"None",'capital loss':"None",'hours per week':13,'country':"United-States"}]
+    df_2 = pd.DataFrame(d_instance_2)    
+    print("df_2",df_2.values.flatten())                    
+    df = pd.DataFrame(d_instance)
+    print(df.shape)
+    print(df.values.flatten())
+    d_instance = df.values.flatten() # (12,) np.array 
+    print(dataset.ordinal_discretizer.discretize(d_instance))
+    print(dataset.data_train[1])
+    exit()
+    print(datamanager.translate(dataset.data_train[1]))
+
+    print(dataset.ordinal_discretizer.discretize([2,1]))
+    #for i,v in enumerate(dataset.data_train[1]):
+    #    print("{}:{}, ".format(dataset.feature_names[i],dataset.categorical_names[i][int(v)]),end="")
+
+    
+
 #test_lore()
 #test_anchors()
 #test_anchors_nn()
@@ -519,4 +571,5 @@ def train_network():
 
 #test_autoencoder()
 
-train_network()
+#train_network()
+dataset_info()
