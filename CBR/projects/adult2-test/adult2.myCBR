@@ -39,5 +39,5 @@
     <node name="Person" sim="1.0" parent="inheritanceDesc" />
   </fct>
 </hierarchy>
-<cases no="2" cb="cb0"/>
+<cases no="8" cb="cb0"/>
 </Project>

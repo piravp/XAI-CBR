@@ -2,14 +2,14 @@
 <Project name="adult2" author="" >
 <exp obj="Person" type="Concept" >
   <desc>
-                      </desc>
+&#10;                        </desc>
 </exp>
 <exp obj="Gender" c="Person" type="AttributeDesc" >
   <desc>
-&#10;        </desc>
+          </desc>
 </exp>
 <exp obj="Age" c="Person" type="AttributeDesc" >
   <desc>
-&#10;        </desc>
+          </desc>
 </exp>
 </Project>
