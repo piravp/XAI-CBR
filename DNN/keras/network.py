@@ -22,13 +22,13 @@ class Model():
         # Check if modelpath directory exists.
         self.folder() 
         if(model is None): # we want to load from file instead.
+            print(os.path.exists(str(self.modelpath/c_path)))
             #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
             if(os.path.exists(str(self.modelpath/c_path))): # means we want to load model.
                 if(c_path is None): # We simply want to load the best model availible.
                     pass
                 else:
-                    if(os.path.exists(c_path)):
-                        self.load_model_checkpoint(c_path)                        
+                    self.load_model_checkpoint(str(self.modelpath/c_path))                        
             else:
                 raise ValueError("No filepath found from model name to load from")
             
@@ -146,12 +146,14 @@ class Model():
 
         self.evaluate(data_train=data_train,train_labels=train_labels,
                     data_test=data_test,test_labels=test_labels)
-
+        self.acc = int(self.acc_test*10**4)
         self.rename_model(str(self.modelpath/path))
 
         # we want to rename the file to something else.
         #path = self.name+"/"+self.name+"-{val_acc:.3f}.hdf5" #+".json" # str path
 
+        # Check if accuracy is good enough.
+        self.check_if_persist(str(self.modelpath/path))
         
 
         # Draw graph of training epochs.
@@ -191,28 +193,36 @@ class Model():
             plt.title('ROC curve(checkpint)')
             plt.legend(loc='best')
 
-
-            acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
-
-            plt.savefig(str(self.modelpath/path)+"-"+str(acc)+'.png')
-
+            # We do not want to store the plot if it has less than 85 % test accuracy
+            # get 4 decimal places as integer.
+            print("acc",self.acc)
+            if(self.acc >= 8500): # only if accuracy is above 85%
+                plt.savefig(str(self.modelpath/path)+"-"+str(self.acc)+'.png')
             plt.show()
+
+    def check_if_persist(self,path):
+        # Check if accuracy on test set is above 85 % otherwise we delete the model.
+        #acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
+        if(os.path.isfile(path+"-"+str(self.acc)+".hdf5")):
+            if(self.acc < 8500): # if accuracy is less, we simply remove the model
+                os.remove(path+"-"+str(self.acc)+".hdf5")
+                
 
     def rename_model(self,path):
         # We want to add accuaracy to the model save-point
         if(os.path.isfile(self.path)):
-            acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
+            #acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
             # check if file allready exists, if so delete previous file
-            if(os.path.exists(path+"-"+str(acc)+".hdf5")): 
-                os.remove(path+"-"+str(acc)+".hdf5")
-            os.rename(self.path, path+"-"+str(acc)+".hdf5")
+            if(os.path.exists(path+"-"+str(self.acc)+".hdf5")): 
+                os.remove(path+"-"+str(self.acc)+".hdf5")
+            os.rename(self.path, path+"-"+str(self.acc)+".hdf5")
         else:
             raise ValueError("path is not a file",path)
 
     def evaluate(self, data_train, train_labels, data_test, test_labels, batch_size=1000):
         score, acc = self.model.evaluate(data_train, train_labels, batch_size=batch_size)
         score_test, self.acc_test = self.model.evaluate(data_test, test_labels, batch_size=batch_size)
-        print("loss_train {:.6f} loss_test {:6f} - acc_train {:.2f}%  acc_test {:.2f}%".format(score, score_test, acc*100, self.acc_test*100))
+        print("loss_train {:.6f}  loss_test {:6f} - acc_train {:.2f}%  acc_test {:.2f}%".format(score, score_test, acc*100, self.acc_test*100))
 
     
     def predict(self, data): # return an class as a one dimention np.array (c,)
@@ -279,7 +289,7 @@ def NN_adult_1(input_dim, output_dim, name="NN-Adult-1"): # input -> linear(50) 
     optimizer=optimizer, loss="binary_crossentropy",name=name)    
 
 def NN_adult_2(input_dim, output_dim, name="NN-Adult-2"): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
-    optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
+    optimizer = Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
     return Model(model=[
         Dense(256, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
         Dropout(0.5),

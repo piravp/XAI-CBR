@@ -374,6 +374,7 @@ class AnchorTabularExplainer(object):
         return explanation
 
     def add_names_to_exp(self, data_row, hoeffding_exp, mapping):
+        print("add_names_to_exp",data_row, hoeffding_exp, mapping)
         # TODO: precision recall is all wrong, coverage functions wont work
         # anymore due to ranges
         idxs = hoeffding_exp['feature']

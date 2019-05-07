@@ -334,8 +334,8 @@ class Datamanager():
         le = preprocessing.LabelEncoder() # init label encoder
         le.fit(labels) # fit label encoder: targets -> encodings
         self.ret.label_encoder = le # store encoder
-        self.ret.labels = le.transform(labels) # store encoded labels
-        self.ret.labels_test = le.transform(labels_test)
+        self.ret.labels = le.transform(labels) # encode data set labels
+        self.ret.labels_test = le.transform(labels_test) # encode test set labels
 
         self.ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
         #self.ret.class_target = columns[-1] # get column name of target
@@ -498,6 +498,9 @@ class Datamanager():
     def translate(self,row): # return translatet version of a list [1,2,2,1] -> ["between 20 and 30","Married","United States", etc]
         row = row.astype(int) # to index dictionary properly
         return [self.ret.categorical_names[i][v] for i,v in enumerate(row)]
+    
+    def translate_prediction(self, prediction): # simply return mapping between label encoding and label.
+        return self.ret.class_names[prediction]
 
     def transform(self,row):
         # transform a row of raw data to encoded labels.

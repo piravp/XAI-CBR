@@ -401,7 +401,6 @@ def test_anchor_nn_data():
     print(exp.features())
 
     
-
     # TODO: list of catagories -> encoding -> one_hot_encoding.
     exit()
     # Check that the ancor holds for other data points.
@@ -453,7 +452,6 @@ def test_integrated_gradients():
     
     ig = IntegratedGradients.integrated_gradients(bb.model, verbose=0)
 
-
     print("Explaning:", t_inputs[0])
     attribution = ig.explain(t_inputs[0], num_steps=100)
     print("sum Attribution:",sum(attribution))
@@ -501,7 +499,7 @@ def train_network():
     #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
-    model = network.NN_adult_5(n_values,1)
+    model = network.NN_adult_3(n_values,1)
     np.random.seed(1) 
     print("state2",np.random.get_state()[1][0])
     tf.set_random_seed(1)
@@ -534,16 +532,67 @@ def load_model():
         dataset.class_names, dataset.feature_names,
         dataset.data_train, dataset.categorical_names)
         
+    # ! Explainer.encoder.transform returl sparse matrix, instead of dense np.array
     explainer.fit(dataset.data_train, dataset.train_labels, 
                 dataset.data_validation, dataset.validation_labels)
-    print(np.random.get_state()[1][0])
-    exit()
+    
+    
     from DNN.keras import network
     #np.random.seed(1) 
     #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
-    model = network.NN_adult_4(n_values,1)
+    model = network.Model(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+    model.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
+                    data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
+    #explainer.encoder.transform(dataset.data_train).toarray(), dataset.train_labels,
+    #        explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
+    #        explainer.encoder.transform(dataset.data_test).toarray(), dataset.test_labels
+
+    # Try to explain a given prediction
+    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
+    print(np.random.get_state()[1][0])
+    np.random.seed(1) 
+    idx = 0
+    print("predicting", dataset.data_test[idx].reshape(1,-1)[0])
+    prediction = predict_fn(dataset.data_test[idx].reshape(1,-1))[0]
+    print("prediction:", prediction,"=",explainer.class_names[prediction])
+    #print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint    
+    exp = explainer.explain_instance(dataset.data_test[idx], model.predict, threshold=0.98,verbose=True)
+    #print(exp.names())
+    print("Anchor: %s" % (" AND ".join(exp.names())))
+    print("Precision: %.2f" % exp.precision())
+    print("Coverage: %.2f" % exp.coverage())
+    print(exp.features())
+
+    all_np = np.all(dataset.data_test[:, exp.features()] == dataset.data_test[idx][exp.features()], axis=1) 
+    print(all_np)
+    fit_anchor = np.where((all_np))[0] # select the array of indexes?
+    print(fit_anchor,fit_anchor.shape)
+    print('Anchor test precision: %.2f' % (np.mean(predict_fn(dataset.data_test[fit_anchor]) == predict_fn(dataset.data_test[idx].reshape(1, -1)))))
+    print('Anchor test coverage: %.2f' % (fit_anchor.shape[0] / float(dataset.data_test.shape[0])))
+
+    # Looking at a particular anchor
+    print('Partial anchor: %s' % (' AND '.join(exp.names(1))))
+    print('Partial precision: %.2f' % exp.precision(1))
+    print('Partial coverage: %.2f' % exp.coverage(1))
+    print('partial features: {}'.format(exp.features(1)))
+    print(dataset.data_test[idx].reshape(1,-1)[0])
+    
+    for f in exp.features(1):
+        print(f,dataset.data_test[idx].reshape(1,-1)[0][f])
+    # translation of prediction data.
+    print(datamanager.translate(dataset.data_train[idx]))
+
+    
+
+    print(":::TESTING::::")
+
+    print(exp.exp_map['names'])
+    print(exp.exp_map['feature'])
+    print(exp.exp_map['precision'])
+    print(exp.exp_map['coverage'])
+    #print(exp.exp_map['examples'])
 
 def dataset_info():
     import sklearn
