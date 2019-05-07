@@ -15,9 +15,27 @@ CBR
                     |__mycbr-rest-x.x-SNAPSHOT.jar
                 |__lib/no/ntnu/mycbr/mycbr-sdk/
 ```
+## Getting started
+
+### Set up libs
+Download mycbr-rest and mycbr-sdk and structure them in folders as instructed above. Then, assuming you're in `CBR/libs/mycbr-rest` and have maven installed, run:
+```sh
+# Build sdk
+cd ../mycbr-sdk
+mvn clean install
+# Build rest
+cd ../mycbr-rest
+mvn install:install-file -Dfile=../mycbr-sdk/target/myCBR-3.3-SNAPSHOT.jar -DpomFile=../mycbr-sdk/pom.xml -DlocalRepositoryPath=lib/no/ntnu/mycbr/mycbr-sdk/
+mvn clean install
+```
+
+To run a project (still in `CBR/libs/mycbr-rest`):
+```sh
+java -DMYCBR.PROJECT.FILE=/path/to/project.prj -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar
+```
 
 ### Rebuilding after changes to REST
-After changes has been made to the source code of the rest API, the projects needs to be rebuilt for the changes to start applying. 
+If you've made changes in the source code (bugfix, improvements, etc.) the project needs to be rebuilt before the changes start applying.
 Assuming you're in `CBR/libs/mycbr-rest`:
 ```sh
 mvn install:install-file -Dfile=../mycbr-sdk/target/myCBR-3.3-SNAPSHOT.jar -DpomFile=../mycbr-sdk/pom.xml -DlocalRepositoryPath=lib/no/ntnu/mycbr/mycbr-sdk/
