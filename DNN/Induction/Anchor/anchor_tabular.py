@@ -148,7 +148,6 @@ class AnchorTabularExplainer(object):
             self.std[f] = np.std(train_data[:, f])
         
         # Print values, to check what we got.
-        print(self.min,self.max,self.std)
 
     def sample_from_train(self, conditions_eq, conditions_neq, conditions_geq,
                         conditions_leq, num_samples, validation=True):
@@ -374,7 +373,6 @@ class AnchorTabularExplainer(object):
         return explanation
 
     def add_names_to_exp(self, data_row, hoeffding_exp, mapping):
-        print("add_names_to_exp",data_row, hoeffding_exp, mapping)
         # TODO: precision recall is all wrong, coverage functions wont work
         # anymore due to ranges
         idxs = hoeffding_exp['feature']

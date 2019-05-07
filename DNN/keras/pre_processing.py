@@ -328,6 +328,10 @@ class Datamanager():
             df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function)
             df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
 
+        # ? Check for inconsistencies
+        print(df.head())
+
+
         labels = df.values[:,-1] # last index is the target values
         labels_test = df_test.values[:,-1]
 
@@ -459,8 +463,8 @@ class Datamanager():
             x = x.astype(float)
             d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
                                 right=True).astype('|S128')
-            print(np.median(x[x > 0]))
-            print(d)
+            #print(np.median(x[x > 0]))
+            #print(d)
 
         self.feature_names = ["bit-"+str(i) for i in range(n_bits)]
 

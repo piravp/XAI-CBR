@@ -22,7 +22,6 @@ class Model():
         # Check if modelpath directory exists.
         self.folder() 
         if(model is None): # we want to load from file instead.
-            print(os.path.exists(str(self.modelpath/c_path)))
             #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
             if(os.path.exists(str(self.modelpath/c_path))): # means we want to load model.
                 if(c_path is None): # We simply want to load the best model availible.

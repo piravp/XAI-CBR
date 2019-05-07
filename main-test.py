@@ -527,6 +527,15 @@ def load_model():
     datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = datamanager.ret
 
+    #dataset.ret.data_train[1]
+    #print(dataset.data_train[0])
+    #print(datamanager.translate(dataset.data_train[0]))
+
+
+    #print(datamanager.translate(dataset.data_test[0]))
+
+    #exit()
+
     # Fit the explainer to the dataset. 
     explainer = anchor_tabular.AnchorTabularExplainer(
         dataset.class_names, dataset.feature_names,
@@ -549,42 +558,50 @@ def load_model():
     #        explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
     #        explainer.encoder.transform(dataset.data_test).toarray(), dataset.test_labels
 
-    # Try to explain a given prediction
+    # Try to explain a given prediction print(datamanager.translate(dataset.data_train[0]))
     predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
-    print(np.random.get_state()[1][0])
+
     np.random.seed(1) 
-    idx = 0
-    print("predicting", dataset.data_test[idx].reshape(1,-1)[0])
-    prediction = predict_fn(dataset.data_test[idx].reshape(1,-1))[0]
+    idx = 1
+    instance = dataset.data_test[idx].reshape(1,-1)
+    print("instance", instance[0])
+    print(datamanager.translate(instance[0]))
+    prediction = predict_fn(instance)[0]
     print("prediction:", prediction,"=",explainer.class_names[prediction])
-    #print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint    
-    exp = explainer.explain_instance(dataset.data_test[idx], model.predict, threshold=0.98,verbose=True)
+    #print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint 
+
+    exp = explainer.explain_instance(instance, model.predict, threshold=0.98,verbose=True)
     #print(exp.names())
     print("Anchor: %s" % (" AND ".join(exp.names())))
     print("Precision: %.2f" % exp.precision())
     print("Coverage: %.2f" % exp.coverage())
-    print(exp.features())
+    print("Features:",exp.features())
 
+    print("anchor values:",[instance[0][f] for f in exp.features()])
+
+    print(dataset.data_test[:, exp.features()],dataset.data_test[:, exp.features()].shape)
+    
     all_np = np.all(dataset.data_test[:, exp.features()] == dataset.data_test[idx][exp.features()], axis=1) 
-    print(all_np)
+    print(all_np,all_np.shape)
     fit_anchor = np.where((all_np))[0] # select the array of indexes?
-    print(fit_anchor,fit_anchor.shape)
-    print('Anchor test precision: %.2f' % (np.mean(predict_fn(dataset.data_test[fit_anchor]) == predict_fn(dataset.data_test[idx].reshape(1, -1)))))
-    print('Anchor test coverage: %.2f' % (fit_anchor.shape[0] / float(dataset.data_test.shape[0])))
+    print(fit_anchor.shape)
+    print(dataset.data_test[:,exp.features()][fit_anchor])
 
+    # of all data points that have the same values as the instance on anchor, how many are correct.
+    print('Anchor test precision: %.2f' % (np.mean(predict_fn(dataset.data_test[fit_anchor]) == predict_fn(instance))))
+    # of all the similar instances in test set, how large percentet of the dataset is this. 
+    print('Anchor test coverage: %.2f' % (fit_anchor.shape[0] / float(dataset.data_test.shape[0])))
+    
+    print("Partial anchor")
     # Looking at a particular anchor
     print('Partial anchor: %s' % (' AND '.join(exp.names(1))))
     print('Partial precision: %.2f' % exp.precision(1))
     print('Partial coverage: %.2f' % exp.coverage(1))
     print('partial features: {}'.format(exp.features(1)))
-    print(dataset.data_test[idx].reshape(1,-1)[0])
-    
-    for f in exp.features(1):
-        print(f,dataset.data_test[idx].reshape(1,-1)[0][f])
-    # translation of prediction data.
-    print(datamanager.translate(dataset.data_train[idx]))
+    print(instance[0])
 
-    
+    # translation of prediction data.
+    print(datamanager.translate(dataset.data_test[idx]))
 
     print(":::TESTING::::")
 
