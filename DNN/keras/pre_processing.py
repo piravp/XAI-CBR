@@ -234,25 +234,26 @@ class Datamanager():
             "Sales", "Tech-support": "Other", "Transport-moving":
             "Blue-Collar",
         })
-        country_map = smart_dict({ # update old name mapping.
+        # Europe https://en.wikipedia.org/wiki/Northern_Europe#/media/File:Europe_subregion_map_UN_geoscheme.svg
+        country_map = smart_dict({ # update old name mapping. europen countries mapped to region south, easth, west, north.
             'Cambodia': 'SE-Asia', 'Canada': 'British-Commonwealth', 'China':
             'China', 'Columbia': 'South-America', 'Cuba': 'Other',
             'Dominican-Republic': 'Latin-America', 'Ecuador': 'South-America',
             'El-Salvador': 'South-America', 'England': 'British-Commonwealth',
-            'France': 'Euro_1', 'Germany': 'Euro_1', 'Greece': 'Euro_2',
+            'France': 'Euro_west', 'Germany': 'Euro_west', 'Greece': 'Euro_south',
             'Guatemala': 'Latin-America', 'Haiti': 'Latin-America',
-            'Holand-Netherlands': 'Euro_1', 'Honduras': 'Latin-America',
-            'Hong': 'China', 'Hungary': 'Euro_2', 'India':
+            'Holand-Netherlands': 'Euro_west', 'Honduras': 'Latin-America',
+            'Hong': 'China', 'Hungary': 'Euro_east', 'India':
             'British-Commonwealth', 'Iran': 'Other', 'Ireland':
-            'British-Commonwealth', 'Italy': 'Euro_1', 'Jamaica':
+            'British-Commonwealth', 'Italy': 'Euro_south', 'Jamaica':
             'Latin-America', 'Japan': 'Other', 'Laos': 'SE-Asia', 'Mexico':
             'Latin-America', 'Nicaragua': 'Latin-America',
             'Outlying-US(Guam-USVI-etc)': 'Latin-America', 'Peru':
-            'South-America', 'Philippines': 'SE-Asia', 'Poland': 'Euro_2',
-            'Portugal': 'Euro_2', 'Puerto-Rico': 'Latin-America', 'Scotland':
-            'British-Commonwealth', 'South': 'Euro_2', 'Taiwan': 'China',
+            'South-America', 'Philippines': 'SE-Asia', 'Poland': 'Euro_east',
+            'Portugal': 'Euro_south', 'Puerto-Rico': 'Latin-America', 'Scotland':
+            'British-Commonwealth', 'South': 'Euro_south', 'Taiwan': 'China',
             'Thailand': 'SE-Asia', 'Trinadad&Tobago': 'Latin-America',
-            'United-States': 'United-States', 'Vietnam': 'SE-Asia'
+            'United-States': 'United-States', 'Vietnam': 'SE-Asia','Yugoslavia':'Euro_south'
         })
         married_map = smart_dict({ # simplification mapping
             'Never-married': 'Never-Married', 'Married-AF-spouse': 'Married',
@@ -317,13 +318,13 @@ class Datamanager():
             return cap_gain_map.get(d)
 
         # Transformation that must happen column wise
-        transformation_c = {
+        self.transformation_c = {
             10: lambda x: cap_gain_fn(x, cap_gain_median),
             11: lambda x: cap_loss_fn(x, cap_loss_median),
         }
 
         # perform transformation to each element in features
-        for feature, function in transformation_c.items():
+        for feature, function in self.transformation_c.items():
             df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function)
             df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
 
@@ -342,7 +343,12 @@ class Datamanager():
         # Remove useless features.
         df = df.drop(columns=columns_to_remove)
         df_test = df_test.drop(columns=columns_to_remove)
-        
+        # removed 2 columns, to preserve index for later.
+        self.transformation_c = {
+            8: lambda x: cap_gain_fn(x, cap_gain_median),
+            9: lambda x: cap_loss_fn(x, cap_loss_median),
+        }
+
         # Remove labels from data.
         data = df.iloc[:, 0:12] # All data excluding label/targets
         data_test = df_test.iloc[:,0:12]
@@ -361,11 +367,11 @@ class Datamanager():
         disc = discretize.EntropyDiscretizer(data.values,
                                                     categorical_features,
                                                     self.ret.feature_names,
-                                                    labels=self.ret.labels)
+                                                    labels=self.ret.labels,
+                                                    max_depth=3)
         
         #print(disc.discretize(data.values))
-        print(data.values[1],data.values[1].shape)#, type(data.values[1]), type(data.values[1][0]))
-        #exit()
+        #print(data.values[1],data.values[1].shape)# (12,), type(objects and int)
         disc_data = disc.discretize(data.values)
         disc_data_test = disc.discretize(data_test.values)
         self.ret.ordinal_discretizer = disc
@@ -384,7 +390,7 @@ class Datamanager():
         for feature in categorical_features:
             le_f = preprocessing.LabelEncoder() # init new label encoder
             le_f.fit(data.iloc[:,feature]) # use column value as label encoder
-            data.iloc[:,feature] = le_f.transform(data.iloc[:,feature].astype(str))
+            data.iloc[:,feature] = le_f.transform(data.iloc[:,feature].astype(str)) # get data column as string
             data_test.iloc[:,feature] = le_f.transform(data_test.iloc[:,feature].astype(str))
             #data.values[:,feature] = le_f.transform(data.values[:,feature])
             categorical_names[feature] = list(le_f.classes_)
@@ -489,11 +495,23 @@ class Datamanager():
 
     #for i,v in enumerate(dataset.data_train[1]):
     #    print("{}:{}, ".format(dataset.feature_names[i],dataset.categorical_names[i][int(v)]),end="")
-    def translate(self,row): # return translatet version of a list
+    def translate(self,row): # return translatet version of a list [1,2,2,1] -> ["between 20 and 30","Married","United States", etc]
         row = row.astype(int) # to index dictionary properly
         return [self.ret.categorical_names[i][v] for i,v in enumerate(row)]
 
-
+    def transform(self,row):
+        # transform a row of raw data to encoded labels.
+        # * discretisize the ordinal features.
+        row = self.ret.ordinal_discretizer.discretize(row)
+        # * perform custom transformation to each column
+        for i, function in self.transformation_c.items():
+            row[i] = function(row[i])
+        # * perform encoding of all categories.
+        for i,encoder in self.ret.categorical_encoders.items():
+            # Need to transform each value to np.array of shape (x,)
+            # And transform back to single element
+            row[i] = encoder.transform(np.array([row[i]]))[0]
+        return row
 
 def read_data_pd(name,columns,header, encoding="latin-1"):
     # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte

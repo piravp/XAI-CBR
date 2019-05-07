@@ -488,6 +488,46 @@ def train_network():
     
     datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = datamanager.ret
+    print("state0",np.random.get_state()[1][0])
+    # Fit the explainer to the dataset. 
+    explainer = anchor_tabular.AnchorTabularExplainer(
+        dataset.class_names, dataset.feature_names,
+        dataset.data_train, dataset.categorical_names)
+        
+    explainer.fit(dataset.data_train, dataset.train_labels, 
+                dataset.data_validation, dataset.validation_labels)
+    print("state1",np.random.get_state()[1][0])
+    from DNN.keras import network
+    #keras.random.seed(1)
+        #print(dataset.categorical_names, dataset.categorical_names.keys())
+    n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
+    model = network.NN_adult_5(n_values,1)
+    np.random.seed(1) 
+    print("state2",np.random.get_state()[1][0])
+    tf.set_random_seed(1)
+    model.train_anchor(explainer.encoder.transform(dataset.data_train).toarray(), dataset.train_labels,
+            explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
+            explainer.encoder.transform(dataset.data_test).toarray(), dataset.test_labels,
+            epochs=200, batch_size=120,use_gen=True)
+    print("state3",np.random.get_state()[1][0])
+    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
+    
+    #print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))
+    #print('Test', sklearn.metrics.accuracy_score(dataset.test_labels, predict_fn(dataset.data_test)))
+
+def load_model():
+    # Load pretrained model
+    import numpy as np
+    np.random.seed(1) 
+    import tensorflow as tf
+    tf.set_random_seed(1)
+
+    import sklearn
+    from DNN.keras import pre_processing
+    from DNN.Induction.Anchor import anchor_tabular, utils
+    
+    datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
+    dataset = datamanager.ret
 
     # Fit the explainer to the dataset. 
     explainer = anchor_tabular.AnchorTabularExplainer(
@@ -496,21 +536,14 @@ def train_network():
         
     explainer.fit(dataset.data_train, dataset.train_labels, 
                 dataset.data_validation, dataset.validation_labels)
-
+    print(np.random.get_state()[1][0])
+    exit()
     from DNN.keras import network
-    np.random.seed(1) 
+    #np.random.seed(1) 
     #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
     model = network.NN_adult_4(n_values,1)
-    model.train_anchor(explainer.encoder.transform(dataset.data_train).toarray(), dataset.train_labels,
-            explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
-            explainer.encoder.transform(dataset.data_test).toarray(), dataset.test_labels,
-            epochs=200, batch_size=90)
-    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
-    
-    #print('Train', sklearn.metrics.accuracy_score(dataset.train_labels, predict_fn(dataset.data_train)))
-    #print('Test', sklearn.metrics.accuracy_score(dataset.test_labels, predict_fn(dataset.data_test)))
 
 def dataset_info():
     import sklearn
@@ -527,40 +560,50 @@ def dataset_info():
     print("feature names",dataset.feature_names)
     cat_names = sorted(dataset.categorical_names.keys())
     n_values = [len(dataset.categorical_names[i]) for i in cat_names]
-    print(len(n_values),n_values,sum(n_values))
-
-    print(dataset.categorical_names[10])
-
-    exit()
-    #for i in cat_names:
-    #    print(dataset.feature_names[i],dataset.categorical_names[i])
+    print(n_values,sum(n_values))
+    #print(dataset.categorical_names)
+    print("###########Categories with corresponding values###########")
+    for i in cat_names:
+        print(dataset.feature_names[i],":",dataset.categorical_names[i])
+    print("")
     #50, Self-emp-not-inc, 83311, Bachelors, 13, Married-civ-spouse,
     #Exec-managerial, Husband, White, Male, 0, 0, 13, United-States
-    print(datamanager.translate(dataset.data_train[1]))
 
     #[50 'Self-emp-not-inc' 'Bachelors' 'Married' 'White-Collar' 'Husband'
     #'White' 'Male' 'None' 'None' 13 'United-States']
     import pandas as pd
+    # How to create an custom instance object.
     d_instance = [50,"Self-emp-not-inc","Bachelors","Married","White-Collar",
                             "Husband","White","Male","None","None",13,"United-States"]
     d_instance_2 = [{"age":50, "workclass":"Self-emp-not-inc","education":"Bachelors",'marital status':"Married",
                     'occupation':"White-Collar",'relationship':"Husband",'race':"White",
                     'sex':"Male",'capital gain':"None",'capital loss':"None",'hours per week':13,'country':"United-States"}]
-    df_2 = pd.DataFrame(d_instance_2)    
-    print("df_2",df_2.values.flatten())                    
+    df_2 = pd.DataFrame(d_instance_2)
     df = pd.DataFrame(d_instance)
-    print(df.shape)
-    print(df.values.flatten())
     d_instance = df.values.flatten() # (12,) np.array 
-    print(dataset.ordinal_discretizer.discretize(d_instance))
-    print(dataset.data_train[1])
-    exit()
+
+    # * Discretisize the ordinal features (numerical/floats)
+    d_instance = dataset.ordinal_discretizer.discretize(d_instance)
+    print(d_instance,type(d_instance),d_instance.shape)
+
+    # * Transform labels
+    for i,encoder in dataset.categorical_encoders.items():
+        # Need to transform each value to np.array of shape (x,)
+        # And transform back to single element
+        d_instance[i] = encoder.transform(np.array([d_instance[i]]))[0]
+    print(d_instance.astype(float))
+    #d_instance = dataset.categorical_encoders
+
+    #print(dataset.categorical_features.transform(d_instance))
+    print("Target:",dataset.data_train[1])
     print(datamanager.translate(dataset.data_train[1]))
-
-    print(dataset.ordinal_discretizer.discretize([2,1]))
-    #for i,v in enumerate(dataset.data_train[1]):
-    #    print("{}:{}, ".format(dataset.feature_names[i],dataset.categorical_names[i][int(v)]),end="")
-
+    # ? Test 2: with preprocessing on all features (+ capital_gain and capital_loss)
+    d_instance = [50,"Self-emp-not-inc","Bachelors","Married","White-Collar",
+                            "Husband","White","Male",0,0,13,"United-States"]
+    d_instance = pd.DataFrame(d_instance).values.flatten()    
+    print(d_instance)
+    print(datamanager.transform(d_instance))
+    print(datamanager.translate(dataset.data_train[1]))
     
 
 #test_lore()
@@ -572,4 +615,5 @@ def dataset_info():
 #test_autoencoder()
 
 #train_network()
-dataset_info()
+#dataset_info()
+load_model()

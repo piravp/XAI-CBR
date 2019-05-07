@@ -13,7 +13,7 @@ import sklearn
 
 class Model():
     def __init__(self, name, optimizer=None, loss=None, model=None,c_path=None):
-        self.modelpath = pathlib.Path(__file__).parent/"models"
+        self.modelpath = pathlib.Path(__file__).parent/"models" # Keep track of folder path of model. 
         self.name = name
         # checkpoint callback variables.
         self.best_val_acc = 0
@@ -23,7 +23,7 @@ class Model():
         self.folder() 
         if(model is None): # we want to load from file instead.
             #modelpath_old = "DNN/keras/models/"+name+"/"+name+".json"
-            if(os.path.exists(self.modelpath)): # means we want to load model.
+            if(os.path.exists(str(self.modelpath/c_path))): # means we want to load model.
                 if(c_path is None): # We simply want to load the best model availible.
                     pass
                 else:
@@ -129,7 +129,7 @@ class Model():
         if(use_gen):
             history = self.model.fit_generator(generator(data_train, train_labels, batch_size=batch_size),
             validation_data=(data_validation, validation_labels),
-            epochs=epochs, steps_per_epoch=40,callbacks=[LambdaCallback(on_epoch_end=self.checkPoint),stop,reduce_lr])
+            epochs=epochs, steps_per_epoch=30,callbacks=[LambdaCallback(on_epoch_end=self.checkPoint),stop,reduce_lr])
             #history = self.model.fit(generator(data_train, train_labels, batch_size=32), 
             #validation_data=generator(data_validation, validation_labels, batch_size=200), validation_steps=10,
             #epochs=epochs,steps_per_epoch=10,
@@ -165,7 +165,7 @@ class Model():
             plt.title('model accuracy')
             plt.ylabel('accuracy')
             plt.xlabel('epoch')
-            plt.legend(['train', 'test','checkpoint'], loc='lower right')
+            plt.legend(['training', 'validation','checkpoint'], loc='lower right')
 
             plt.subplot(132)
             plt.plot(history.history['loss'])
@@ -173,7 +173,7 @@ class Model():
             plt.title('model loss')
             plt.ylabel('loss')
             plt.xlabel('epoch')
-            plt.legend(['train', 'test'], loc='upper left')
+            plt.legend(['training', 'validation'], loc='upper left')
 
             #ROC_curve
 
@@ -184,7 +184,7 @@ class Model():
 
             plt.subplot(133)
             plt.plot([0, 1], [0, 1], 'k--') # center line
-            plt.plot(fpr_keras, tpr_keras,label='Keras (area = {:.3f})'.format(auc_keras))
+            plt.plot(fpr_keras, tpr_keras,label='Network (area = {:.3f})'.format(auc_keras))
             #plt.plot(fpr_rf, tpr_rf, label='RF (area = {:.3f})'.format(auc_rf))
             plt.xlabel('False positive rate')
             plt.ylabel('True positive rate')
@@ -202,43 +202,21 @@ class Model():
         # We want to add accuaracy to the model save-point
         if(os.path.isfile(self.path)):
             acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
+            # check if file allready exists, if so delete previous file
+            if(os.path.exists(path+"-"+str(acc)+".hdf5")): 
+                os.remove(path+"-"+str(acc)+".hdf5")
             os.rename(self.path, path+"-"+str(acc)+".hdf5")
         else:
             raise ValueError("path is not a file",path)
-
-
-    def train(self, datamanager:pre_processing.Datamanager, epochs, batch_size):
-        X,Y = datamanager.return_keras()# Return all data in CSV file. 
-        self.model.fit(X,Y,shuffle=True,epochs=epochs,batch_size=batch_size, validation_split = 0.2) # assumes all data fit in memory.
-        #self.model.train_on_batch(batch_size)
-
-    def train_batch(self, datamanager:pre_processing.Datamanager, batch_size): # better for task requiring alot of memory
-        # TODO: train with a loop
-        X,Y = datamanager.return_batch(batch_size)# Return all data in CSV file. 
-        self.model.train_on_batch(X,Y)
 
     def evaluate(self, data_train, train_labels, data_test, test_labels, batch_size=1000):
         score, acc = self.model.evaluate(data_train, train_labels, batch_size=batch_size)
         score_test, self.acc_test = self.model.evaluate(data_test, test_labels, batch_size=batch_size)
         print("loss_train {:.6f} loss_test {:6f} - acc_train {:.2f}%  acc_test {:.2f}%".format(score, score_test, acc*100, self.acc_test*100))
 
-    def evaluate_old(self, datamanager:pre_processing.Datamanager, batch_size=None, steps=None):
-        X,Y = datamanager.return_keras(self.input_type)
-        score = self.model.evaluate(X,Y, batch_size=batch_size,steps=steps)
-        print(score)
     
     def predict(self, data): # return an class as a one dimention np.array (c,)
         return self.model.predict_classes(data).flatten()
-
-#best_val_loss = sys.float_info.max
-def checkPoint(epoch,logs,path):
-    val_acc = logs['val_acc']
-
-    if(val_acc > best_val_acc):
-        print("Epoch {}: val_acc increased from {} to {}, saving model to {}".format(epoch,val_acc,best_val_acc,path))
-        best_val_acc = val_acc
-        epoch = epoch
-        model.save(path)
 
 import numpy as np
 def generator(x, y, batch_size):
@@ -263,12 +241,13 @@ def generator(x, y, batch_size):
 
 sgd = SGD(lr=0.01)
 rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
-adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
+adam = Adam(lr=0.0015, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
 adagrad = Adagrad(lr=0.01, epsilon=None, decay=0.0)
 
 from keras.regularizers import l1,l1_l2,l2
 
-def NN_adult(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult(input_dim, output_dim, name="NN-Adult"): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    optimizer = Adam(lr=0.0015, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
     return Model(model=[
         Dense(80, input_dim=input_dim, activation="relu",kernel_regularizer=l1(0.001),activity_regularizer=l1_l2(l1=0.001,l2=0.001)),
         Dropout(0.5),
@@ -283,7 +262,8 @@ def NN_adult(input_dim, output_dim, name="NN-Adult",optimizer=adam): # input -> 
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
 
-def NN_adult_1(input_dim, output_dim, name="NN-Adult-1",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_1(input_dim, output_dim, name="NN-Adult-1"): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    optimizer = Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
     return Model(model=[
         Dense(60, input_dim=input_dim, activation="relu"),
         Dropout(0.4),
@@ -298,7 +278,8 @@ def NN_adult_1(input_dim, output_dim, name="NN-Adult-1",optimizer=adam): # input
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)    
 
-def NN_adult_2(input_dim, output_dim, name="NN-Adult-2",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_2(input_dim, output_dim, name="NN-Adult-2"): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
     return Model(model=[
         Dense(256, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
         Dropout(0.5),
@@ -315,7 +296,8 @@ def NN_adult_2(input_dim, output_dim, name="NN-Adult-2",optimizer=adam): # input
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
 
-def NN_adult_3(input_dim, output_dim, name="NN-Adult-3",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_3(input_dim, output_dim, name="NN-Adult-3"): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    optimizer = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
     return Model(model=[
         Dense(128, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l1=0.001,l2=0.001)),
         Dropout(0.3),
@@ -331,7 +313,8 @@ def NN_adult_3(input_dim, output_dim, name="NN-Adult-3",optimizer=adam): # input
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
 
-def NN_adult_4(input_dim, output_dim, name="NN-Adult-4",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_4(input_dim, output_dim, name="NN-Adult-4"): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    optimizer = Adam(lr=0.0025, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
     return Model(model=[
         Dense(128, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
         Dropout(0.5),
@@ -347,7 +330,8 @@ def NN_adult_4(input_dim, output_dim, name="NN-Adult-4",optimizer=adam): # input
     ],
     optimizer=optimizer, loss="binary_crossentropy",name=name)
 
-def NN_adult_5(input_dim, output_dim, name="NN-Adult-5",optimizer=adam): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+def NN_adult_5(input_dim, output_dim, name="NN-Adult-5"): # input -> linear(50) -> relu -> linear(dim*dim) -> softmax
+    optimizer = Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.01, amsgrad=True)
     return Model(model=[
         Dense(512, input_dim=input_dim, activation="relu",activity_regularizer=l2(l=0.001),bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
         Dropout(0.6),
@@ -362,7 +346,6 @@ def NN_adult_5(input_dim, output_dim, name="NN-Adult-5",optimizer=adam): # input
         Dense(32, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
         Dropout(0.1),
         Dense(16, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
-        Dropout(0.1),
         Dense(8, input_dim=input_dim, activation="relu",bias_regularizer=l1_l2(l2=0.001,l1=0.001)),
         Dense(output_dim,activation="sigmoid") # output layer
         #Activation('sigmoid)
