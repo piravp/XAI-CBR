@@ -66,7 +66,9 @@ public class InstanceController
         ICaseBase cb = p.getCaseBases().get(casebaseID);
         if(cb.containsCase(casebaseID)==null)
             return false;
-        p.getCaseBases().get(casebaseID).removeCase(casebaseID);
+        p.getCaseBases().get(casebaseID).removeCase(instanceID);
+        // Save changes to .prj file
+        p.save();
         return true;
     }
 
@@ -141,6 +143,9 @@ public class InstanceController
         for(Instance i : collection){
             collection.remove(i);
         }
+
+        // Save changes to .prj file
+        p.save();
 
         return true;
     }
@@ -256,6 +261,8 @@ public class InstanceController
                 }
                 newInstances.add(instance);
                 p.getCaseBases().get(casebaseID).addCase(instance);
+                // Save changes to .prj file
+                p.save();
                 newCases.add(values);
             }
             AmalgamationFct afct = c.getActiveAmalgamFct();
@@ -270,7 +277,7 @@ public class InstanceController
         //cb.getProject()
         return ret;
     }
-    @ApiOperation(value = "addInstanceJSON", nickname = "addInstancesJSON")
+    @ApiOperation(value = "addInstanceJSON", nickname = "addInstanceJSON")
     @RequestMapping(method = RequestMethod.PUT, value = "/concepts/{conceptID}/casebases/{casebaseID}/instances/{caseID}", headers="Accept=application/json")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Success"),
