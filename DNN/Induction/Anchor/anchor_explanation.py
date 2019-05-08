@@ -9,7 +9,6 @@ class AnchorExplanation:
         self.exp_map = exp_map # Map with data of current anchor.
         self.as_html_fn = as_html
 
-
     def names(self, partial_index=None):
         """
         Returns a list of the names of the anchor conditions.
