@@ -570,7 +570,7 @@ def load_model():
     print("prediction:", prediction,"=",explainer.class_names[prediction])
     #print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint 
 
-    exp = explainer.explain_instance(instance, model.predict, threshold=0.98,verbose=True)
+    exp = explainer.explain_instance(instance, model.predict, threshold=0.99,verbose=True)
     #print(exp.names())
     print("Anchor: %s" % (" AND ".join(exp.names())))
     print("Precision: %.2f" % exp.precision())
@@ -582,34 +582,55 @@ def load_model():
     print(dataset.data_test[:, exp.features()],dataset.data_test[:, exp.features()].shape)
     
     all_np = np.all(dataset.data_test[:, exp.features()] == dataset.data_test[idx][exp.features()], axis=1) 
-    print(all_np,all_np.shape)
     fit_anchor = np.where((all_np))[0] # select the array of indexes?
-    print(fit_anchor.shape)
-    print(dataset.data_test[:,exp.features()][fit_anchor])
+    #print(dataset.data_test[:,exp.features()][fit_anchor])
 
     # of all data points that have the same values as the instance on anchor, how many are correct.
     print('Anchor test precision: %.2f' % (np.mean(predict_fn(dataset.data_test[fit_anchor]) == predict_fn(instance))))
     # of all the similar instances in test set, how large percentet of the dataset is this. 
     print('Anchor test coverage: %.2f' % (fit_anchor.shape[0] / float(dataset.data_test.shape[0])))
     
-    print("Partial anchor")
+    print("\nPartial anchor 1")
     # Looking at a particular anchor
+    print(exp.names(0),exp.names(1))
     print('Partial anchor: %s' % (' AND '.join(exp.names(1))))
     print('Partial precision: %.2f' % exp.precision(1))
     print('Partial coverage: %.2f' % exp.coverage(1))
     print('partial features: {}'.format(exp.features(1)))
     print(instance[0])
 
+    print("partial precision and coverage:")
+    all_np = np.all(dataset.data_test[:, exp.features(1)] == dataset.data_test[idx][exp.features(1)], axis=1) 
+    fit_anchor = np.where((all_np))[0] # select the array of indexes?
+
+    # of all data points that have the same values as the instance on anchor, how many are correct.
+    print('Partial Anchor test precision: %.2f' % (np.mean(predict_fn(dataset.data_test[fit_anchor]) == predict_fn(instance))))
+    # of all the similar instances in test set, how large percentet of the dataset is this. 
+    print('Partial Anchor test coverage: %.2f' % (fit_anchor.shape[0] / float(dataset.data_test.shape[0])))
+
     # translation of prediction data.
     print(datamanager.translate(dataset.data_test[idx]))
 
-    print(":::TESTING::::")
+    print("\n:::TESTING::::")
 
-    print(exp.exp_map['names'])
+    print(exp.exp_map['names'],type(exp.exp_map['names']))
     print(exp.exp_map['feature'])
     print(exp.exp_map['precision'])
     print(exp.exp_map['coverage'])
+    print(exp.exp_map['mean'])
+    print(exp.exp_map['all_precision'])
+    print(exp.exp_map['num_preds'])
+    print(exp.exp_map['instance'])
+
     #print(exp.exp_map['examples'])
+    print(exp.exp_map.keys())
+
+    # Generating json object of the anchor, to be used to explain the prediction.
+    # features is the feature list, and names is the corresponding value. "f_1 = n_1" as explanation. 
+    # v1: { "precision": [a,b,...,n], "coverage": [a,b,...,n], "feature":[0,1,...,f], "names":[n_1,n_2,...,n_f] }
+    # v2: {exp1:[None,None,2,4], exp2: [None,None,5,2,5] }
+    #
+
 
 def dataset_info():
     import sklearn
