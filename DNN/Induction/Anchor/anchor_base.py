@@ -8,7 +8,6 @@ import collections
 
 
 def matrix_subset(matrix, n_samples):
-    print("anchor_base:matrix_subset")
     if matrix.shape[0] == 0:
         return matrix
     n_samples = min(matrix.shape[0], n_samples)
@@ -63,7 +62,6 @@ class AnchorBaseBeam(object):
     def lucb(sample_fns, initial_stats, epsilon, delta, batch_size, top_n,
             verbose=False, verbose_every=1):
         # initial_stats must have n_samples, positive
-        print("anchor_bas:lucb")
         n_features = len(sample_fns)
         n_samples = np.array(initial_stats['n_samples'])
         positives = np.array(initial_stats['positives'])
@@ -213,6 +211,7 @@ class AnchorBaseBeam(object):
         for t in tuples:
             stats['n_samples'].append(state['t_nsamples'][t])
             stats['positives'].append(state['t_positives'][t])
+        print("stats",stats)
         return stats
 
     @staticmethod
@@ -228,6 +227,7 @@ class AnchorBaseBeam(object):
 
             mean = (state['t_positives'][current_t] /
                     state['t_nsamples'][current_t])
+            #print("anchor_mean",mean)
             anchor['feature'].append(f)
             anchor['mean'].append(mean)
             anchor['precision'].append(mean)
@@ -338,7 +338,7 @@ class AnchorBaseBeam(object):
                     mean, beta / state['t_nsamples'][t])
                 coverage = state['t_coverage'][t]
                 if verbose:
-                    print(i, mean, lb, ub)
+                    print("i",i, "mean",mean,"lb", lb,"ub", ub)
                 while ((mean >= desired_confidence and
                         lb < desired_confidence - epsilon_stop) or
                         (mean < desired_confidence and

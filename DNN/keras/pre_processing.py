@@ -205,11 +205,6 @@ class Datamanager():
         return df_normalized, df_targets
 
     def adults(self):
-        def strip(text):
-            try:
-                return text.strip()
-            except AttributeError:
-                return text
 
         columns = ["age", "workclass", "fnlwgt", "education",
                         "education-num", "marital status", "occupation",
@@ -239,25 +234,26 @@ class Datamanager():
             "Sales", "Tech-support": "Other", "Transport-moving":
             "Blue-Collar",
         })
-        country_map = smart_dict({ # update old name mapping.
+        # Europe https://en.wikipedia.org/wiki/Northern_Europe#/media/File:Europe_subregion_map_UN_geoscheme.svg
+        country_map = smart_dict({ # update old name mapping. europen countries mapped to region south, easth, west, north.
             'Cambodia': 'SE-Asia', 'Canada': 'British-Commonwealth', 'China':
             'China', 'Columbia': 'South-America', 'Cuba': 'Other',
             'Dominican-Republic': 'Latin-America', 'Ecuador': 'South-America',
             'El-Salvador': 'South-America', 'England': 'British-Commonwealth',
-            'France': 'Euro_1', 'Germany': 'Euro_1', 'Greece': 'Euro_2',
+            'France': 'Euro_west', 'Germany': 'Euro_west', 'Greece': 'Euro_south',
             'Guatemala': 'Latin-America', 'Haiti': 'Latin-America',
-            'Holand-Netherlands': 'Euro_1', 'Honduras': 'Latin-America',
-            'Hong': 'China', 'Hungary': 'Euro_2', 'India':
+            'Holand-Netherlands': 'Euro_west', 'Honduras': 'Latin-America',
+            'Hong': 'China', 'Hungary': 'Euro_east', 'India':
             'British-Commonwealth', 'Iran': 'Other', 'Ireland':
-            'British-Commonwealth', 'Italy': 'Euro_1', 'Jamaica':
+            'British-Commonwealth', 'Italy': 'Euro_south', 'Jamaica':
             'Latin-America', 'Japan': 'Other', 'Laos': 'SE-Asia', 'Mexico':
             'Latin-America', 'Nicaragua': 'Latin-America',
             'Outlying-US(Guam-USVI-etc)': 'Latin-America', 'Peru':
-            'South-America', 'Philippines': 'SE-Asia', 'Poland': 'Euro_2',
-            'Portugal': 'Euro_2', 'Puerto-Rico': 'Latin-America', 'Scotland':
-            'British-Commonwealth', 'South': 'Euro_2', 'Taiwan': 'China',
+            'South-America', 'Philippines': 'SE-Asia', 'Poland': 'Euro_east',
+            'Portugal': 'Euro_south', 'Puerto-Rico': 'Latin-America', 'Scotland':
+            'British-Commonwealth', 'South': 'Euro_south', 'Taiwan': 'China',
             'Thailand': 'SE-Asia', 'Trinadad&Tobago': 'Latin-America',
-            'United-States': 'United-States', 'Vietnam': 'SE-Asia'
+            'United-States': 'United-States', 'Vietnam': 'SE-Asia','Yugoslavia':'Euro_south'
         })
         married_map = smart_dict({ # simplification mapping
             'Never-married': 'Never-Married', 'Married-AF-spouse': 'Married',
@@ -270,7 +266,7 @@ class Datamanager():
 
         cap_gain_map = {'0': 'None', '1': 'Low', '2': 'High'} 
 
-        # Path to data folder.
+        # Path to data folder. Relative to file path.
         filename = pathlib.Path(__file__).parents[2]/"Data/adult"
         # Get both datasets (test and training)
         df = read_data_pd(filename/"adult.data",header=None, columns = columns)
@@ -309,7 +305,8 @@ class Datamanager():
 
         def cap_gain_fn(x, median): # one value at a time
             x = np.float(x)
-            d = np.digitize(x,[0, median, float('inf')],right=True).astype(str)
+            d = np.digitize(x,[0, median, float('inf')],
+                            right=True).astype(str)
             d = str(d) # otherwise wont match to dictionary of strings
             return cap_gain_map.get(d)
 
@@ -321,26 +318,28 @@ class Datamanager():
             return cap_gain_map.get(d)
 
         # Transformation that must happen column wise
-        transformation_c = {
-            10: lambda x: cap_gain_fn(x,cap_gain_median),
-            11: lambda x: cap_loss_fn(x,cap_loss_median),
+        self.transformation_c = {
+            10: lambda x: cap_gain_fn(x, cap_gain_median),
+            11: lambda x: cap_loss_fn(x, cap_loss_median),
         }
 
         # perform transformation to each element in features
-        for feature, function in transformation_c.items():
+        for feature, function in self.transformation_c.items():
             df[df.columns[feature]] = df.iloc[:,[feature]].applymap(function)
             df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
-        #! Remove useless columns
-        #df = df.drop(columns=['fnlwgt','education-num'])
-        #df_test = df_test.drop(columns=['fnlwgt','education-num'])
+
+        # ? Check for inconsistencies
+        print(df.head())
+
 
         labels = df.values[:,-1] # last index is the target values
         labels_test = df_test.values[:,-1]
 
-        le = sklearn.preprocessing.LabelEncoder() # init label encoder
+        le = preprocessing.LabelEncoder() # init label encoder
         le.fit(labels) # fit label encoder: targets -> encodings
-        self.ret.labels = le.transform(labels) # store encoded labels
-        self.ret.labels_test = le.transform(labels_test)
+        self.ret.label_encoder = le # store encoder
+        self.ret.labels = le.transform(labels) # encode data set labels
+        self.ret.labels_test = le.transform(labels_test) # encode test set labels
 
         self.ret.class_names = list(le.classes_) # set class_names to unique label encoder classes.
         #self.ret.class_target = columns[-1] # get column name of target
@@ -348,7 +347,12 @@ class Datamanager():
         # Remove useless features.
         df = df.drop(columns=columns_to_remove)
         df_test = df_test.drop(columns=columns_to_remove)
-        
+        # removed 2 columns, to preserve index for later.
+        self.transformation_c = {
+            8: lambda x: cap_gain_fn(x, cap_gain_median),
+            9: lambda x: cap_loss_fn(x, cap_loss_median),
+        }
+
         # Remove labels from data.
         data = df.iloc[:, 0:12] # All data excluding label/targets
         data_test = df_test.iloc[:,0:12]
@@ -367,11 +371,14 @@ class Datamanager():
         disc = discretize.EntropyDiscretizer(data.values,
                                                     categorical_features,
                                                     self.ret.feature_names,
-                                                    labels=self.ret.labels)
+                                                    labels=self.ret.labels,
+                                                    max_depth=3)
         
         #print(disc.discretize(data.values))
+        #print(data.values[1],data.values[1].shape)# (12,), type(objects and int)
         disc_data = disc.discretize(data.values)
         disc_data_test = disc.discretize(data_test.values)
+        self.ret.ordinal_discretizer = disc
 
         # replace the data with the discretisized features from non_categorical
         for feature in non_categorical:
@@ -383,15 +390,19 @@ class Datamanager():
 
         # Create category mappings labels
         categorical_names = {} 
+        categorical_encoders = {}
         for feature in categorical_features:
-            le = sklearn.preprocessing.LabelEncoder() # init label encoder
-            le.fit(data.iloc[:,feature]) # use column value as label encoder
-            data.iloc[:,feature] = le.transform(data.iloc[:,feature].astype(str))
-            data_test.iloc[:,feature] = le.transform(data_test.iloc[:,feature].astype(str))
-            #data.values[:,feature] = le.transform(data.values[:,feature])
-            categorical_names[feature] = list(le.classes_)
+            le_f = preprocessing.LabelEncoder() # init new label encoder
+            le_f.fit(data.iloc[:,feature]) # use column value as label encoder
+            data.iloc[:,feature] = le_f.transform(data.iloc[:,feature].astype(str)) # get data column as string
+            data_test.iloc[:,feature] = le_f.transform(data_test.iloc[:,feature].astype(str))
+            #data.values[:,feature] = le_f.transform(data.values[:,feature])
+            categorical_names[feature] = list(le_f.classes_)
+            categorical_encoders[feature] = le_f
         categorical_names.update(disc.names) # update categorical_names with the discretized dict
 
+        # store the label encoder
+        self.ret.categorical_encoders = categorical_encoders
         # fill return Set
         self.ret.ordinal_features = ordinal_features
         self.ret.categorical_features = categorical_features
@@ -405,21 +416,23 @@ class Datamanager():
         # ? Display information of the dataset
         # print(df.groupby('income').agg(['count','size','nunique']).stack())
 
-        # Init splitter
+        # Init splitter, random_state = 1 (seed)
         split = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                     test_size=0.5,
                                                     random_state=1)
-        # All numpy arrays.
-        self.ret.data_train = data.values 
+        # All numpy arrays, as with float values.
+        self.ret.data_train = data.values.astype(float)
+        data_test = data_test.values.astype(float)
+
         self.ret.train_labels = self.ret.labels
 
         # Split test dataset into test and validation set, 50/50.
-        test_idx, val_idx = [x for x in split.split(data_test.values)][0]
+        test_idx, val_idx = [x for x in split.split(data_test)][0]
         # Select data rows by index from datasets, with corresponding labels.
-        self.ret.data_test = data_test.values[test_idx]
+        self.ret.data_test = data_test[test_idx]
         self.ret.test_labels = self.ret.labels_test[test_idx]
 
-        self.ret.data_validation = data_test.values[val_idx]
+        self.ret.data_validation = data_test[val_idx]
         self.ret.validation_labels = self.ret.labels_test[val_idx]
         # Store indexes used.
         self.ret.test_idx = test_idx
@@ -450,8 +463,8 @@ class Datamanager():
             x = x.astype(float)
             d = np.digitize(x, [0, np.median(x[x > 0]), float('inf')],
                                 right=True).astype('|S128')
-            print(np.median(x[x > 0]))
-            print(d)
+            #print(np.median(x[x > 0]))
+            #print(d)
 
         self.feature_names = ["bit-"+str(i) for i in range(n_bits)]
 
@@ -484,6 +497,28 @@ class Datamanager():
         """ Return output as a float, with each class coresponding to an fraction between 0 and 1 """
         pass
 
+    #for i,v in enumerate(dataset.data_train[1]):
+    #    print("{}:{}, ".format(dataset.feature_names[i],dataset.categorical_names[i][int(v)]),end="")
+    def translate(self,row): # return translatet version of a list [1,2,2,1] -> ["between 20 and 30","Married","United States", etc]
+        row = row.astype(int) # to index dictionary properly
+        return [self.ret.categorical_names[i][v] for i,v in enumerate(row)]
+    
+    def translate_prediction(self, prediction): # simply return mapping between label encoding and label.
+        return self.ret.class_names[prediction]
+
+    def transform(self,row):
+        # transform a row of raw data to encoded labels.
+        # * discretisize the ordinal features.
+        row = self.ret.ordinal_discretizer.discretize(row)
+        # * perform custom transformation to each column
+        for i, function in self.transformation_c.items():
+            row[i] = function(row[i])
+        # * perform encoding of all categories.
+        for i,encoder in self.ret.categorical_encoders.items():
+            # Need to transform each value to np.array of shape (x,)
+            # And transform back to single element
+            row[i] = encoder.transform(np.array([row[i]]))[0]
+        return row
 
 def read_data_pd(name,columns,header, encoding="latin-1"):
     # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte
@@ -498,12 +533,11 @@ def map_array_values(array, value_map):
         ret[ret == src] = target
     return ret
 
-
 class smart_dict(dict):
     def __init__(self,*arg,**kw):
         super(smart_dict,self).__init__(*arg,**kw)
     
-    def get(self,key):
+    def get(self,key): # return key if there is no value corresponding to key.
         if(super().get(key) is None):
             return key
         return super().get(key)

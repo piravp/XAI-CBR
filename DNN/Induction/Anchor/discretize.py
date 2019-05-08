@@ -1,13 +1,13 @@
 """
 Code from https://github.com/marcotcr/lime/blob/master/lime/discretize.py
-
+slightly adjusted
 """
 import numpy as np
 import sklearn
 import sklearn.tree
 from sklearn.utils import check_random_state
 from abc import ABCMeta, abstractmethod
-
+# ? Would be a good idea to discretisize different features with different discretisizers and settings.
 class BaseDiscretizer():
     """
     Abstract class - Build a class that inherits from this class to implement
@@ -187,20 +187,22 @@ class DecileDiscretizer(BaseDiscretizer):
 
 
 class EntropyDiscretizer(BaseDiscretizer):
-    def __init__(self, data, categorical_features, feature_names, labels=None, random_state=None):
-        # Entropy splitting / at most 8 bins so max_depth=3
+    def __init__(self, data, categorical_features, feature_names, labels=None, random_state=None,max_depth=3):
+        # Entropy splitting / at most 8 bins so max_depth=3, 2^3 = 8, 2^4 = 16.
         if(labels is None):
             raise ValueError('Labels must be not None when using \
                                 EntropyDiscretizer')
+        self.max_depth = max_depth 
         BaseDiscretizer.__init__(self, data, categorical_features,
                                     feature_names, labels=labels,
                                     random_state=random_state)
+        
 
     def bins(self, data, labels):
         bins = []
         for feature in self.to_discretize:
             dt = sklearn.tree.DecisionTreeClassifier(criterion='entropy',
-                                                        max_depth=3,
+                                                        max_depth=self.max_depth,
                                                         random_state=self.random_state)
             x = np.reshape(data[:, feature], (-1, 1))
             dt.fit(x, labels)

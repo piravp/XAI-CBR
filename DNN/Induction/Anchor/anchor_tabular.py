@@ -46,10 +46,9 @@ class AnchorTabularExplainer(object):
         if categorical_names: 
             # TODO: Check if this n_values is correct!!
             # sort dictionary keys, to match with feature position.
-            print(feature_names)
             cat_names = sorted(categorical_names.keys())
             n_values = [len(categorical_names[i]) for i in cat_names]
-            print(n_values,sum(n_values))
+            print(feature_names, n_values,sum(n_values))
             #Replace OneHotEncoder with ColumnTransformer, 
             # and transform categorical features with OneHotEncoder
             if(True):
@@ -144,20 +143,17 @@ class AnchorTabularExplainer(object):
             # if feature is categorical and not ordinal feature.
             if f in self.categorical_features and f not in self.ordinal_features:
                 continue
-            print("find min,max, std...")
             self.min[f] = np.min(train_data[:, f])
             self.max[f] = np.max(train_data[:, f])
             self.std[f] = np.std(train_data[:, f])
         
         # Print values, to check what we got.
-        print(self.min,self.max,self.std)
 
     def sample_from_train(self, conditions_eq, conditions_neq, conditions_geq,
                         conditions_leq, num_samples, validation=True):
         """
         Select sample from training set, to be used to train?
         """
-        print("anchor_tab:sample_from_train",conditions_eq, conditions_neq, conditions_geq, conditions_leq)
         # set training_set to self.train if not validations set present.
         train = self.train if not validation else self.validation
         # set discretized training set to training if not discretized validation set present.
@@ -169,6 +165,7 @@ class AnchorTabularExplainer(object):
         d_sample = d_train[idx] # Select corresponding samples discretized
         for f in conditions_eq: # 
             sample[:, f] = np.repeat(conditions_eq[f], num_samples)
+            
         for f in conditions_geq:
             idx = d_sample[:, f] <= conditions_geq[f]
             if f in conditions_leq:
@@ -205,7 +202,6 @@ class AnchorTabularExplainer(object):
 
     def transform_to_examples(self, examples, features_in_anchor=[],
                             predicted_label=None):
-        print("anchor_tab:transform_to_examples")
         ret_obj = []
         if len(examples) == 0:
             return ret_obj
@@ -220,7 +216,6 @@ class AnchorTabularExplainer(object):
         return ret_obj
 
     def to_explanation_map(self, exp):
-        print("anchor_tab:to_explaintion_map")
         def jsonize(x): return json.dumps(x)
         instance = exp['instance']
         predicted_label = exp['prediction']
@@ -294,13 +289,8 @@ class AnchorTabularExplainer(object):
         return out
 
     def get_sample_fn(self, data_row, classifier_fn, desired_label=None):
-        print("anchor_tabular:get_sample_fn")
         def predict_fn(x): # define function, to predict input predict(encode(input))
-            print(x.shape,x,type(x))
-            print(classifier_fn)
-            x = self.encoder.transform(x)
-            print(x, classifier_fn(x=x))
-            return classifier_fn(x=x)
+            return classifier_fn(self.encoder.transform(x))
         true_label = desired_label # 
         if true_label is None: # If we don't know the labels of the input, do a prediction.
             true_label = predict_fn(data_row.reshape(1, -1))[0]
@@ -325,7 +315,6 @@ class AnchorTabularExplainer(object):
             #     self.categorical_names[f][int(data_row[f])])
 
         def sample_fn(present, num_samples, compute_labels=True, validation=True):
-            print("anchor_tabular:sample_fn", num_samples)
             conditions_eq = {}
             conditions_leq = {}
             conditions_geq = {}
@@ -367,7 +356,6 @@ class AnchorTabularExplainer(object):
                         max_anchor_size=None,
                         desired_label=None,
                           beam_size=4, **kwargs):
-        print("anchor_tabular:explain_instance !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         # It's possible to pass in max_anchor_size
         sample_fn, mapping = self.get_sample_fn(
             data_row, classifier_fn, desired_label=desired_label)
@@ -379,9 +367,8 @@ class AnchorTabularExplainer(object):
         self.add_names_to_exp(data_row, exp, mapping)
         exp['instance'] = data_row
         # Store prediction from network, on dataset
-        print("data",data_row.reshape(1, -1))
-        exp['prediction'] = classifier_fn(x=self.encoder.transform(data_row.reshape(1, -1)))[0]
-        print("exp_map",exp)
+        exp['prediction'] = classifier_fn(self.encoder.transform(data_row.reshape(1, -1)))[0]
+
         explanation = anchor_explanation.AnchorExplanation('tabular', exp, self.as_html)
         return explanation
 
@@ -401,7 +388,7 @@ class AnchorTabularExplainer(object):
                 ordinal_ranges[f][0] = max(ordinal_ranges[f][0], v)
             if op == 'leq':
                 ordinal_ranges[f][1] = min(ordinal_ranges[f][1], v)
-        print(ordinal_ranges.values())        
+
         handled = set()
         for idx in idxs:
             f, op, v = mapping[idx]
