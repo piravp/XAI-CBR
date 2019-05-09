@@ -431,7 +431,8 @@ def test_integrated_gradients():
 
     sgd = SGD(lr=0.01)
     rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
-    adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, 
+    decay=0.0, amsgrad=False)
     adagrad = Adagrad(lr=0.01, epsilon=None, decay=0.0)
     # loss functions
     mse = losses.mean_squared_error
@@ -631,7 +632,6 @@ def load_model():
     # v2: {exp1:[None,None,2,4], exp2: [None,None,5,2,5] }
     #
 
-
 def dataset_info():
     import sklearn
     import numpy as np
@@ -692,7 +692,6 @@ def dataset_info():
     print(datamanager.transform(d_instance))
     print(datamanager.translate(dataset.data_train[1]))
     
-
 #test_lore()
 #test_anchors()
 #test_anchors_nn()
@@ -703,4 +702,5 @@ def dataset_info():
 
 #train_network()
 #dataset_info()
-load_model()
+#load_model()
+dataset_info()

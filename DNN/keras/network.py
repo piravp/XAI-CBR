@@ -139,7 +139,6 @@ class Model():
             callbacks=[LambdaCallback(on_epoch_end=self.checkPoint),stop,reduce_lr])
 
 
-
         # TODO: load best model from ModelCheckpoint
         self.load_model_checkpoint(self.path)
 
