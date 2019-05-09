@@ -43,7 +43,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
         if(self.id in self.KB): # If ID spot is not free.
             self.update_id() # simply need to figure out the next free number from our dict
     
-        self.KB[self.id] = exp
+        self.KB[str(self.id)] = exp
             # if storage successfull, return ID, otherwise return error
 
         self.save() # save knowledge base
@@ -52,7 +52,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
 
     def update_id(self): # TODO: use the IDS of each explanation as well, not just number of instances.
         keys = self.KB.keys() # simply need a number not in this list.
-        while(self.id in keys): # incremenet until no longer in list
+        while(str(self.id) in keys): # incremenet until no longer in list
             self.id += 1
 
     def save(self): 
@@ -91,7 +91,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                 KB = dct.pop("KB")
                 for key, exp in KB.items():
                     class_name = exp.pop("__class__")
-                    self.KB[int(key)] = Explanation(**exp)
+                    self.KB[key] = Explanation(**exp)
 
 def decode_json(dct,*kw):
     print(dct)
