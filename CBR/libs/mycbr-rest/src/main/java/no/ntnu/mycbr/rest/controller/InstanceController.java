@@ -47,31 +47,6 @@ public class InstanceController
         return new Case(instanceID);
     }
 
-    //Delete one instance
-    @ApiOperation(value = "deleteInstance", nickname = "deleteInstance")
-    @RequestMapping(method = RequestMethod.DELETE, value = "/concepts/{conceptID}/casebases/{casebaseID}/instances/{instanceID}", headers="Accept=application/json")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Success"),
-            @ApiResponse(code = 401, message = "Unauthorized"),
-            @ApiResponse(code = 403, message = "Forbidden"),
-            @ApiResponse(code = 404, message = "Not Found"),
-            @ApiResponse(code = 500, message = "Failure")
-    })
-    public boolean deleteInstance(@PathVariable(value="conceptID") String conceptID,
-                               @PathVariable(value="casebaseID") String casebaseID,
-                               @PathVariable(value="instanceID") String instanceID) {
-        Project p = App.getProject();
-        if(!p.getCaseBases().containsKey(casebaseID))
-            return false;
-        ICaseBase cb = p.getCaseBases().get(casebaseID);
-        if(cb.containsCase(casebaseID)==null)
-            return false;
-        p.getCaseBases().get(casebaseID).removeCase(instanceID);
-        // Save changes to .prj file
-        p.save();
-        return true;
-    }
-
     // Get all instances in case base of a concept
     @ApiOperation(value = "getAllInstances", nickname = "getAllInstances")
     @RequestMapping(method = RequestMethod.GET, value = "/concepts/{conceptID}/instances", headers="Accept=application/json")
@@ -123,6 +98,32 @@ public class InstanceController
     }
 
 
+    //Delete one instance
+    @ApiOperation(value = "deleteInstance", nickname = "deleteInstance")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/concepts/{conceptID}/casebases/{casebaseID}/instances/{instanceID}", headers="Accept=application/json")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not Found"),
+            @ApiResponse(code = 500, message = "Failure")
+    })
+    public boolean deleteInstance(@PathVariable(value="conceptID") String conceptID,
+                                @PathVariable(value="casebaseID") String casebaseID,
+                                @PathVariable(value="instanceID") String instanceID) {
+        Project p = App.getProject();
+        if(!p.getCaseBases().containsKey(casebaseID))
+            return false;
+        ICaseBase cb = p.getCaseBases().get(casebaseID);
+        if(cb.containsCase(casebaseID)==null)
+            return false;
+        p.getCaseBases().get(casebaseID).removeCase(instanceID);
+        // Save changes to .prj file
+        p.save();
+        return true;
+    }
+
+
     //Delete all instances
     @ApiOperation(value="deleteInstances", nickname="deleteInstances")
     @RequestMapping(method=RequestMethod.DELETE, value = "/concepts/{conceptID}/casebases/{casebaseID}/cases")
@@ -133,13 +134,15 @@ public class InstanceController
             @ApiResponse(code = 404, message = "Not Found"),
             @ApiResponse(code = 500, message = "Failure")
     })
-    public boolean deleteInstances(@PathVariable(value="concept") String conceptID,
-                               @PathVariable(value="casebaseID") String casebaseID){
+    // NOTE! Fixed mismatch in path variable and REST request (@RequestMapping) for conceptID
+    //       Method doesn't seem to work regardless.
+    public boolean deleteInstances(@PathVariable(value="conceptID") String conceptID,
+                               @PathVariable(value="casebaseID") String caseBase){
 
         Project p = App.getProject();
-        if(!p.getCaseBases().containsKey(casebaseID))
+        if(!p.getCaseBases().containsKey(caseBase))
             return false;
-        Collection<Instance> collection = p.getCaseBases().get(casebaseID).getCases();
+        Collection<Instance> collection = p.getCaseBases().get(caseBase).getCases();
         for(Instance i : collection){
             collection.remove(i);
         }
@@ -152,7 +155,7 @@ public class InstanceController
 
 
     //Delete instances according to pattern
-    @ApiOperation(value="deleteInstances", nickname="deleteInstancePattern")
+    @ApiOperation(value="deleteInstancePattern", nickname="deleteInstancePattern")
     @RequestMapping(method=RequestMethod.DELETE, value = "/concepts/{conceptID}/casebases/{casebaseID}/instances/delete")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Success", response = ValueRange.class),
@@ -162,7 +165,7 @@ public class InstanceController
             @ApiResponse(code = 500, message = "Failure")
     })
     public boolean deleteInstancePattern(@PathVariable(value="conceptID") String conceptID,
-                                         @PathVariable(value="caseBase") String caseBase,
+                                         @PathVariable(value="casebaseID") String caseBase,
                                          @RequestParam(value="pattern",defaultValue="*") String pattern
     ){
 
@@ -181,7 +184,7 @@ public class InstanceController
             for(Instance i : collection){
                 collection.remove(i);
             }
-
+            p.save();
         }
         return true;
     }
@@ -325,6 +328,8 @@ public class InstanceController
             e.printStackTrace();
         }
         cb.addCase(instance);
+        // Save changes to .prj file
+        p.save();
         AmalgamationFct afct = c.getActiveAmalgamFct();
         if(afct.getType() == AmalgamationConfig.NEURAL_NETWORK_SOLUTION_DIRECTLY){
             ArrayList<Instance> instances = new ArrayList<>();
