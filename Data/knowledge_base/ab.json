@@ -155,25 +155,6 @@
                 0.1
             ]
         },
-        "8": {
-            "__class__": "Explanation",
-            "names": [
-                "test1",
-                "test2"
-            ],
-            "features": [
-                1,
-                2
-            ],
-            "precision": [
-                0.67,
-                0.9
-            ],
-            "coverage": [
-                0.2,
-                0.05
-            ]
-        },
         "9": {
             "__class__": "Explanation",
             "names": [

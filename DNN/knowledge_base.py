@@ -71,15 +71,13 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                 "KB":obj.KB
             }
         elif(isinstance(obj,Explanation)):
-            return obj.default(obj)
-        else:
+            return obj.default(obj) # use default encoding from corresponding class.
+        else: # Stop encoding. Wrong input types.
             raise ValueError("Cant encode class")
-        return obj.__dict__
-        if isinstance(obj,KnowledgeBase):
-            pass
-        return {"id":obj.id}
+        # return obj.__dict__ Handle every class with every attribute.
+
     
-    def load_json(self, dct):
+    def load_json(self, dct): # dict -> python objects
         dct = json.load(dct) # read json file: str -> dict
         if("__class__" in dct):
             class_name = dct.pop("__class__")
@@ -91,7 +89,29 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                 KB = dct.pop("KB")
                 for key, exp in KB.items():
                     class_name = exp.pop("__class__")
-                    self.KB[key] = Explanation(**exp)
+                    if(class_name == "Explanation"):
+                        self.KB[key] = Explanation(**exp)
+
+    def get(self, id, default=None): # return knowledge
+        id = self.convert_id(id)
+        if(id in self.KB):
+            return self.KB.get(id)
+        else: # Handle cases where knowledge is not present.
+            return default
+
+    def delete_knowledge(self,id,save=False): #Try to delete case with ID
+        # simply pop the ID from dictionary and save.
+        id = self.convert_id(id) # transform to string
+        if(id in self.KB):
+            self.KB.pop(id)
+            self.save() # save to file.
+        else:
+            print("ID '{}' not in knowledge base".format(id))
+
+    def convert_id(self,id):
+        if(isinstance(id,int)):
+            id = str(id)
+        return id
 
 def decode_json(dct,*kw):
     print(dct)
@@ -124,7 +144,10 @@ def test_kb_load():
 
     print(KB.KB)
     print(KB.KB.items())
-    print(KB.KB.get(0))
+    print(KB.get("0"))
+    print(KB.get(0))
+    KB.delete_knowledge(8)
+    print(KB.get(8))
     #print(KB.KB.get(0))
     #print(KB.KB[0])
 
@@ -136,11 +159,9 @@ def test_add_more():
     KB.add_knowledge(e1)
     KB.add_knowledge(e2)
 
-def test_knowledge_base():
-    pass
 
 #test_knowledge_base()
 #test_knowledge_base_load()
 #test_knowledge_base_save()
 #test_kb_load()
-test_kb_load()
+#test_kb_load()
