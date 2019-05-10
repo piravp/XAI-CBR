@@ -283,7 +283,6 @@ def test_anchors_nn():
     print('Partial precision: %.2f' % exp.precision(1))
     print('Partial coverage: %.2f' % exp.coverage(1))
 
-
 def test_anchor_nn_data():
     import numpy as np
     # ? copy from repository
@@ -691,11 +690,10 @@ def dataset_info():
     print(datamanager.transform(d_instance))
     print(datamanager.translate(dataset.data_train[1]))
 
-
 def complete_test():
     # Load dataset
     import numpy as np
-    np.random.seed(1) 
+    np.random.seed(1)
     import tensorflow as tf
     tf.set_random_seed(1)
 
@@ -705,7 +703,6 @@ def complete_test():
     
     datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = datamanager.ret
-
 
     # Import the network.
     # Fit the explainer to the dataset. 
@@ -747,7 +744,8 @@ def complete_test():
     value = [int(instance.flatten()[f]) for f in exp.features()]
     print(value)
     print((' AND '.join(exp.names())))
-    exp_1 = explanation.Explanation(value=value, **exp.exp_map)
+    print(exp.exp_map)
+    exp_1 = explanation.Explanation(**exp.exp_map)
     print(exp_1.features())
     print(exp_1.names())
     print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))

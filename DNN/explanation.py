@@ -3,7 +3,7 @@ from Induction.Anchor import anchor_explanation
 import random
 import json
 class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # extend AnchorExplanation
-    def __init__(self,value=None,names=None,feature=None,precision=None,coverage=None,**args):
+    def __init__(self,instance=None,names=None,feature=None,precision=None,coverage=None,**args):
         if(not all([names,feature,precision,coverage])): # if ether of these have a value
             raise ValueError("Need input: names, feature, precision and coverage")
         else:
@@ -21,11 +21,14 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
                     coverage,len(coverage),precision,len(precision))
                 raise ValueError("Length of the input 'coverage' are not the same as 'precision'")
             # TODO: change names list to values from instance
-            if(value is not None): #  we need to swap names list by these numbers instead.
-                if(isinstance(value,list)):
-                    names = value # this is the one we ultimatly want to store.
-                
-                print("value",value,names)
+            if(instance is not None): #  we need to swap names list by these numbers instead.
+                if(not isinstance(instance,list)):
+                    #names = value # this is the one we ultimatly want to store.
+                    instance = instance.flatten() # np.array (x,1)-> (x,)
+                names = [int(instance[f]) for f in feature]
+            # otherwise assume that the names are a list of ints
+            elif(any([isinstance(n,str)for n in names])): # if any of the names are a string, we need to fix these too.
+                raise ValueError("Need an instance to correct string names:{} to encoded values",names)
 
             # Init input
             exp_map['names'] = names
@@ -42,7 +45,6 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
         for i,f in enumerate(feature): # f is the feature index, name[i] value index
             tmp.append("{} = {}".format(decoder_f[f], decoder_v[f][names[i]]))
         return ' AND '.join(tmp)
-
 
     def __str__(self): 
         return str(self.exp_map)

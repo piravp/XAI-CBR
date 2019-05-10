@@ -117,8 +117,8 @@ def decode_json(dct,*kw):
     print(dct)
 
 def test_knowledge_base():
-    e1 = Explanation(feature=[1,2],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05])
-    e2 = Explanation(feature=[3,4],names=['test3','test4'],precision=[0.8,0.99],coverage=[0.4,0.10])
+    e1 = Explanation(feature=[1,2],names=[3,3],precision=[0.67,0.9],coverage=[0.2,0.05])
+    e2 = Explanation(feature=[3,4],names=[4,6],precision=[0.8,0.99],coverage=[0.4,0.10])
 
     KB = KnowledgeBase("abc")
 
@@ -129,8 +129,8 @@ def test_knowledge_base():
 
 def test_knowledge_base_save():
     KB = KnowledgeBase("ab")
-    e1 = Explanation(features=[1,2],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05])
-    e2 = Explanation(features=[3,4],names=['test3','test4'],precision=[0.8,0.99],coverage=[0.4,0.10])
+    e1 = Explanation(features=[1,2], names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05])
+    e2 = Explanation(features=[3,4], names=['test3','test4'],precision=[0.8,0.99],coverage=[0.4,0.10])
     KB.add_knowledge(e1)
     KB.add_knowledge(e2)
     KB.save()
@@ -165,3 +165,4 @@ def test_add_more():
 #test_knowledge_base_save()
 #test_kb_load()
 #test_kb_load()
+test_knowledge_base()

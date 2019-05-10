@@ -1,0 +1,26 @@
+{
+    "__class__": "KnowledgeBase",
+    "name": "abc.json",
+    "id": 0,
+    "KB": {
+        "0": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                6
+            ],
+            "feature": [
+                3,
+                4
+            ],
+            "precision": [
+                0.8,
+                0.99
+            ],
+            "coverage": [
+                0.4,
+                0.1
+            ]
+        }
+    }
+}
