@@ -56,7 +56,7 @@ def test_lore():
                             y_pred_bb, y_pred_cc, diff_outcome, dataset, explanation[1]))
 
 #   Step 1: 
-#       Preprocess dataset: Discretazise, and relable.
+#       Preprocess dataset: Discretazise, and re-label.
 #   Step 2:
 #       Fit the dataset to the explainer. 
 #   Step 3:
@@ -635,6 +635,8 @@ def dataset_info():
     #50, Self-emp-not-inc, 83311, Bachelors, 13, Married-civ-spouse,
     #Exec-managerial, Husband, White, Male, 0, 0, 13, United-States
 
+    print("TEEEEST:  ", dataset.feature_names[0])
+
     #[50 'Self-emp-not-inc' 'Bachelors' 'Married' 'White-Collar' 'Husband'
     #'White' 'Male' 'None' 'None' 13 'United-States']
     import pandas as pd
@@ -658,19 +660,27 @@ def dataset_info():
         # And transform back to single element
         d_instance[i] = encoder.transform(np.array([d_instance[i]]))[0]
     print(d_instance.astype(float))
+    print()
     #d_instance = dataset.categorical_encoders
 
     #print(dataset.categorical_features.transform(d_instance))
     print("Target:",dataset.data_train[1])
+    print()
     print(datamanager.translate(dataset.data_train[1]))
     # ? Test 2: with preprocessing on all features (+ capital_gain and capital_loss)
     d_instance = [50,"Self-emp-not-inc","Bachelors","Married","White-Collar",
                             "Husband","White","Male",0,0,13,"United-States"]
     d_instance = pd.DataFrame(d_instance).values.flatten()    
-    print(d_instance)
-    print(datamanager.transform(d_instance))
-    print(datamanager.translate(dataset.data_train[1]))
+    print()
+    print("d_instance:", d_instance)
+    print()
+    print("dm.transform:", datamanager.transform(d_instance))
+    print()
+    print("dm.translate:", datamanager.translate(dataset.data_train[1]))
+    print()
+    print(dataset.data_test_full)
     
+
 
 #test_lore()
 #test_anchors()
@@ -681,5 +691,5 @@ def dataset_info():
 #test_autoencoder()
 
 #train_network()
-#dataset_info()
-load_model()
+# dataset_info()
+# load_model()

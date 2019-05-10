@@ -273,12 +273,14 @@ class Datamanager():
         df_test = read_data_pd(name=filename/"adult.test",header=None, columns=columns)
 
         # Remove every row that has a '?' as its value.
-        df = df[df.ne('?').all(1)] 
-        df_test = df_test[df_test.ne('?').all(1)]
+        # df = df[df.ne('?').all(1)] 
+        # df_test = df_test[df_test.ne('?').all(1)]
 
         # Remove None/Nan values from datasets.
-        df = df.dropna()
-        df_test = df_test.dropna()
+        # df = df.dropna()
+        df = df.replace('?', np.nan).dropna()
+        # df_test = df_test.dropna()
+        df_test = df_test.replace('?', np.nan).dropna()
 
         """
         disc = lime.lime_tabular.EntropyDiscretizer(df.values,
@@ -329,7 +331,7 @@ class Datamanager():
             df_test[df_test.columns[feature]] = df_test.iloc[:,[feature]].applymap(function)
 
         # ? Check for inconsistencies
-        print(df.head())
+        # print(df.head())
 
 
         labels = df.values[:,-1] # last index is the target values
@@ -377,6 +379,10 @@ class Datamanager():
         #print(disc.discretize(data.values))
         #print(data.values[1],data.values[1].shape)# (12,), type(objects and int)
         disc_data = disc.discretize(data.values)
+
+        # Store data to retrieve age later
+        self.ret.data_test_full = data_test[['age', 'hours per week']].copy()#.values
+
         disc_data_test = disc.discretize(data_test.values)
         self.ret.ordinal_discretizer = disc
 
@@ -415,7 +421,9 @@ class Datamanager():
         # We don't bother with balancing the dataset.
         # ? Display information of the dataset
         # print(df.groupby('income').agg(['count','size','nunique']).stack())
-
+        
+        # Needed for function to work
+        import sklearn.model_selection
         # Init splitter, random_state = 1 (seed)
         split = sklearn.model_selection.ShuffleSplit(n_splits=1,
                                                     test_size=0.5,

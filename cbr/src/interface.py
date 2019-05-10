@@ -5,11 +5,10 @@ import pandas as pd
 import matplotlib
 import seaborn as sb
 import matplotlib.pyplot as plt
-
 # https://www.openml.org/d/1590
 
-
 class RESTApi:
+    " Functions as an interface to the REST api "
     def __init__(self):
         pass
 
@@ -59,14 +58,16 @@ class RESTApi:
     # ----------------------------------------------------------------------------- #
     #                               Instances                                       #
     # ----------------------------------------------------------------------------- #
-    # Add instance
+    # Add one instance
     # An instance is created by providing conceptID, casebaseID and arbitrary caseID(string) and doing a PUT call
-    def addInstance(self, casebaseID, conceptID, caseID, casedata):
-        r = requests.put('http://localhost:8080/concepts/{}/casebases/{}/instances/{}' 
-                .format(conceptID, casebaseID, caseID), data={'key': casedata})
-        return r.status_code
+    # NOTE: THIS DOES NOT WORK, USE addInstancesJson() INSTEAD
+    # def addInstance(self, casebaseID, conceptID, caseID, casedata):
+    #     r = requests.put('http://localhost:8080/concepts/{}/casebases/{}/instances/{}' 
+    #             .format(conceptID, casebaseID, caseID), data={'key': casedata})
+    #     return r.status_code
 
-
+    # Add several instances
+    # An instance is created by providing conceptID, casebaseID and arbitrary caseID(string) and doing a PUT call
     def addInstancesJSON(self, casebaseID, conceptID, cases):
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances' 
                 .format(conceptID, casebaseID), params={"cases" : json.dumps(cases)})
@@ -114,16 +115,16 @@ class RESTApi:
         plt.show()
 
 api = RESTApi()
-
-
 # res = api.addInstancesJSON(casebaseID='cb0', conceptID='Person', cases={"cases":[{"Age":22, "Gender":"Male"}]})
 # res = api.getInstances(conceptID='Person')
 # res = api.getAllInstancesInCaseBase(conceptID='Person', casebaseID='cb0')
 # res = api.getAttributes('Person')
 # res = api.addAttribute(conceptID='Person', attrName='Education', attrJSON={"type": "Symbol", "allowedValues": ["High school", "Bachelor", "Master"]})
-res = api.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID='Person-cb018', k=5)
-print(res)
-api.plot_retrieve_k_sim_byID(res)
+# res = api.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID='Person-cb018', k=5)
+
+
+# print(res)
+# api.plot_retrieve_k_sim_byID(res)
 
 
 
