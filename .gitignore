@@ -19,3 +19,7 @@ CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/3.3-SNAPSHOT/myCBR
 .classpath
 .project
 .settings
+
+#Maven
+CBR/libs/mycbr-rest/target/
+CBR/libs/mycbr-sdk/target/
