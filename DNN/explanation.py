@@ -3,12 +3,14 @@ from Induction.Anchor import anchor_explanation
 import random
 import json
 class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # extend AnchorExplanation
-    def __init__(self,instance=None,names=None,feature=None,precision=None,coverage=None,**args):
-        if(not all([names,feature,precision,coverage])): # if ether of these have a value
-            raise ValueError("Need input: names, feature, precision and coverage")
+    def __init__(self,instance=None,names=None,feature=None,precision=None, prediction=None,coverage=None,**args):
+        if(not all([names,feature,precision,coverage])): # if ether of these have a value other than a list or 0.
+            raise ValueError("Need input: names, feature, precision, coverage")
+        elif(prediction is None):
+            raise ValueError("Need a prediction for explanation")
         else:
             exp_map = {'feature': [], 'mean': [], 'precision': [],
-                'coverage': [], 'examples': [], 'all_precision': 0} # Initial mapping
+                'coverage': [], 'examples': [], 'prediction':-1} # Initial mapping
             
             # Check if values are correct length with eachother
             if(len(names) != len(feature)):
@@ -35,6 +37,7 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             exp_map['feature'] = feature
             exp_map['precision'] = precision
             exp_map['coverage'] = coverage
+            exp_map['prediction'] = prediction
             super(Explanation, self).__init__(type_='tabular', exp_map=exp_map, as_html=None)
 
     def get_explanation(self,decoder_f,decoder_v, partial_index=None):
@@ -54,7 +57,8 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
                 "names":self.exp_map["names"],
                 "feature":self.exp_map['feature'],
                 "precision":self.exp_map['precision'],
-                "coverage":self.exp_map['coverage']
+                "coverage":self.exp_map['coverage'],
+                "prediction":self.exp_map['prediction']
                 }
 
 
@@ -67,7 +71,7 @@ def test_explanation():
     print(e.coverage())
     print(e.precision())
 
-    ef = Explanation(feature=[3,5],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05])
+    ef = Explanation(feature=[3,5],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05],prediction=0)
 
     # Partial anchor explanation
     print(e.features(0))

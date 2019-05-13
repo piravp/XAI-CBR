@@ -745,7 +745,10 @@ def complete_test():
     print(value)
     print((' AND '.join(exp.names())))
     print(exp.exp_map)
+    print(*exp.exp_map)
     exp_1 = explanation.Explanation(**exp.exp_map)
+    print(exp_1)
+    
     print(exp_1.features())
     print(exp_1.names())
     print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))
