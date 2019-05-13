@@ -165,4 +165,4 @@ def test_add_more():
 #test_knowledge_base_save()
 #test_kb_load()
 #test_kb_load()
-test_knowledge_base()
+#test_knowledge_base()

@@ -25,7 +25,7 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
                 if(not isinstance(instance,list)):
                     #names = value # this is the one we ultimatly want to store.
                     instance = instance.flatten() # np.array (x,1)-> (x,)
-                names = [int(instance[f]) for f in feature]
+                names = [int(instance[f]) for f in feature] # encoded feature values.
             # otherwise assume that the names are a list of ints
             elif(any([isinstance(n,str)for n in names])): # if any of the names are a string, we need to fix these too.
                 raise ValueError("Need an instance to correct string names:{} to encoded values",names)
