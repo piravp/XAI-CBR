@@ -23,4 +23,4 @@ CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/3.3-SNAPSHOT/myCBR
 #Maven
 CBR/libs/mycbr-rest/target/
 CBR/libs/mycbr-sdk/target/
-*/maven-metadata-local.xml
+.maven-metadata-local.xml
