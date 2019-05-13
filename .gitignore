@@ -7,3 +7,15 @@ __pycache__/
 # Pycharm idea folder
 .idea
 .vscode
+
+# Don't track snapshot.jar
+CBR/libs/mycbr-sdk/target/lib/*.jar
+CBR/libs/mycbr-sdk/target/myCBR-3.3-SNAPSHOT.jar
+CBR/libs/mycbr-rest/target/mycbr-rest-1.0-SNAPSHOT.jar
+CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/3.3-SNAPSHOT/myCBR-3.3-SNAPSHOT.jar
+*.jars
+
+# Java VS Code
+.classpath
+.project
+.settings
