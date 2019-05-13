@@ -283,7 +283,6 @@ def test_anchors_nn():
     print('Partial precision: %.2f' % exp.precision(1))
     print('Partial coverage: %.2f' % exp.coverage(1))
 
-
 def test_anchor_nn_data():
     import numpy as np
     # ? copy from repository
@@ -431,7 +430,8 @@ def test_integrated_gradients():
 
     sgd = SGD(lr=0.01)
     rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
-    adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, 
+    decay=0.0, amsgrad=False)
     adagrad = Adagrad(lr=0.01, epsilon=None, decay=0.0)
     # loss functions
     mse = losses.mean_squared_error
@@ -545,7 +545,6 @@ def load_model():
     explainer.fit(dataset.data_train, dataset.train_labels, 
                 dataset.data_validation, dataset.validation_labels)
     
-    
     from DNN.keras import network
     #np.random.seed(1) 
     #keras.random.seed(1)
@@ -570,7 +569,7 @@ def load_model():
     print("prediction:", prediction,"=",explainer.class_names[prediction])
     #print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint 
 
-    exp = explainer.explain_instance(instance, model.predict, threshold=0.98,verbose=True)
+    exp = explainer.explain_instance(instance, model.predict, threshold=0.99,verbose=True)
     #print(exp.names())
     print("Anchor: %s" % (" AND ".join(exp.names())))
     print("Precision: %.2f" % exp.precision())
@@ -582,34 +581,54 @@ def load_model():
     print(dataset.data_test[:, exp.features()],dataset.data_test[:, exp.features()].shape)
     
     all_np = np.all(dataset.data_test[:, exp.features()] == dataset.data_test[idx][exp.features()], axis=1) 
-    print(all_np,all_np.shape)
     fit_anchor = np.where((all_np))[0] # select the array of indexes?
-    print(fit_anchor.shape)
-    print(dataset.data_test[:,exp.features()][fit_anchor])
+    #print(dataset.data_test[:,exp.features()][fit_anchor])
 
     # of all data points that have the same values as the instance on anchor, how many are correct.
     print('Anchor test precision: %.2f' % (np.mean(predict_fn(dataset.data_test[fit_anchor]) == predict_fn(instance))))
     # of all the similar instances in test set, how large percentet of the dataset is this. 
     print('Anchor test coverage: %.2f' % (fit_anchor.shape[0] / float(dataset.data_test.shape[0])))
     
-    print("Partial anchor")
+    print("\nPartial anchor 1")
     # Looking at a particular anchor
+    print(exp.names(0),exp.names(1))
     print('Partial anchor: %s' % (' AND '.join(exp.names(1))))
     print('Partial precision: %.2f' % exp.precision(1))
     print('Partial coverage: %.2f' % exp.coverage(1))
     print('partial features: {}'.format(exp.features(1)))
     print(instance[0])
 
+    print("partial precision and coverage:")
+    all_np = np.all(dataset.data_test[:, exp.features(1)] == dataset.data_test[idx][exp.features(1)], axis=1) 
+    fit_anchor = np.where((all_np))[0] # select the array of indexes?
+
+    # of all data points that have the same values as the instance on anchor, how many are correct.
+    print('Partial Anchor test precision: %.2f' % (np.mean(predict_fn(dataset.data_test[fit_anchor]) == predict_fn(instance))))
+    # of all the similar instances in test set, how large percentet of the dataset is this. 
+    print('Partial Anchor test coverage: %.2f' % (fit_anchor.shape[0] / float(dataset.data_test.shape[0])))
+
     # translation of prediction data.
     print(datamanager.translate(dataset.data_test[idx]))
 
-    print(":::TESTING::::")
+    print("\n:::TESTING::::")
 
-    print(exp.exp_map['names'])
+    print(exp.exp_map['names'],type(exp.exp_map['names']))
     print(exp.exp_map['feature'])
     print(exp.exp_map['precision'])
     print(exp.exp_map['coverage'])
+    print(exp.exp_map['mean'])
+    print(exp.exp_map['all_precision'])
+    print(exp.exp_map['num_preds'])
+    print(exp.exp_map['instance'])
+
     #print(exp.exp_map['examples'])
+    print(exp.exp_map.keys())
+
+    # Generating json object of the anchor, to be used to explain the prediction.
+    # features is the feature list, and names is the corresponding value. "f_1 = n_1" as explanation. 
+    # v1: { "precision": [a,b,...,n], "coverage": [a,b,...,n], "feature":[0,1,...,f], "names":[n_1,n_2,...,n_f] }
+    # v2: {exp1:[None,None,2,4], exp2: [None,None,5,2,5] }
+
 
 def dataset_info():
     import sklearn
@@ -679,7 +698,70 @@ def dataset_info():
     print("dm.translate:", datamanager.translate(dataset.data_train[1]))
     print()
     print(dataset.data_test_full)
+    print(d_instance)
+    print(datamanager.transform(d_instance))
+    print(datamanager.translate(dataset.data_train[1]))
+
+def complete_test():
+    # Load dataset
+    import numpy as np
+    np.random.seed(1)
+    import tensorflow as tf
+    tf.set_random_seed(1)
+
+    import sklearn
+    from DNN.kera import pre_processing
+    from DNN.Induction.Anchor import anchor_tabular, utils
     
+    datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
+    dataset = datamanager.ret
+
+    # Import the network.
+    # Fit the explainer to the dataset. 
+    explainer = anchor_tabular.AnchorTabularExplainer(
+        dataset.class_names, dataset.feature_names,
+        dataset.data_train, dataset.categorical_names)
+        
+    # ! Explainer.encoder.transform return sparse matrix, instead of dense np.array
+    explainer.fit(dataset.data_train, dataset.train_labels, 
+                dataset.data_validation, dataset.validation_labels)
+
+    from DNN.kera import network
+    #np.random.seed(1) 
+    #keras.random.seed(1)
+        #print(dataset.categorical_names, dataset.categorical_names.keys())
+    n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
+    model = network.Model(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+    model.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
+                    data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
+
+    # Try to explain a given prediction print(datamanager.translate(dataset.data_train[0]))
+    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
+
+    idx = 1
+    instance = dataset.data_test[idx].reshape(1,-1)
+    prediction = predict_fn(instance)[0]
+    print("prediction:", prediction,"=",explainer.class_names[prediction])
+
+    exp = explainer.explain_instance(instance, model.predict, threshold=0.98,verbose=True)
+    
+    from DNN import explanation
+    from DNN import knowledge_base
+
+    print(exp.exp_map.keys())
+    print(datamanager.ret.feature_names)
+    # We need to pass in the actual values of the prediction.
+    print(instance,instance.flatten())
+    #instance = instance.flatten()
+    value = [int(instance.flatten()[f]) for f in exp.features()]
+    print(value)
+    print((' AND '.join(exp.names())))
+    print(exp.exp_map)
+    exp_1 = explanation.Explanation(**exp.exp_map)
+    print(exp_1.features())
+    print(exp_1.names())
+    print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))
+
 
 
 #test_lore()
@@ -693,3 +775,8 @@ def dataset_info():
 #train_network()
 # dataset_info()
 # load_model()
+#dataset_info()
+#load_model()
+#dataset_info()
+
+complete_test()

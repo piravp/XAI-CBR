@@ -29,7 +29,6 @@ class Datamanager():
 
         # Preprocess dataset using assigned function. Dataset specific
         self.__pp_switcher = {
-            "wine":self.wine,
             "adults":self.adults,
             "parity":self.parity
         }
@@ -138,72 +137,6 @@ class Datamanager():
         #return torch.from_numpy(np.array(data_inputs)).float(), torch.from_numpy(np.array(data_targets)).float()
         return self.return_mod(data_inputs = data[0], data_targets=data[1])
     
-    #################################################
-    # Pre processing functions specific to datasets #
-    #   class_names: list of strings
-    #   feature_names: list of strings
-    #   data: used to build one hot encoder
-    #   categorical_names: map from integer to list of strings, names for each
-    #        value of the categorical features. Every feature that is not in
-    #        this map will be considered as ordinal, and thus discretized.
-    #    ordinal_features: list of integers, features that were/should be discretized.
-    #################################################
-    def wine(self):
-        """ Read whine dataset and preprosess"""
-        # class: followed by 13 attributes as floats.
-        self.classes=3
-        self.input_dim=13
-        self.class_names = ["class 1","class 2","class 3"]
-        self.feature_names = ["alch","malic","ash","alcash","mag","phen","flav","nfphens","proant","color","hue","dil","prol"]
-        # need to normalize
-        """ Pre process wine dataset. return as [[0.1312,0.5,0.1,0.8],[0,0,1]] """
-        columns = ["class","alch","malic","ash","alcash","mag","phen","flav","nfphens","proant","color","hue","dil","prol"]
-        """
-            0) class
-            1) Alcohol
-            2) Malic acid
-            3) Ash
-            4) Alcalinity of ash  
-            5) Magnesium
-            6) Total phenols
-            7) Flavanoids
-            8) Nonflavanoid phenols
-            9) Proanthocyanins
-            10)Color intensity
-            11)Hue
-            12)OD280/OD315 of diluted wines
-            13)Proline    
-        """
-
-        #filename = os.path.join(pathlib.Path(__file__).parents[2], "Data/wine/wine.csv")
-        # Get path of parent nr 2, and append corresponding data path
-        filename = pathlib.Path(__file__).parents[2]/"Data/wine/wine.csv"
-        #os.path.
-        df = read_data_pd(filename,columns = columns, header=False)
-
-        df.columns = columns # Add columns to dataframe.
-        #Cov.columns = ["Sequence", "Start", "End", "Coverage"]
-
-        data_inputs = df.sample(frac=1) # shuffle dataframe
-        # data inputs
-        df_targets = data_inputs.iloc[:,0] # select first column
-        df_attributes = data_inputs.iloc[:,1:] # select all columns expect the first
-        # Normalize the data
-        #feature_range = len(df_attributes.columns) # get number of features
-        min_max_scaler = preprocessing.MinMaxScaler(feature_range=(0,1)) # Init preprocessor.
-        data_df_scaled = min_max_scaler.fit_transform(df_attributes) # Normalize Attributes.
-        df_normalized = pd.DataFrame(data_df_scaled) # Transform np.array into dataframe
-
-        #print(df_targets.head())
-        #df_targets = df_targets.apply(lambda item: misc.int_to_one_hot_vector(int(item), size=self.classes,zero_offset=1))# 
-        #print(df_targets.head())
-        #self.data_df = pd.concat([df_normalized, df_targets], axis=1)
-        # Split dataset into training and test/validation
-        #print(self.data_df.head())
-        #self.df_train = df
-
-        return df_normalized, df_targets
-
     def adults(self):
 
         columns = ["age", "workclass", "fnlwgt", "education",

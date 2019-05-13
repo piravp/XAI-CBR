@@ -116,7 +116,7 @@ def part2(fit_generate=True):
         #epochs=20, steps_per_epoch=20, callbacks=[keras.callbacks.EarlyStopping(monitor="val_loss",mode='max',patience=3,verbose=1)]) 
 
         model.fit(generator(x_train, y_train,batch_size=200), validation_data=generator(x_test, y_test, batch_size=200), validation_steps=30, 
-        epochs=100, steps_per_epoch=50, callbacks=[keras.callbacks.EarlyStopping(monitor="val_loss",mode='min',patience=3,verbose=1)]) 
+        epochs=100, steps_per_epoch=50, callbacks=[keras.callbacks.EarlyStopping(monitor="val_loss",mode='min',patience=3,verbose=1),]) 
 
         # If we would want to store the best version.
         #keras.callbacks.ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)

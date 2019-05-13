@@ -1,6 +1,7 @@
-#from keras.models import Sequential
+
 import keras
-from keras import Sequential
+from keras.models import Model
+from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten, Conv3D, Activation,Dropout
 from keras import backend as K
 from keras.optimizers import SGD,Adam,Adagrad,RMSprop
@@ -137,7 +138,6 @@ class Model():
             history = self.model.fit(data_train, train_labels, 
             shuffle=True, epochs=epochs, batch_size=batch_size, validation_data=(data_validation, validation_labels),
             callbacks=[LambdaCallback(on_epoch_end=self.checkPoint),stop,reduce_lr])
-
 
 
         # TODO: load best model from ModelCheckpoint
