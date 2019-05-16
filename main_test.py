@@ -436,13 +436,13 @@ def test_integrated_gradients():
     # loss functions
     mse = losses.mean_squared_error
     cce = losses.categorical_crossentropy
-    from DNN.keras import network
+    from DNN.kera import network
 
     bb = network.Model(name="wine") # collect pretrained model from file
     bb.compile(loss=mse, optimizer=adam,metrics=['accuracy'])
     
-    import datamanager
-    dataman = datamanager.Datamanager(dataset="wine")
+    import preprocessing
+    dataman = preprocessing.Datamanager(dataset="wine")
     
     #Implement IntegradetGrad
     from DNN.Induction.IntGrad import IntegratedGradients  
@@ -475,6 +475,7 @@ def test_nn_intgrad():
     
     datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = datamanager.ret
+    print(dataset.__dict__.keys())
 
     # Import the network.
     # Fit the explainer to the dataset. 
@@ -491,19 +492,19 @@ def test_nn_intgrad():
     #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
-    model = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
-    model.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
+    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
                     data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
 
     # Try to explain a given prediction print(datamanager.translate(dataset.data_train[0]))
-    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
+    predict_fn = lambda x: bb.predict(explainer.encoder.transform(x)) 
 
     idx = 1
     instance = dataset.data_test[idx].reshape(1,-1)
     prediction = predict_fn(instance)[0]
     print("prediction:", prediction,"=",explainer.class_names[prediction],"\n")
 
-    exp = explainer.explain_instance(instance, model.predict, threshold=0.98,verbose=True)
+    exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=True)
 
     from DNN import explanation
     from DNN import knowledge_base
@@ -531,8 +532,49 @@ def test_nn_intgrad():
     print("\n","Explaining", instance)
     
     from deepexplain.tensorflow import DeepExplain
+    from keras import backend as K
+    from keras.models import Model
 
+    print("Data:",explainer.encoder.transform(instance).toarray().shape)
+    with DeepExplain(session=K.get_session()) as de:
+        #model = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+        if(False):
+            input_tensors = bb.model.inputs
+            print(input_tensors)
+            output_layer = bb.model.outputs
+            print(output_layer)
+            fModel = Model(inputs=input_tensors,outputs = output_layer)
 
+            target_tensor = fModel(input_tensors)
+            attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+
+            print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
+        else:
+            #print("Trying to explain...")
+            input_tensors = bb.model.layers[0].input
+            print(input_tensors)
+            output_layers = bb.model.layers[-1].output
+            print(output_layers)
+            fModel = Model(inputs = input_tensors, outputs = output_layers)
+            #print(fModel.summary())
+            target_tensor = fModel(input_tensors)
+            #print(target_tensor)
+            attribution = de.explain('intgrad',target_tensor,input_tensors, explainer.encoder.transform(instance).toarray())
+            print(attribution)
+
+        #pip install shap
+
+            import shap
+
+            deepExp = shap.DeepExplainer(bb.model,explainer.encoder.transform(dataset.data_validation).toarray())
+            
+            shap_values = deepExp.shap_values(explainer.encoder.transform(instance).toarray())
+
+            print(len(shap_values),shap_values[0].shape)
+
+            print(shap_values)
+            print(shap_values[0][0])
+            #print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
     #from keras_explain.integrated_gradients import IntegratedGradients
 
     #ker_exp = IntegratedGradients(model.model)
