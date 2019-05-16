@@ -12,7 +12,7 @@ import misc
 import pathlib
 import sklearn
 
-class Model():
+class BlackBox():
     def __init__(self, name, optimizer=None, loss=None, model=None,c_path=None):
         self.modelpath = pathlib.Path(__file__).parent/"models" # Keep track of folder path of model. 
         self.name = name
