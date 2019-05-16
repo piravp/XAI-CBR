@@ -102,23 +102,28 @@ public class InstanceController {
         ICaseBase cb = p.getCaseBases().get(casebaseID);
         if (cb.containsCase(instanceID) == null) // IF casebase does not contain the InstanceID
             return false;
+        System.out.println(cb.getCases().size());
         p.getCaseBases().get(casebaseID).removeCase(instanceID);
+        System.out.println(cb.getCases().size());
         // Save changes to .prj file
         p.save();
         return true;
     }
 
-    // Delete all instances
-    @ApiOperation(value = "deleteInstances", nickname = "deleteInstances")
-    @RequestMapping(method = RequestMethod.DELETE, value = "/concepts/{conceptID}/casebases/{casebaseID}/cases")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ValueRange.class),
-            @ApiResponse(code = 401, message = "Unauthorized"), @ApiResponse(code = 403, message = "Forbidden"),
-            @ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure") })
-    // NOTE! Fixed mismatch in path variable and REST request (@RequestMapping) for
-    // conceptID
-    // Method doesn't seem to work regardless.
-    public boolean deleteInstances(@PathVariable(value = "conceptID") String conceptID,
-            @PathVariable(value = "casebaseID") String caseBase) {
+    //Delete all instances
+    @ApiOperation(value="deleteInstances", nickname="deleteInstances")
+    @RequestMapping(method=RequestMethod.DELETE, value = "/concepts/{conceptID}/casebases/{casebaseID}/cases")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success", response = ValueRange.class),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not Found"),
+            @ApiResponse(code = 500, message = "Failure")
+    })
+    // NOTE! Fixed mismatch in path variable and REST request (@RequestMapping) for conceptID
+    //       Method doesn't seem to work regardless.
+    public boolean deleteInstances(@PathVariable(value="conceptID") String conceptID,
+                               @PathVariable(value="casebaseID") String caseBase){
 
         Project p = App.getProject();
         if (!p.getCaseBases().containsKey(caseBase))

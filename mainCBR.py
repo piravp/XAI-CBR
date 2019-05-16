@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from DNN.keras import pre_processing
+from DNN.kera import pre_processing
 
 """
     1. Data fra datamanger er encoded til tall-labels. 
@@ -73,4 +73,4 @@ def populate_casebase(n_cases=2):
         print(CBR.addInstancesJSON(casebaseID='cb0',conceptID='Person',cases=instanceJson(row)))
 
 
-populate_casebase(n_cases=2)
+populate_casebase(n_cases=10)
