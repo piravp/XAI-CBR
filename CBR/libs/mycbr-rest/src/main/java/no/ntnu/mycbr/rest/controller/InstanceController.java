@@ -115,14 +115,15 @@ public class InstanceController
         if(!p.getCaseBases().containsKey(casebaseID))
             return false;
         ICaseBase cb = p.getCaseBases().get(casebaseID);
-        if(cb.containsCase(casebaseID)==null)
+        if(cb.containsCase(instanceID)==null)
             return false;
+        System.out.println(cb.getCases().size());
         p.getCaseBases().get(casebaseID).removeCase(instanceID);
+        System.out.println(cb.getCases().size());
         // Save changes to .prj file
         p.save();
         return true;
     }
-
 
     //Delete all instances
     @ApiOperation(value="deleteInstances", nickname="deleteInstances")

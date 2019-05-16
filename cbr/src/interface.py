@@ -75,12 +75,17 @@ class RESTApi:
         # return 'http://localhost:8080/concepts/{}/casebases/{}/instances?{}'.format(conceptID, casebaseID, cases)
 
 
-    # Return instances for one specific case-base
+    # Return cases for one specific case-base
     def getAllInstancesInCaseBase(self, conceptID, casebaseID):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/instances'.format(conceptID, casebaseID))
         raw = pd.DataFrame(res.json())
         instances = raw.apply(pd.to_numeric, errors='coerce').fillna(raw)
         return instances#helper.pprint(res.json())
+
+    # Return # of cases for one specific case-base
+    def getCaseBaseSize(self, conceptID, casebaseID):
+        res = self.getAllInstancesInCaseBase(conceptID, casebaseID)
+        return res.shape[0]
 
     # Return ALL instances
     def getInstances(self, conceptID):
@@ -99,8 +104,28 @@ class RESTApi:
         res = requests.get('http://localhost:8080/concepts/{}/instances'.format(conceptID))
         return res.text
 
+    # Change one (existing) attribute for one case
+    def modifyAttributeInCase(self, conceptID, casebaseID, caseID, attributeName, value):
+        # Retrieve case
+        res = self.getAllInstancesInCaseBase(conceptID=conceptID, casebaseID=casebaseID)
+        idx = res[res['caseID']==caseID].index.item()                                               # index of case in df that matches the caseID we're looking for
+        row = res.iloc[[idx]]                                                                       # find in df
+        row = row.to_json(orient='records').replace('[','').replace(']','')                         # convert to json (string)
+        row = json.loads(row)                                                                       # convert to json (object/dict)
+
+        # Delete previous case
+        if eval(self.deleteInstance(casebaseID=casebaseID, conceptID=conceptID, instanceID=caseID).capitalize()):
+            print('\'{}\' was deleted...'.format(caseID))
+            # Create new case if previous version was successfully deleted
+            row[attributeName] = value                                                              # change value
+            case = helper.caseAsJson(row)                                                           # convert to format accepted by REST
+            r = self.addInstancesJSON(casebaseID=casebaseID, conceptID=conceptID, cases=case)       # add instance
+            return r
+
+        return False
+
     # ----------------------------------------------------------------------------- #
-    #                               Similarity                                      #
+    #                           Similarity retrieval                                #
     # ----------------------------------------------------------------------------- #
     def retrieve_k_sim_byID(self, conceptID, casebaseID, queryID, k):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/retrievalByID?caseID={}&k={}'
@@ -115,15 +140,17 @@ class RESTApi:
         plt.show()
 
 api = RESTApi()
-# res = api.addInstancesJSON(casebaseID='cb0', conceptID='Person', cases={"cases":[{"Age":22, "Gender":"Male"}]})
+# res = api.addInstancesJSON(casebaseID='cb0', conceptID='Person', cases={"cases":[{"Age":11}]})
 # res = api.getInstances(conceptID='Person')
-# res = api.getAllInstancesInCaseBase(conceptID='Person', casebaseID='cb0')
 # res = api.getAttributes('Person')
 # res = api.addAttribute(conceptID='Person', attrName='Education', attrJSON={"type": "Symbol", "allowedValues": ["High school", "Bachelor", "Master"]})
 # res = api.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID='Person-cb018', k=5)
+res = api.getAllInstancesInCaseBase(conceptID='Person', casebaseID='cb0')
+# res = api.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID='Person-cb03')
+# res = api.getCaseBaseSize(conceptID='Person', casebaseID='cb0')
+# res = api.modifyAttributeInCase(casebaseID='cb0', conceptID='Person', caseID='Person-cb08', attributeName='Age', value=25)
 
-
-# print(res)
+print(res)
 # api.plot_retrieve_k_sim_byID(res)
 
 
