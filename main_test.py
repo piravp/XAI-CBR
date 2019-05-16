@@ -629,12 +629,38 @@ def load_model():
     # v1: { "precision": [a,b,...,n], "coverage": [a,b,...,n], "feature":[0,1,...,f], "names":[n_1,n_2,...,n_f] }
     # v2: {exp1:[None,None,2,4], exp2: [None,None,5,2,5] }
 
+def dataset_info_2():
+    import sklearn
+    import numpy as np
+    from sklearn import model_selection
+    from DNN.kera import pre_processing
+    
+    datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
+    dataset = datamanager.ret
+    print(dataset.__dict__.keys())
+
+    print(dataset.df.groupby('income').agg(['count','nunique']).stack())
+    print(dataset.df.groupby('age').agg(['count','nunique']).stack())
+    print(dataset.df.groupby('education').agg(['count','nunique']).stack())
+    print()
+    print(dataset.df.groupby('sex').agg({'income':['count','nunique']}).stack())
+    print()
+    print(dataset.df.groupby('sex').agg({'income':['count','nunique']}))
+
+    g_sum = dataset.df.groupby('education')['income'].transform('sum')
+    print(g_sum)
+    values = dataset.df['income']/g_sum
+    print(values)
+    df['Entropy'] = -(values*np.log(values))
+
+    df1 = df.groupby('Name_Receive',as_index=False,sort=False)['Entropy'].sum()
+    exit()
 
 def dataset_info():
     import sklearn
     import numpy as np
     from sklearn import model_selection
-    from DNN.keras import pre_processing
+    from DNN.kera import pre_processing
     
     datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = datamanager.ret
@@ -757,7 +783,10 @@ def complete_test():
     print(value)
     print((' AND '.join(exp.names())))
     print(exp.exp_map)
+    print(*exp.exp_map)
     exp_1 = explanation.Explanation(**exp.exp_map)
+    print(exp_1)
+    
     print(exp_1.features())
     print(exp_1.names())
     print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))
@@ -778,5 +807,5 @@ def complete_test():
 #dataset_info()
 #load_model()
 #dataset_info()
-
-complete_test()
+dataset_info_2()
+#complete_test()

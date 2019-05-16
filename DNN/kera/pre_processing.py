@@ -173,20 +173,20 @@ class Datamanager():
             'China', 'Columbia': 'South-America', 'Cuba': 'Other',
             'Dominican-Republic': 'Latin-America', 'Ecuador': 'South-America',
             'El-Salvador': 'South-America', 'England': 'British-Commonwealth',
-            'France': 'Euro_west', 'Germany': 'Euro_west', 'Greece': 'Euro_south',
+            'France': 'Euro-west', 'Germany': 'Euro-west', 'Greece': 'Euro-south',
             'Guatemala': 'Latin-America', 'Haiti': 'Latin-America',
-            'Holand-Netherlands': 'Euro_west', 'Honduras': 'Latin-America',
-            'Hong': 'China', 'Hungary': 'Euro_east', 'India':
+            'Holand-Netherlands': 'Euro-west', 'Honduras': 'Latin-America',
+            'Hong': 'China', 'Hungary': 'Euro-east', 'India':
             'British-Commonwealth', 'Iran': 'Other', 'Ireland':
-            'British-Commonwealth', 'Italy': 'Euro_south', 'Jamaica':
+            'British-Commonwealth', 'Italy': 'Euro-south', 'Jamaica':
             'Latin-America', 'Japan': 'Other', 'Laos': 'SE-Asia', 'Mexico':
             'Latin-America', 'Nicaragua': 'Latin-America',
             'Outlying-US(Guam-USVI-etc)': 'Latin-America', 'Peru':
-            'South-America', 'Philippines': 'SE-Asia', 'Poland': 'Euro_east',
-            'Portugal': 'Euro_south', 'Puerto-Rico': 'Latin-America', 'Scotland':
-            'British-Commonwealth', 'South': 'Euro_south', 'Taiwan': 'China',
+            'South-America', 'Philippines': 'SE-Asia', 'Poland': 'Euro-east',
+            'Portugal': 'Euro-south', 'Puerto-Rico': 'Latin-America', 'Scotland':
+            'British-Commonwealth', 'South': 'Euro-south', 'Taiwan': 'China',
             'Thailand': 'SE-Asia', 'Trinadad&Tobago': 'Latin-America',
-            'United-States': 'United-States', 'Vietnam': 'SE-Asia','Yugoslavia':'Euro_south'
+            'United-States': 'United-States', 'Vietnam': 'SE-Asia','Yugoslavia':'Euro-south'
         })
         married_map = smart_dict({ # simplification mapping
             'Never-married': 'Never-Married', 'Married-AF-spouse': 'Married',
@@ -299,6 +299,8 @@ class Datamanager():
 
         # ? Display information of dataset
         #print(data.groupby('country').agg(['count','size','nunique']).stack())
+        self.ret.df = df # raw dataframe training set
+        self.ret.df_test = df_test # raw dataframe test set.
 
         # * Discretisize non_categorical features using Lime Discretizer
         self.ret.feature_names = data.columns.values
@@ -353,8 +355,7 @@ class Datamanager():
 
         # We don't bother with balancing the dataset.
         # ? Display information of the dataset
-        # print(df.groupby('income').agg(['count','size','nunique']).stack())
-        
+
         # Needed for function to work
         import sklearn.model_selection
         # Init splitter, random_state = 1 (seed)

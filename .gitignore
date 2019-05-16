@@ -19,3 +19,15 @@ CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/3.3-SNAPSHOT/myCBR
 .classpath
 .project
 .settings
+<<<<<<< HEAD
+
+#Maven
+CBR/libs/mycbr-rest/target/
+CBR/libs/mycbr-sdk/target/
+CBR/libs/mycbr-sdk/lib*
+CBR/libs/mycbr-rest/lib*
+
+CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/3.3-SNAPSHOT/maven-metadata-local.xml
+CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/maven-metadata-local.xml
+=======
+>>>>>>> ed4f971f5d862683acea5f98b2a6453507380e3d
