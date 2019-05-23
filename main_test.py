@@ -551,29 +551,43 @@ def test_nn_intgrad():
             print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
         else:
             #print("Trying to explain...")
-            input_tensors = bb.model.layers[0].input
+            input_tensors = bb.model.inputs
             print(input_tensors)
-            output_layers = bb.model.layers[-1].output
-            print(output_layers)
-            fModel = Model(inputs = input_tensors, outputs = output_layers)
-            #print(fModel.summary())
+            output_layer = bb.model.outputs
+            print(output_layer)
+            fModel = Model(inputs=input_tensors,outputs = output_layer)
+
             target_tensor = fModel(input_tensors)
-            #print(target_tensor)
-            attribution = de.explain('intgrad',target_tensor,input_tensors, explainer.encoder.transform(instance).toarray())
-            print(attribution)
+            attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+
+            print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
 
         #pip install shap
 
             import shap
 
-            deepExp = shap.DeepExplainer(bb.model,explainer.encoder.transform(dataset.data_validation).toarray())
+            deepExp = shap.DeepExplainer(bb.model,explainer.encoder.transform(dataset.data_validation[0:100]).toarray())
             
             shap_values = deepExp.shap_values(explainer.encoder.transform(instance).toarray())
 
             print(len(shap_values),shap_values[0].shape)
 
-            print(shap_values)
             print(shap_values[0][0])
+
+            # Model Agnosti Explainer
+            print("\n-- Model Agnostic Explainer --")
+            import tensorflow as tf
+            print(type(explainer.encoder.transform(dataset.data_train)), type(explainer.encoder.transform(dataset.data_train).toarray()))
+            print(type(tf.convert_to_tensor(explainer.encoder.transform(dataset.data_train).toarray())), type(explainer.encoder.transform(dataset.data_train).toarray()))
+            exit()
+
+            exp_shap = shap.KernelExplainer(bb.predict, shap.kmeans(explainer.encoder.transform(dataset.data_train),100))
+
+            shap_vals = exp_shap.shap_values(explainer.encoder.transform(dataset.data_test), nsamples=100)
+
+            shap.force_plot(exp_shap.expected_value[0], shap_values[0][0,:],explainer.encoder.transform(dataset.data_test[0]).toarray(), matplotlib=True)
+            
+
             #print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
     #from keras_explain.integrated_gradients import IntegratedGradients
 
@@ -595,6 +609,7 @@ def test_nn_intgrad():
 
 
     
+
 
 def test_autoencoder():
     from sklearn.preprocessing import OneHotEncoder
