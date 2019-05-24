@@ -61,10 +61,9 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
                 "prediction":self.exp_map['prediction']
                 }
 
-
 def test_explanation():
     import json
-    e = Explanation(feature=[1,2],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05])
+    e = Explanation(feature=[1,2],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05],prediction=0)
 
     print(e.features())
     print(e.names())
