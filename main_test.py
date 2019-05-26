@@ -550,15 +550,15 @@ def load_model():
     #keras.random.seed(1)
         #print(dataset.categorical_names, dataset.categorical_names.keys())
     n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
-    model = network.Model(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
-    model.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
+    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
                     data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
     #explainer.encoder.transform(dataset.data_train).toarray(), dataset.train_labels,
     #        explainer.encoder.transform(dataset.data_validation).toarray(), dataset.validation_labels,
     #        explainer.encoder.transform(dataset.data_test).toarray(), dataset.test_labels
 
     # Try to explain a given prediction print(datamanager.translate(dataset.data_train[0]))
-    predict_fn = lambda x: model.predict(explainer.encoder.transform(x)) 
+    predict_fn = lambda x: bb.predict(explainer.encoder.transform(x)) 
 
     np.random.seed(1) 
     idx = 1
@@ -569,7 +569,7 @@ def load_model():
     print("prediction:", prediction,"=",explainer.class_names[prediction])
     #print("prediction: ", explainer.class_names[predict_fn(dataset.data_test[idx].reshape(1,-1))[0]]) # predict on the first datapoint 
 
-    exp = explainer.explain_instance(instance, model.predict, threshold=0.99,verbose=True)
+    exp = explainer.explain_instance(instance, bb.predict, threshold=0.99,verbose=True)
     #print(exp.names())
     print("Anchor: %s" % (" AND ".join(exp.names())))
     print("Precision: %.2f" % exp.precision())
