@@ -151,6 +151,7 @@ def test_kb_load():
     #print(KB.KB.get(0))
     #print(KB.KB[0])
 
+# Final
 def test_add_more():
     KB = KnowledgeBase("ab")
     e1 = Explanation(features=[1,2],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05])
