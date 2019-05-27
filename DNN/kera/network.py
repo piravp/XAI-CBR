@@ -113,7 +113,7 @@ class BlackBox():
             self.model.save(self.path)
 
     def train_anchor(self, data_train, train_labels, data_validation, validation_labels, data_test, test_labels,
-        epochs, batch_size,verbose=1, use_gen=True):
+        epochs, batch_size,verbose=0, use_gen=True):
         from keras.callbacks import EarlyStopping,ModelCheckpoint,ReduceLROnPlateau,LambdaCallback
         #path = self.name+"/"+self.name+"-{val_acc:.3f}.hdf5" #+".json" # str path
         #path = self.name+"/"+self.name+"-best.hdf5" #+".json" # str path

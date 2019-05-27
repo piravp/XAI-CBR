@@ -1,0 +1,27 @@
+{
+    "__class__": "KnowledgeBase",
+    "name": "aaab.json",
+    "id": 0,
+    "KB": {
+        "0": {
+            "__class__": "Explanation",
+            "names": [
+                2,
+                0
+            ],
+            "feature": [
+                3,
+                4
+            ],
+            "precision": [
+                0.8,
+                0.99
+            ],
+            "coverage": [
+                0.4,
+                0.1
+            ],
+            "prediction": 1
+        }
+    }
+}
