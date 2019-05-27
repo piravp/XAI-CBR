@@ -1,7 +1,39 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <Project name="adult" author="" >
 <instances name="Person">
+  <instance id="Person-cb09" >
+    <att name="HoursPerWeek" value="30" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Country" value="United-States" />
+    <att name="Occupation" value="Professional" />
+    <att name="CapitalGain" value="None" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Sex" value="Male" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="Age" value="39" />
+    <att name="Education" value="Bachelors" />
+    <att name="Salary" value="_unknown_" />
+    <att name="Workclass" value="Self-emp-inc" />
+    <att name="Relationship" value="Husband" />
+    <att name="Race" value="White" />
+  </instance>
   <instance id="Person-cb012" >
+    <att name="HoursPerWeek" value="40" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Country" value="United-States" />
+    <att name="Occupation" value="Other" />
+    <att name="CapitalGain" value="None" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Sex" value="Male" />
+    <att name="Explanation" value="age = 27.50 &#60; age &#60;= 29.50 AND education = High School grad AND hours per week = 39.50 &#60; hours per week &#60;= 41.50" />
+    <att name="Age" value="29" />
+    <att name="Education" value="High School grad" />
+    <att name="Salary" value="_unknown_" />
+    <att name="Workclass" value="Local-gov" />
+    <att name="Relationship" value="Husband" />
+    <att name="Race" value="White" />
+  </instance>
+  <instance id="Person-cb013" >
     <att name="HoursPerWeek" value="40" />
     <att name="CapitalLoss" value="None" />
     <att name="Country" value="United-States" />
@@ -33,22 +65,6 @@
     <att name="Relationship" value="Not-in-family" />
     <att name="Race" value="White" />
   </instance>
-  <instance id="Person-cb09" >
-    <att name="HoursPerWeek" value="30" />
-    <att name="CapitalLoss" value="None" />
-    <att name="Country" value="United-States" />
-    <att name="Occupation" value="Professional" />
-    <att name="CapitalGain" value="None" />
-    <att name="MaritalStatus" value="Married" />
-    <att name="Sex" value="Male" />
-    <att name="Explanation" value="_unknown_" />
-    <att name="Age" value="39" />
-    <att name="Education" value="Bachelors" />
-    <att name="Salary" value="_unknown_" />
-    <att name="Workclass" value="Self-emp-inc" />
-    <att name="Relationship" value="Husband" />
-    <att name="Race" value="White" />
-  </instance>
   <instance id="Person-cb011" >
     <att name="HoursPerWeek" value="40" />
     <att name="CapitalLoss" value="None" />
@@ -59,6 +75,38 @@
     <att name="Sex" value="Male" />
     <att name="Explanation" value="_unknown_" />
     <att name="Age" value="29" />
+    <att name="Education" value="High School grad" />
+    <att name="Salary" value="_unknown_" />
+    <att name="Workclass" value="Local-gov" />
+    <att name="Relationship" value="Husband" />
+    <att name="Race" value="White" />
+  </instance>
+  <instance id="Person-cb014" >
+    <att name="HoursPerWeek" value="40" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Country" value="United-States" />
+    <att name="Occupation" value="Other" />
+    <att name="CapitalGain" value="None" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Sex" value="Male" />
+    <att name="Explanation" value="age = 27.50 &#60; age &#60;= 29.50 AND education = High School grad AND hours per week = 39.50 &#60; hours per week &#60;= 41.50" />
+    <att name="Age" value="29" />
+    <att name="Education" value="High School grad" />
+    <att name="Salary" value="_unknown_" />
+    <att name="Workclass" value="Local-gov" />
+    <att name="Relationship" value="Husband" />
+    <att name="Race" value="White" />
+  </instance>
+  <instance id="Person-cb015" >
+    <att name="HoursPerWeek" value="40" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Country" value="United-States" />
+    <att name="Occupation" value="Service" />
+    <att name="CapitalGain" value="None" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Sex" value="Male" />
+    <att name="Explanation" value="occupation = Service AND education = High School grad" />
+    <att name="Age" value="52" />
     <att name="Education" value="High School grad" />
     <att name="Salary" value="_unknown_" />
     <att name="Workclass" value="Local-gov" />
@@ -195,10 +243,13 @@
   </instance>
 </instances>
 <cb name="cb0">
-     <case name="Person-cb012" />
-     <case name="Person-cb010" />
      <case name="Person-cb09" />
+     <case name="Person-cb012" />
+     <case name="Person-cb013" />
+     <case name="Person-cb010" />
      <case name="Person-cb011" />
+     <case name="Person-cb014" />
+     <case name="Person-cb015" />
      <case name="Person-cb04" />
      <case name="Person-cb03" />
      <case name="Person-cb02" />

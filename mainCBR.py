@@ -47,7 +47,7 @@ def complete():
     print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))
 
 # Process data before adding to case-base
-def post_process(verbose=True):
+def post_process(explanationForNCases, verbose):
     dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = dataman.ret
 
@@ -89,39 +89,30 @@ def post_process(verbose=True):
     bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels, data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
     predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
 
-    idx = 0
-    print('DATASET.DATA_TEST SIZE:',len(dataset.data_test))
-    print('test_idx size:', len(dataset.test_idx))
-    instance = dataset.data_test[idx].reshape(1,-1)
-    instance2 = dataset.data_test[idx]
-    print('shaaaape1:', instance.shape)
-    print('shaaaape2:', instance.shape)
-
-    prediction = predict_fn(instance)[0]
-
     from DNN import knowledge_base
     from DNN import explanation
 
+    explanations = []
     def explain_instances():
-        explanations = []
+        explanations_as_string = []
         # NOTE: Change slice in for-loop to decide how many instances are going to be explained
-        for instance in dataset.data_test[:2]:
+        for instance in dataset.data_test[:explanationForNCases]:
             exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=False)
             exp_1 = explanation.Explanation(**exp.exp_map)
-            interpr_expl = exp_1.get_explanation(dataset.feature_names,dataset.categorical_names)
-            explanations.append(interpr_expl)
-        return explanations
+            explanations.append(exp_1)
+            # print('exp_1:',exp_1)
+            interpreted_expl = exp_1.get_explanation(dataset.feature_names,dataset.categorical_names)
+            explanations_as_string.append(interpreted_expl)
+        return explanations_as_string
             
     explained = explain_instances()
-    print(explained)
-    # print('len(dataset.data_test):', len(dataset.data_test))
+    # print(explained)
     explained = explained + ['__unknown__' for i in range(len(dataset.data_test) - len(explained))]
-    # print(len(explained))
 
     df['explanation'] = np.array(explained)
-    print(df.head(10))
+    if verbose: print(df.head(10))
 
-    return df
+    return df, explanations
 
 
 
@@ -133,8 +124,13 @@ def populate_casebase(n_cases=2):
     CBR = CBRInterface.RESTApi()
 
     # Process data before adding to case-base
-    df = post_process(verbose=False)
+    # Explanations as Explanation-objects
+    df, explanations = post_process(explanationForNCases=n_cases, verbose=False) 
+    # df, explanations = post_process(verbose=False)          
+
     
+    print('explanaaations:', explanations)
+
     # Formatted JSON which is passed in as params to REST
     instanceJson = lambda row: {
         "cases":[{
@@ -155,11 +151,30 @@ def populate_casebase(n_cases=2):
     }
     
     print('These instances were added:')
-    for _, row in islice(df.iterrows(), n_cases):
-        print(CBR.addInstancesJSON(casebaseID='cb0',conceptID='Person',cases=instanceJson(row)))
+    for index, row in islice(df.iterrows(), n_cases):
+        # Add instance to CB
+        # result = CBR.addInstancesJSON(casebaseID='cb0',conceptID='Person',cases=instanceJson(row))
+        # print(result)
+
+        # Add to KB
+        from DNN.knowledge_base import KnowledgeBase
+        print(explanations[index])
+        # kb1 = KnowledgeBase('kb1')
+        # kb1.add_knowledge(explanations[index])
+        # print(index)
+        # pass
 
 
-populate_casebase(n_cases=0)
+populate_casebase(n_cases=2)
 
 
 # TODO: Legge inn data fra valideringssettet i case-basen og bruke test-settet kun til å querye nye cases
+
+
+
+# Grammarly
+# ------
+# Hvis vi skal ha knowledge-base må vi fortsatt ha pekere..?
+# ------
+# Vil gjerne ha kommentarer på om det er noen subsections som bør komme før/etter andre. 
+# Spesielt hvor tidlig final architecture-seksjonen bør komme i kapittel 4.

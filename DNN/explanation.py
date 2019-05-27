@@ -3,7 +3,8 @@ from Induction.Anchor import anchor_explanation
 import random
 import json
 class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # extend AnchorExplanation
-    def __init__(self,instance=None,names=None,feature=None,precision=None, prediction=None,coverage=None,**args):
+    def __init__(self,names,feature,precision, prediction,coverage, instance=None, **args):
+        print(all([names,feature,precision,coverage]))
         if(not all([names,feature,precision,coverage])): # if ether of these have a value other than a list or 0.
             raise ValueError("Need input: names, feature, precision, coverage")
         elif(prediction is None):

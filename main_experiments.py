@@ -3,8 +3,8 @@
     By seperating the experiments and seeding the randomization at each step, it will be reproduceable.
 
     Its important that the myCBR rest projet is running.
-    # COMMAND TO START PROGRAM
-
+    # COMMAND TO START PROGRAM (in CBR/libs/mycbr-rest)
+    > java -DMYCBR.PROJECT.FILE=<absolute_path>\XAI-CBR\CBR\projects\adult\adult.prj -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar
 
 """
 

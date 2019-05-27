@@ -18,7 +18,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
     # KnowledeBase is just a dictionary of explanations
     # TODO: get number of stored cases, for unique IDs.
     def __init__(self, file_name):
-        if(not file_name.endswith(".json")): # if it doest end with .json
+        if(not file_name.endswith(".json")): # if it doesn't end with .json
             file_name += ".json"
 
         self.name = file_name
@@ -153,9 +153,11 @@ def test_kb_load():
 
 # Final
 def test_add_more():
-    KB = KnowledgeBase("ab")
-    e1 = Explanation(features=[1,2],names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05])
-    e2 = Explanation(features=[3,4],names=['test3','test4'],precision=[0.8,0.99],coverage=[0.4,0.10])
+    KB = KnowledgeBase("aaab")
+    e1 = Explanation(feature=[1,2],names=[4,3],precision=[0.67,0.9],coverage=[0.2,0.05], prediction=0)
+    e2 = Explanation(feature=[3,4],names=[2,0],precision=[0.8,0.99],coverage=[0.4,0.10], prediction=1)
+
+    # print('e1',e1)
 
     KB.add_knowledge(e1)
     KB.add_knowledge(e2)
@@ -163,7 +165,8 @@ def test_add_more():
 
 #test_knowledge_base()
 #test_knowledge_base_load()
-#test_knowledge_base_save()
+# test_knowledge_base_save()
 #test_kb_load()
 #test_kb_load()
 #test_knowledge_base()
+test_add_more()

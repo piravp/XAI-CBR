@@ -264,5 +264,5 @@
     <node name="Person" sim="1.0" parent="inheritanceDesc" />
   </fct>
 </hierarchy>
-<cases no="12" cb="cb0"/>
+<cases no="15" cb="cb0"/>
 </Project>
