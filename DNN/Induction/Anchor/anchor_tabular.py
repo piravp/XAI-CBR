@@ -48,7 +48,7 @@ class AnchorTabularExplainer(object):
             # sort dictionary keys, to match with feature position.
             cat_names = sorted(categorical_names.keys())
             n_values = [len(categorical_names[i]) for i in cat_names]
-            print(feature_names, n_values,sum(n_values))
+            #print(feature_names, n_values,sum(n_values))
             #Replace OneHotEncoder with ColumnTransformer, 
             # and transform categorical features with OneHotEncoder
             if(True):
