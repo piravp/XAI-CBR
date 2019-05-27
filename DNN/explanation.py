@@ -4,7 +4,6 @@ import random
 import json
 class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # extend AnchorExplanation
     def __init__(self,names,feature,precision, prediction,coverage, instance=None, **args):
-        print(all([names,feature,precision,coverage]))
         if(not all([names,feature,precision,coverage])): # if ether of these have a value other than a list or 0.
             raise ValueError("Need input: names, feature, precision, coverage")
         elif(prediction is None):
@@ -17,7 +16,7 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             if(len(names) != len(feature)):
                 #raise ValueError("Length of the input 'names' {names} are not the same as 'feature' {feature} ",names,feature)
                 msg = "Length of the input 'names' {}({}) are not the same as 'feature' {}({})".format(
-                    names,len(names),feature,len(features))
+                    names,len(names),feature,len(feature))
                 raise ValueError(msg)
             elif (len(coverage) != len(precision)):
                 msg = "Length of the input 'coverage' {}({}) are not the same as 'precision' {}({})".format(

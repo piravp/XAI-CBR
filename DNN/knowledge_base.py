@@ -26,7 +26,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
         # file_name is where we will store the knowlede base.
         # Either create a new file, if file_name do not already exist
         if(not filepath.exists()):
-            print("Nothing to load")
+            print("Nothing to load, no file")
             self.id = 0 # init ID to zero. 
             self.KB = defaultdict(Explanation) # empty json object
 
@@ -40,12 +40,10 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                 #data = json.load(json_file, object_hook=self.decode_knowledge_base)
 
     def add_knowledge(self,exp:Explanation):
-        if(self.id in self.KB): # If ID spot is not free.
+        if(str(self.id) in self.KB.keys()): # If ID spot is not free.
             self.update_id() # simply need to figure out the next free number from our dict
-    
         self.KB[str(self.id)] = exp
             # if storage successfull, return ID, otherwise return error
-
         self.save() # save knowledge base
         return self.id # id that we need to store in the Case.
 
@@ -56,13 +54,12 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
             self.id += 1
 
     def save(self): 
-        print("File does not exist, creating new file")
         filepath = folderpath/self.name
         with filepath.open(mode='w') as json_file:
             json.dump(self, json_file, default=self.default, indent=4) # save file 
 
     def default(self,obj):
-        print("default",type(obj),obj.__dict__)
+        #print("default",type(obj),obj.__dict__)
         if(isinstance(obj,KnowledgeBase)):
             return {
                 "__class__":obj.__class__.__name__,
@@ -91,6 +88,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                     class_name = exp.pop("__class__")
                     if(class_name == "Explanation"):
                         self.KB[key] = Explanation(**exp)
+            print("Succesfully loaded",self.KB, self.id)
 
     def get(self, id, default=None): # return knowledge
         id = self.convert_id(id)
@@ -127,14 +125,6 @@ def test_knowledge_base():
     print(KB.__dict__)
     KB.save()
 
-def test_knowledge_base_save():
-    KB = KnowledgeBase("ab")
-    e1 = Explanation(features=[1,2], names=['test1','test2'],precision=[0.67,0.9],coverage=[0.2,0.05],prediction=1)
-    e2 = Explanation(features=[3,4], names=['test3','test4'],precision=[0.8,0.99],coverage=[0.4,0.10],prediction=0)
-    KB.add_knowledge(e1)
-    KB.add_knowledge(e2)
-    KB.save()
-
 def test_kb_load():
     KB = KnowledgeBase("ab")
     print(KB.__dict__)
@@ -152,15 +142,22 @@ def test_kb_load():
     #print(KB.KB[0])
 
 # Final
-def test_add_more():
+def test_load_kb():
     KB = KnowledgeBase("aaab")
+    print(KB.__dict__)
+    print(KB.name)
+
+def test_add_more():
+    KB = KnowledgeBase("aaab") # create empty knowledge base
     e1 = Explanation(feature=[1,2],names=[4,3],precision=[0.67,0.9],coverage=[0.2,0.05], prediction=0)
-    e2 = Explanation(feature=[3,4],names=[2,0],precision=[0.8,0.99],coverage=[0.4,0.10], prediction=1)
+    e2 = Explanation(feature=[3,4],names=[2,2],precision=[0.8,0.99],coverage=[0.4,0.10], prediction=1)
 
     # print('e1',e1)
 
     KB.add_knowledge(e1)
     KB.add_knowledge(e2)
+
+    print(KB.KB)
 
 
 #test_knowledge_base()
@@ -170,3 +167,4 @@ def test_add_more():
 #test_kb_load()
 #test_knowledge_base()
 test_add_more()
+#test_load_kb()
