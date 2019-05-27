@@ -211,7 +211,7 @@ class AnchorBaseBeam(object):
         for t in tuples:
             stats['n_samples'].append(state['t_nsamples'][t])
             stats['positives'].append(state['t_positives'][t])
-        print("stats",stats)
+        # print("stats",stats)
         return stats
 
     @staticmethod

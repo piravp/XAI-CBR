@@ -31,3 +31,5 @@ CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/maven-metadata-loc
 
 # Deep Explain
 src/deepexplain
+
+*.pyc 

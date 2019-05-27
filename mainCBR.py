@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 from DNN.kera import pre_processing
 
 """
@@ -10,47 +14,21 @@ from DNN.kera import pre_processing
     3. Legg inn i case-basen. 
 """
 
-def complete():
-    from DNN.Induction.Anchor import anchor_tabular, utils
-
-    dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
-    dataset = dataman.ret
-
-    # IMPORT THE NETWORK
-    # Fit explainer to the same dataset it was trained on
-    explainer = anchor_tabular.AnchorTabularExplainer(dataset.class_names, dataset.feature_names, dataset.data_train, dataset.categorical_names)
-    # Explainer.encoder.transform return sparse matrix, instead of dense np.array
-    explainer.fit(dataset.data_train, dataset.train_labels, dataset.data_validation, dataset.validation_labels)
-
-    # LOAD MODEL
-    from DNN.kera import network
-    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
-    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels, data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
-    
-    predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
-
-    idx = 0
-    print(len(dataset.data_test))
-    instance = dataset.data_test[idx].reshape(1,-1)
-    prediction = predict_fn(instance)[0]
-
-
-    from DNN import explanation
-    from DNN import knowledge_base
-
-    exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=True)
-    print(exp.exp_map.keys()) 
-    
-    exp_1 = explanation.Explanation(**exp.exp_map)
-    print(exp_1)
-    print()
-    print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))
-
 # Process data before adding to case-base
 def post_process(explanationForNCases, verbose):
     dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = dataman.ret
 
+
+    cat_names = sorted(dataset.categorical_names.keys())
+    n_values = [len(dataset.categorical_names[i]) for i in cat_names]
+
+
+
+
+
+    print(n_values)
+    # exit()
 
     decoded = []
     # Convert encoded labels back to string feature, e.g. [3, 0,..., 8] --> ['Married', 'Sales',..., 'White']
@@ -77,7 +55,7 @@ def post_process(explanationForNCases, verbose):
     # ------------------------ EXPLANATION PART -----------------------------
     from DNN.Induction.Anchor import anchor_tabular, utils
     from DNN.kera import network
-    
+
     # IMPORT THE NETWORK
     # Fit explainer to the dataset it was trained on
     explainer = anchor_tabular.AnchorTabularExplainer(dataset.class_names, dataset.feature_names, dataset.data_train, dataset.categorical_names)
@@ -88,6 +66,41 @@ def post_process(explanationForNCases, verbose):
     # Explainer.encoder.transform return sparse matrix, instead of dense np.array
     bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels, data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
     predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
+
+
+    # DEEPEXPLAIN - GENERATE INTEGRATED GRADIENT
+    from deepexplain.tensorflow import DeepExplain
+    from keras import backend as K
+    from keras.models import Model
+
+    idx = 1
+    instance = dataset.data_test[idx].reshape(1,-1)
+
+    with DeepExplain(session=K.get_session()) as de:
+
+        input_tensors = bb.model.inputs
+        # print(input_tensors)
+        output_layer = bb.model.outputs
+        # print(output_layer)
+        fModel = Model(inputs=input_tensors,outputs = output_layer)
+
+        target_tensor = fModel(input_tensors)
+        attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+
+        print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
+
+        # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
+        lst = attribution[0][0]
+        start = 0
+        weights = []
+        for n in n_values:
+            r = sum(lst[start:start+n])
+            weights.append(r)
+            start += n                      # increase start slice
+            
+        # print(weights)
+        
+
 
     from DNN import knowledge_base
     from DNN import explanation
