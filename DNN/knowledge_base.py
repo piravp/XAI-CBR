@@ -42,11 +42,14 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
     def add_knowledge(self,exp:Explanation):
         if(str(self.id) in self.KB.keys()): # If ID spot is not free.
             self.update_id() # simply need to figure out the next free number from our dict
+        
+        for k,e in self.KB.items():
+            if(e == exp):
+                return k
         self.KB[str(self.id)] = exp
             # if storage successfull, return ID, otherwise return error
         self.save() # save knowledge base
         return self.id # id that we need to store in the Case.
-
 
     def update_id(self): # TODO: use the IDS of each explanation as well, not just number of instances.
         keys = self.KB.keys() # simply need a number not in this list.
@@ -159,12 +162,19 @@ def test_add_more():
 
     print(KB.KB)
 
+def test_similarity():
+    e1 = Explanation(feature=[1,2],names=[4,3],precision=[0.67,0.9],coverage=[0.2,0.05], prediction=0)
+    e2 = Explanation(feature=[3,4],names=[2,2],precision=[0.8,0.99],coverage=[0.4,0.10], prediction=1)
+    e3 = Explanation(feature=[3,4],names=[2,2],precision=[0.8,0.99],coverage=[0.4,0.10], prediction=1)
 
+    print(e1 == e2)
+    print(e2 == e3)
 #test_knowledge_base()
 #test_knowledge_base_load()
 # test_knowledge_base_save()
 #test_kb_load()
 #test_kb_load()
 #test_knowledge_base()
-test_add_more()
+#test_add_more()
 #test_load_kb()
+test_add_more()

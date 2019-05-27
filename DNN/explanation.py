@@ -51,7 +51,15 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
 
     def __str__(self): 
         return str(self.exp_map)
-        
+    
+    def __eq__(self, other):
+        """Override the default Equals behavior"""
+        return (self.exp_map["names"     ] == other.exp_map["names"    ] and 
+                self.exp_map['feature'   ] == other.exp_map['feature'  ] and
+                self.exp_map['precision' ] == other.exp_map['precision'] and 
+                self.exp_map['coverage'  ] == other.exp_map['coverage' ] and 
+                self.exp_map['prediction'] == other.exp_map['prediction'])
+
     def default(self, obj): # no need to store whole dictionary.
         return {"__class__":obj.__class__.__name__,
                 "names":self.exp_map["names"],
