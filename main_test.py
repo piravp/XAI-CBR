@@ -436,13 +436,13 @@ def test_integrated_gradients():
     # loss functions
     mse = losses.mean_squared_error
     cce = losses.categorical_crossentropy
-    from DNN.keras import network
+    from DNN.kera import network
 
     bb = network.Model(name="wine") # collect pretrained model from file
     bb.compile(loss=mse, optimizer=adam,metrics=['accuracy'])
     
-    import datamanager
-    dataman = datamanager.Datamanager(dataset="wine")
+    import preprocessing
+    dataman = preprocessing.Datamanager(dataset="wine")
     
     #Implement IntegradetGrad
     from DNN.Induction.IntGrad import IntegratedGradients  
@@ -462,6 +462,154 @@ def test_integrated_gradients():
 
     #explanation = ig.explain(X[0], num_steps=100000)
     #print(total, explanation)
+def test_nn_intgrad():
+    # Load dataset
+    import numpy as np
+    np.random.seed(1)
+    import tensorflow as tf
+    tf.set_random_seed(1)
+
+    import sklearn
+    from DNN.kera import pre_processing
+    from DNN.Induction.Anchor import anchor_tabular, utils
+    
+    datamanager = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
+    dataset = datamanager.ret
+    print(dataset.__dict__.keys())
+
+    # Import the network.
+    # Fit the explainer to the dataset. 
+    explainer = anchor_tabular.AnchorTabularExplainer(
+        dataset.class_names, dataset.feature_names,
+        dataset.data_train, dataset.categorical_names)
+        
+    # ! Explainer.encoder.transform return sparse matrix, instead of dense np.array
+    explainer.fit(dataset.data_train, dataset.train_labels, 
+                dataset.data_validation, dataset.validation_labels)
+
+    from DNN.kera import network
+    #np.random.seed(1) 
+    #keras.random.seed(1)
+        #print(dataset.categorical_names, dataset.categorical_names.keys())
+    n_values = sum([len(dataset.categorical_names[i]) for i in dataset.categorical_names.keys()])
+    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
+                    data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
+
+    # Try to explain a given prediction print(datamanager.translate(dataset.data_train[0]))
+    predict_fn = lambda x: bb.predict(explainer.encoder.transform(x)) 
+
+    idx = 1
+    instance = dataset.data_test[idx].reshape(1,-1)
+    prediction = predict_fn(instance)[0]
+    print("prediction:", prediction,"=",explainer.class_names[prediction],"\n")
+
+    exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=True)
+
+    from DNN import explanation
+    from DNN import knowledge_base
+    print()
+    print(exp.exp_map.keys())
+    #print(datamanager.ret.feature_names)
+    # We need to pass in the actual values of the prediction.
+    print(instance.flatten(), explainer.encoder.transform(instance))
+    #instance = instance.flatten()
+    value = [int(instance.flatten()[f]) for f in exp.features()]
+    #print(value)
+    print((' AND '.join(exp.names())))
+    #print(exp.exp_map)
+    #print(*exp.exp_map)
+    exp_1 = explanation.Explanation(**exp.exp_map)
+    print(exp_1)
+    
+    #print(exp_1.features())
+    #print(exp_1.names())
+    print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))
+    # TODO: Map input one_hot to categories
+    #Implement IntegradetGrad
+    #from DNN.Induction.IntGrad import IntegratedGradients  
+
+    print("\n","Explaining", instance)
+    
+    from deepexplain.tensorflow import DeepExplain
+    from keras import backend as K
+    from keras.models import Model
+
+    print("Data:",explainer.encoder.transform(instance).toarray().shape)
+    with DeepExplain(session=K.get_session()) as de:
+        #model = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+        if(False):
+            input_tensors = bb.model.inputs
+            print(input_tensors)
+            output_layer = bb.model.outputs
+            print(output_layer)
+            fModel = Model(inputs=input_tensors,outputs = output_layer)
+
+            target_tensor = fModel(input_tensors)
+            attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+
+            print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
+        else:
+            #print("Trying to explain...")
+            input_tensors = bb.model.inputs
+            print(input_tensors)
+            output_layer = bb.model.outputs
+            print(output_layer)
+            fModel = Model(inputs=input_tensors,outputs = output_layer)
+
+            target_tensor = fModel(input_tensors)
+            attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+
+            print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
+
+        #pip install shap
+
+            import shap
+
+            deepExp = shap.DeepExplainer(bb.model,explainer.encoder.transform(dataset.data_validation[0:100]).toarray())
+            
+            shap_values = deepExp.shap_values(explainer.encoder.transform(instance).toarray())
+
+            print(len(shap_values),shap_values[0].shape)
+
+            print(shap_values[0][0])
+
+            # Model Agnosti Explainer
+            print("\n-- Model Agnostic Explainer --")
+            import tensorflow as tf
+            print(type(explainer.encoder.transform(dataset.data_train)), type(explainer.encoder.transform(dataset.data_train).toarray()))
+            print(type(tf.convert_to_tensor(explainer.encoder.transform(dataset.data_train).toarray())), type(explainer.encoder.transform(dataset.data_train).toarray()))
+            exit()
+
+            exp_shap = shap.KernelExplainer(bb.predict, shap.kmeans(explainer.encoder.transform(dataset.data_train),100))
+
+            shap_vals = exp_shap.shap_values(explainer.encoder.transform(dataset.data_test), nsamples=100)
+
+            shap.force_plot(exp_shap.expected_value[0], shap_values[0][0,:],explainer.encoder.transform(dataset.data_test[0]).toarray(), matplotlib=True)
+            
+
+            #print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
+    #from keras_explain.integrated_gradients import IntegratedGradients
+
+    #ker_exp = IntegratedGradients(model.model)
+    #print(explainer.encoder.transform(instance).shape, explainer.encoder.transform(np.array(instance)).shape)
+    #print(np.zeros_like(explainer.encoder.transform(np.array(instance))))
+    #print(np.zeros((1,71)))
+    #exit()
+    #print(ker_exp.GetMask(explainer.encoder.transform(instance)))
+    #exp_k = ker_exp.explain(explainer.encoder.transform(instance), dataset.test_labels[idx])
+
+    #print(exp_k)
+
+    #ig = IntegratedGradients.integrated_gradients(model.model, verbose=1) # model.keras_model
+
+    #attribution = ig.explain(explainer.encoder.transform(instance), num_steps=100)
+
+    #print(attribution,"sum Attribution:",sum(attribution))
+
+
+    
+
 
 def test_autoencoder():
     from sklearn.preprocessing import OneHotEncoder
@@ -798,6 +946,7 @@ def complete_test():
 #test_anchors_nn()
 #test_anchor_nn_data() # Ikke datasette sin feil
 #test_integrated_gradients()
+test_nn_intgrad()
 
 #test_autoencoder()
 
@@ -807,5 +956,5 @@ def complete_test():
 #dataset_info()
 #load_model()
 #dataset_info()
-# dataset_info_2()
-complete_test()
+#dataset_info_2()
+#complete_test()
