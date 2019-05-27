@@ -24,12 +24,6 @@ def post_process(explanationForNCases, verbose):
     n_values = [len(dataset.categorical_names[i]) for i in cat_names]
 
 
-
-
-
-    print(n_values)
-    # exit()
-
     decoded = []
     # Convert encoded labels back to string feature, e.g. [3, 0,..., 8] --> ['Married', 'Sales',..., 'White']
     for row in dataset.data_test:
@@ -51,59 +45,65 @@ def post_process(explanationForNCases, verbose):
     df.hours_per_week = df_int_columns['hours per week'].tolist()
     if verbose: print(df.head(10))
 
-
-    # ------------------------ EXPLANATION PART -----------------------------
-    from DNN.Induction.Anchor import anchor_tabular, utils
+    # ----------------------------------------------------------------------------------------------------- #
+    #                                       D E E P  E X P L A I N                                          #
+    #                                   Generate integrated gradients                                       #
+    # ----------------------------------------------------------------------------------------------------- #
     from DNN.kera import network
+    from DNN.Induction.Anchor import anchor_tabular
 
-    # IMPORT THE NETWORK
+    # LOAD TRAINED MODEL
+    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+
     # Fit explainer to the dataset it was trained on
     explainer = anchor_tabular.AnchorTabularExplainer(dataset.class_names, dataset.feature_names, dataset.data_train, dataset.categorical_names)
     explainer.fit(dataset.data_train, dataset.train_labels, dataset.data_validation, dataset.validation_labels)
 
-    # LOAD MODEL
-    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
-    # Explainer.encoder.transform return sparse matrix, instead of dense np.array
-    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels, data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
-    predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
-
-
-    # DEEPEXPLAIN - GENERATE INTEGRATED GRADIENT
     from deepexplain.tensorflow import DeepExplain
     from keras import backend as K
     from keras.models import Model
 
-    idx = 1
-    instance = dataset.data_test[idx].reshape(1,-1)
 
-    with DeepExplain(session=K.get_session()) as de:
+    def generate_integrated_gradient():
+        attribution_weights_full = []
+        with DeepExplain(session=K.get_session()) as de:
+            input_tensors = bb.model.inputs
+            output_layer = bb.model.outputs
+            fModel = Model(inputs=input_tensors, outputs=output_layer)
+            target_tensor = fModel(input_tensors)
 
-        input_tensors = bb.model.inputs
-        # print(input_tensors)
-        output_layer = bb.model.outputs
-        # print(output_layer)
-        fModel = Model(inputs=input_tensors,outputs = output_layer)
+            attribution_weights_instance = []
+            for instance in dataset.data_test[:explanationForNCases]:
+                instance = instance.reshape(1,-1)
+                attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+                print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
 
-        target_tensor = fModel(input_tensors)
-        attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+                # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
+                one_hot_vector = attribution[0][0]
+                start = 0
+                for n in n_values:
+                    compressed = sum(one_hot_vector[start:start+n])
+                    attribution_weights_instance.append(compressed)
+                    start += n                                                          # increase start slice
 
-        print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
-
-        # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
-        lst = attribution[0][0]
-        start = 0
-        weights = []
-        for n in n_values:
-            r = sum(lst[start:start+n])
-            weights.append(r)
-            start += n                      # increase start slice
-            
-        # print(weights)
+                attribution_weights_full.append(str(attribution_weights_instance))      # need to be converted to string to save in case-base
+                attribution_weights_instance = []                                       # reset
+        return attribution_weights_full
         
+    integrated_gradients = generate_integrated_gradient()
+
+    integrated_gradients = integrated_gradients + ['__unknown__' for i in range(len(dataset.data_test) - len(integrated_gradients))]        # Fill default values
+    df['weight'] = np.array(integrated_gradients)
 
 
-    from DNN import knowledge_base
+    # ----------------------------------------------------------------------------------------------------- #
+    #                              G E N E R A T E  E X P L A N A T I O N S                                 #
+    # ----------------------------------------------------------------------------------------------------- #
     from DNN import explanation
+
+    # Explainer.encoder.transform return sparse matrix, instead of dense np.array
+    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels, data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
+    predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
 
     explanations = []
     def explain_instances():
@@ -113,20 +113,18 @@ def post_process(explanationForNCases, verbose):
             exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=False)
             exp_1 = explanation.Explanation(**exp.exp_map)
             explanations.append(exp_1)
-            # print('exp_1:',exp_1)
             interpreted_expl = exp_1.get_explanation(dataset.feature_names,dataset.categorical_names)
             explanations_as_string.append(interpreted_expl)
         return explanations_as_string
             
     explained = explain_instances()
-    # print(explained)
-    explained = explained + ['__unknown__' for i in range(len(dataset.data_test) - len(explained))]
+    explained = explained + ['__unknown__' for i in range(len(dataset.data_test) - len(explained))]         # Fill default values
 
     df['explanation'] = np.array(explained)
     if verbose: print(df.head(10))
+    print(df.head(10))
 
     return df, explanations
-
 
 
 # Add cases to case-base
@@ -141,8 +139,6 @@ def populate_casebase(n_cases=2):
     df, explanations = post_process(explanationForNCases=n_cases, verbose=False) 
     # df, explanations = post_process(verbose=False)          
 
-    
-    print('explanaaations:', explanations)
 
     # Formatted JSON which is passed in as params to REST
     instanceJson = lambda row: {
@@ -174,8 +170,6 @@ def populate_casebase(n_cases=2):
         print(explanations[index])
         # kb1 = KnowledgeBase('kb1')
         # kb1.add_knowledge(explanations[index])
-        # print(index)
-        # pass
 
 
 populate_casebase(n_cases=2)
