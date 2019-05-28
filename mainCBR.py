@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 
-
+# Turn off warnings
+import tensorflow as tf
+tf.logging.set_verbosity(tf.logging.ERROR)
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -34,16 +36,16 @@ def post_process(explanationForNCases, verbose):
     # Convert to dataframe (easier to work with)
     names = ["age", "workclass", "education", "marital_status", "occupation", "relationship", "race", "sex", "capital_gain", "capital_loss", "hours_per_week", "country"]
     df = pd.DataFrame(decoded, columns=np.array(names))
-    if verbose: print(df.head())
+    if verbose > 1: print(df.head())
 
     # Find de-discretisized int columns in original dataset (before test/val split)
     df_int_columns = dataset.data_test_full.iloc[dataset.test_idx, :]
-    if verbose: print(df_int_columns.head())
+    if verbose > 1: print(df_int_columns.head())
 
     # Reverse discretisized int columns  (go from interval to integer)
     df.age = df_int_columns['age'].tolist()
     df.hours_per_week = df_int_columns['hours per week'].tolist()
-    if verbose: print(df.head(10))
+    if verbose > 1: print(df.head(10))
 
     # ----------------------------------------------------------------------------------------------------- #
     #                                       D E E P  E X P L A I N                                          #
@@ -76,14 +78,14 @@ def post_process(explanationForNCases, verbose):
             for instance in dataset.data_test[:explanationForNCases]:
                 instance = instance.reshape(1,-1)
                 attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
-                print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
+                # print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
 
                 # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
                 one_hot_vector = attribution[0][0]
                 start = 0
                 for n in n_values:
                     compressed = sum(one_hot_vector[start:start+n])
-                    attribution_weights_instance.append(compressed)
+                    attribution_weights_instance.append(np.around(compressed, decimals=4))
                     start += n                                                          # increase start slice
 
                 attribution_weights_full.append(str(attribution_weights_instance))      # need to be converted to string to save in case-base
@@ -98,6 +100,7 @@ def post_process(explanationForNCases, verbose):
 
     # ----------------------------------------------------------------------------------------------------- #
     #                              G E N E R A T E  E X P L A N A T I O N S                                 #
+    #              Generate Explanation objects and populate df with prediction from network                #
     # ----------------------------------------------------------------------------------------------------- #
     from DNN import explanation
 
@@ -106,29 +109,36 @@ def post_process(explanationForNCases, verbose):
     predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
 
     explanations = []
-    def explain_instances():
-        explanations_as_string = []
+    predictions = []
+    def get_prediction():
+        # explanations_as_string = []
         # NOTE: Change slice in for-loop to decide how many instances are going to be explained
         for instance in dataset.data_test[:explanationForNCases]:
             exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=False)
             exp_1 = explanation.Explanation(**exp.exp_map)
             explanations.append(exp_1)
-            interpreted_expl = exp_1.get_explanation(dataset.feature_names,dataset.categorical_names)
-            explanations_as_string.append(interpreted_expl)
-        return explanations_as_string
-            
-    explained = explain_instances()
-    explained = explained + ['__unknown__' for i in range(len(dataset.data_test) - len(explained))]         # Fill default values
+            predictions.append(exp_1.exp_map['prediction'])                                                   # Extract prediction
+            # interpreted_expl = exp_1.get_explanation(dataset.feature_names,dataset.categorical_names)       # Explanation as string
+            # explanations_as_string.append(interpreted_expl)                                                   
+        # return explanations_as_string
 
-    df['explanation'] = np.array(explained)
-    if verbose: print(df.head(10))
-    print(df.head(10))
+    get_prediction()
+
+    predictions = predictions + ['__unknown__' for i in range(len(dataset.data_test) - len(predictions))] 
+    df['prediction'] = np.array(predictions)
+
+    # explained = get_prediction()
+    # explained = explained + ['__unknown__' for i in range(len(dataset.data_test) - len(explained))]         # Fill default values
+    # df['explanation'] = np.array(explained)
+    if verbose > 1: print(df.head(10))
+    # print(df.head(10))
+
 
     return df, explanations
 
 
 # Add cases to case-base
-def populate_casebase(n_cases=2):
+def populate_casebase(n_cases=2, verbose=1):
     from itertools import islice
     import CBR.src.CBRInterface as CBRInterface
     
@@ -136,12 +146,12 @@ def populate_casebase(n_cases=2):
 
     # Process data before adding to case-base
     # Explanations as Explanation-objects
-    df, explanations = post_process(explanationForNCases=n_cases, verbose=False) 
+    df, explanations = post_process(explanationForNCases=n_cases, verbose=verbose) 
     # df, explanations = post_process(verbose=False)          
 
 
     # Formatted JSON which is passed in as params to REST
-    instanceJson = lambda row: {
+    instanceJson = lambda row, explanation: {
         "cases":[{
             "Age": row['age'],
             "Workclass": row['workclass'],
@@ -155,28 +165,29 @@ def populate_casebase(n_cases=2):
             "CapitalLoss": row['capital_loss'],
             "HoursPerWeek": row['hours_per_week'],
             "Country": row['country'],
-            "Explanation": row['explanation']
+            "Weight": row['weight'],
+            "Prediction": row['prediction'],
+            "Explanation": explanation
         }]
     }
     
-    print('These instances were added:')
+    # Only add as many cases from df which is specified by user
     for index, row in islice(df.iterrows(), n_cases):
-        # Add instance to CB
-        # result = CBR.addInstancesJSON(casebaseID='cb0',conceptID='Person',cases=instanceJson(row))
-        # print(result)
-
         # Add to KB
         from DNN.knowledge_base import KnowledgeBase
-        print(type(explanations[index]))
-        print(explanations[index])
-
         kb1 = KnowledgeBase('kb1')
-        # print('anchor_explanation', explanations[index])
+        pointer_to_explanation = kb1.add_knowledge(explanations[index])         # Unique id pointing to knowledgeb-base to find explanation
+        case_as_json = instanceJson(row, pointer_to_explanation)
 
-        kb1.add_knowledge(explanations[index])
+        # Add instance to CB
+        result = CBR.addInstancesJSON(casebaseID='cb0',conceptID='Person',cases=case_as_json)
+        if verbose > 0: print(); print('This instance was added:')
+        if verbose > 0: print(result, '\n')
 
 
-populate_casebase(n_cases=2)
+
+
+populate_casebase(n_cases=2, verbose=1)     # verbose: <0, 1, 2>
 
 
 # TODO: Legge inn data fra valideringssettet i case-basen og bruke test-settet kun til å querye nye cases

@@ -22,7 +22,7 @@ from DNN.Induction.Anchor import anchor_tabular, utils # explanatory framework
 from DNN import knowledge_base,explanation
 from CBR.src import CBRInterface
 
-class experiments():
+class Experiments():
     def __init__(self, verbose=False):
         #* Init Dataset
         dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
@@ -68,7 +68,7 @@ class experiments():
         # java -DMYCBR.PROJECT.FILE=/path/to/project.prj -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar
         os.system("java -DMYCBR.PROJECT.FILE={} -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar".format(project))
         #Initiate cases into the project
-        #exp = experiments(verbose=True)
+        #exp = Experiments(verbose=True)
 
         #os.system("java -{}".format("help"))
         p = Popen(["java","-help"])
@@ -157,4 +157,4 @@ def exp_case_base_size():
     CBR = CBRInterface.RESTApi() # load CBR restAPI class, for easy access.
 
 
-exp = experiments(verbose=True)
+exp = Experiments(verbose=True)

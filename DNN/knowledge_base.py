@@ -37,7 +37,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                 print("Loading from file", filepath)
                 #data = json.load(json_file)
                 if(self.load_json(json_file)):
-                    print("Succesfully loaded KnowledeBase with size: {}, id: {}".format(len(self.KB),self.id))
+                    print("Succesfully loaded KnowledgeBase with size: {}, id: {}".format(len(self.KB),self.id))
                 #data = json.load(fp=json_file,cls=decode_json)
                 #data = json.load(json_file, object_hook=self.decode_knowledge_base)
 
