@@ -3,6 +3,7 @@
 import pathlib
 from pathlib import Path
 import json
+import DNN
 from explanation import Explanation
 import os
 from collections import defaultdict
@@ -71,13 +72,19 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                 "id":obj.id,
                 "KB":obj.KB
             }
-        elif(isinstance(obj,Explanation)):
+        elif(isinstance(obj, Explanation) or isinstance(obj, DNN.explanation.Explanation)):
             return obj.default(obj) # use default encoding from corresponding class.
         else: # Stop encoding. Wrong input types.
-            raise ValueError("Cant encode class")
+        #    print(obj)
+        #    print(obj.name)
+            raise ValueError("Cant encode class", type(obj))
         # return obj.__dict__ Handle every class with every attribute.
+        #elif(obj.__class__.__name__() == "Explanation"):
+        #    return obj.default(obj)
+        #else:
+        #    raise ValueError("Cant encode class", type(obj))
 
-    
+
     def load_json(self, dct): # dict -> python objects
         dct = json.load(dct) # read json file: str -> dict
         if("__class__" in dct):
@@ -192,10 +199,4 @@ def test_empty_kb():
 #test_knowledge_base()
 # test_add_more()
 #test_load_kb()
-<<<<<<< HEAD
-#test_user_defined()
-#test_similarity()
-test_empty_kb()
-=======
 # test_add_more()
->>>>>>> 424e0ee2fcdb2b32fed020579d0e5a5b48cd1aef

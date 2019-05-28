@@ -39,7 +39,7 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             exp_map['feature'] = feature
             exp_map['precision'] = precision
             exp_map['coverage'] = coverage
-            exp_map['prediction'] = prediction
+            exp_map['prediction'] = int(prediction)
             super(Explanation, self).__init__(type_='tabular', exp_map=exp_map, as_html=None)
 
     def get_explanation(self,decoder_f,decoder_v, partial_index=None):
