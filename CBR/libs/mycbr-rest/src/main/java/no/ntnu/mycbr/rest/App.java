@@ -4,6 +4,11 @@ import no.ntnu.mycbr.core.Project;
 import no.ntnu.mycbr.CBREngine;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.system.SystemProperties;
+
+import java.util.Enumeration;
+import java.util.Properties;
+
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
@@ -20,11 +25,13 @@ public class App {
 
     private static CBREngine engine;
     private static Project project;
+    public static boolean saveBoolean;
 
     public static void main(String[] args) {
 
         engine = new CBREngine();
         String userDefinedProjectFile = System.getProperty("MYCBR.PROJECT.FILE");
+        saveBoolean = Boolean.parseBoolean( System.getProperty("save") );
         if(userDefinedProjectFile != null && userDefinedProjectFile.length() > 0)
             project = engine.createProjectFromPRJ(userDefinedProjectFile);
         else{

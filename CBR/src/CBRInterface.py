@@ -139,18 +139,18 @@ class RESTApi:
         ax = sb.barplot(x=data.index, y="similarCases", data=data)
         plt.show()
 
-api = RESTApi()
+# api = RESTApi()
 # res = api.addInstancesJSON(casebaseID='cb0', conceptID='Person', cases={"cases":[{"Age":11}]})
 # res = api.getInstances(conceptID='Person')
 # res = api.getAttributes('Person')
 # res = api.addAttribute(conceptID='Person', attrName='Education', attrJSON={"type": "Symbol", "allowedValues": ["High school", "Bachelor", "Master"]})
 # res = api.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID='Person-cb018', k=5)
-res = api.getAllInstancesInCaseBase(conceptID='Person', casebaseID='cb0')
+# res = api.getAllInstancesInCaseBase(conceptID='Person', casebaseID='cb0')
 # res = api.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID='Person-cb03')
 # res = api.getCaseBaseSize(conceptID='Person', casebaseID='cb0')
 # res = api.modifyAttributeInCase(casebaseID='cb0', conceptID='Person', caseID='Person-cb08', attributeName='Age', value=25)
 
-print(res)
+# print(res)
 # api.plot_retrieve_k_sim_byID(res)
 
 

@@ -28,3 +28,8 @@ CBR/libs/mycbr-rest/lib*
 
 CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/3.3-SNAPSHOT/maven-metadata-local.xml
 CBR/libs/mycbr-rest/lib/no/ntnu/mycbr/mycbr-sdk/no/ntnu/myCBR/maven-metadata-local.xml
+
+# Deep Explain
+src/deepexplain
+
+*.pyc 

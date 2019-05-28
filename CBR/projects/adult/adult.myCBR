@@ -94,6 +94,9 @@
     <desc name="HoursPerWeek" type="Integer" min="0" max="168" mult="false" >
       <fct name="default function" type="Integer" ltype="CONSTANT" lparam="1.0" rtype="CONSTANT" rparam="1.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
     </desc>
+    <desc name="Weight" type="String" mult="false" >
+      <fct name="default function" type="String" symm="true" config="EQUALITY" n="3" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    </desc>
     <desc name="MaritalStatus" type="Symbol" mult="false" >
       <symbol value="Widowed" />
       <symbol value="Separated" />
@@ -249,6 +252,7 @@
       <entry name="Explanation" active="true" fct="default function" weight="1.0"/>
       <entry name="Sex" active="true" fct="default function" weight="1.0"/>
       <entry name="HoursPerWeek" active="true" fct="default function" weight="1.0"/>
+      <entry name="Weight" active="true" fct="default function" weight="1.0"/>
       <entry name="MaritalStatus" active="true" fct="default function" weight="1.0"/>
       <entry name="Occupation" active="true" fct="default function" weight="1.0"/>
       <entry name="Education" active="true" fct="default function" weight="1.0"/>
@@ -264,5 +268,5 @@
     <node name="Person" sim="1.0" parent="inheritanceDesc" />
   </fct>
 </hierarchy>
-<cases no="15" cb="cb0"/>
+<cases no="19" cb="cb0"/>
 </Project>

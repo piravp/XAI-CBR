@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 from DNN.kera import pre_processing
 
 """
@@ -10,46 +14,14 @@ from DNN.kera import pre_processing
     3. Legg inn i case-basen. 
 """
 
-def complete():
-    from DNN.Induction.Anchor import anchor_tabular, utils
-
-    dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
-    dataset = dataman.ret
-
-    # IMPORT THE NETWORK
-    # Fit explainer to the same dataset it was trained on
-    explainer = anchor_tabular.AnchorTabularExplainer(dataset.class_names, dataset.feature_names, dataset.data_train, dataset.categorical_names)
-    # Explainer.encoder.transform return sparse matrix, instead of dense np.array
-    explainer.fit(dataset.data_train, dataset.train_labels, dataset.data_validation, dataset.validation_labels)
-
-    # LOAD MODEL
-    from DNN.kera import network
-    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
-    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels, data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
-    
-    predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
-
-    idx = 0
-    print(len(dataset.data_test))
-    instance = dataset.data_test[idx].reshape(1,-1)
-    prediction = predict_fn(instance)[0]
-
-
-    from DNN import explanation
-    from DNN import knowledge_base
-
-    exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=True)
-    print(exp.exp_map.keys()) 
-    
-    exp_1 = explanation.Explanation(**exp.exp_map)
-    print(exp_1)
-    print()
-    print(exp_1.get_explanation(dataset.feature_names,dataset.categorical_names))
-
 # Process data before adding to case-base
 def post_process(explanationForNCases, verbose):
     dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
     dataset = dataman.ret
+
+
+    cat_names = sorted(dataset.categorical_names.keys())
+    n_values = [len(dataset.categorical_names[i]) for i in cat_names]
 
 
     decoded = []
@@ -73,24 +45,65 @@ def post_process(explanationForNCases, verbose):
     df.hours_per_week = df_int_columns['hours per week'].tolist()
     if verbose: print(df.head(10))
 
-
-    # ------------------------ EXPLANATION PART -----------------------------
-    from DNN.Induction.Anchor import anchor_tabular, utils
+    # ----------------------------------------------------------------------------------------------------- #
+    #                                       D E E P  E X P L A I N                                          #
+    #                                   Generate integrated gradients                                       #
+    # ----------------------------------------------------------------------------------------------------- #
     from DNN.kera import network
-    
-    # IMPORT THE NETWORK
+    from DNN.Induction.Anchor import anchor_tabular
+
+    # LOAD TRAINED MODEL
+    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+
     # Fit explainer to the dataset it was trained on
     explainer = anchor_tabular.AnchorTabularExplainer(dataset.class_names, dataset.feature_names, dataset.data_train, dataset.categorical_names)
     explainer.fit(dataset.data_train, dataset.train_labels, dataset.data_validation, dataset.validation_labels)
 
-    # LOAD MODEL
-    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
+    from deepexplain.tensorflow import DeepExplain
+    from keras import backend as K
+    from keras.models import Model
+
+
+    def generate_integrated_gradient():
+        attribution_weights_full = []
+        with DeepExplain(session=K.get_session()) as de:
+            input_tensors = bb.model.inputs
+            output_layer = bb.model.outputs
+            fModel = Model(inputs=input_tensors, outputs=output_layer)
+            target_tensor = fModel(input_tensors)
+
+            attribution_weights_instance = []
+            for instance in dataset.data_test[:explanationForNCases]:
+                instance = instance.reshape(1,-1)
+                attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+                print(explainer.encoder.transform(instance).toarray().flatten(),"\nattributions:\n", attribution[0][0],"\n",sum(attribution[0][0]))
+
+                # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
+                one_hot_vector = attribution[0][0]
+                start = 0
+                for n in n_values:
+                    compressed = sum(one_hot_vector[start:start+n])
+                    attribution_weights_instance.append(compressed)
+                    start += n                                                          # increase start slice
+
+                attribution_weights_full.append(str(attribution_weights_instance))      # need to be converted to string to save in case-base
+                attribution_weights_instance = []                                       # reset
+        return attribution_weights_full
+        
+    integrated_gradients = generate_integrated_gradient()
+
+    integrated_gradients = integrated_gradients + ['__unknown__' for i in range(len(dataset.data_test) - len(integrated_gradients))]        # Fill default values
+    df['weight'] = np.array(integrated_gradients)
+
+
+    # ----------------------------------------------------------------------------------------------------- #
+    #                              G E N E R A T E  E X P L A N A T I O N S                                 #
+    # ----------------------------------------------------------------------------------------------------- #
+    from DNN import explanation
+
     # Explainer.encoder.transform return sparse matrix, instead of dense np.array
     bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels, data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
     predict_fn = lambda x: bb.predict(explainer.encoder.transform(x))
-
-    from DNN import knowledge_base
-    from DNN import explanation
 
     explanations = []
     def explain_instances():
@@ -100,20 +113,18 @@ def post_process(explanationForNCases, verbose):
             exp = explainer.explain_instance(instance, bb.predict, threshold=0.98,verbose=False)
             exp_1 = explanation.Explanation(**exp.exp_map)
             explanations.append(exp_1)
-            # print('exp_1:',exp_1)
             interpreted_expl = exp_1.get_explanation(dataset.feature_names,dataset.categorical_names)
             explanations_as_string.append(interpreted_expl)
         return explanations_as_string
             
     explained = explain_instances()
-    # print(explained)
-    explained = explained + ['__unknown__' for i in range(len(dataset.data_test) - len(explained))]
+    explained = explained + ['__unknown__' for i in range(len(dataset.data_test) - len(explained))]         # Fill default values
 
     df['explanation'] = np.array(explained)
     if verbose: print(df.head(10))
+    print(df.head(10))
 
     return df, explanations
-
 
 
 # Add cases to case-base
@@ -128,8 +139,6 @@ def populate_casebase(n_cases=2):
     df, explanations = post_process(explanationForNCases=n_cases, verbose=False) 
     # df, explanations = post_process(verbose=False)          
 
-    
-    print('explanaaations:', explanations)
 
     # Formatted JSON which is passed in as params to REST
     instanceJson = lambda row: {
@@ -158,11 +167,13 @@ def populate_casebase(n_cases=2):
 
         # Add to KB
         from DNN.knowledge_base import KnowledgeBase
+        print(type(explanations[index]))
         print(explanations[index])
-        # kb1 = KnowledgeBase('kb1')
-        # kb1.add_knowledge(explanations[index])
-        # print(index)
-        # pass
+
+        kb1 = KnowledgeBase('kb1')
+        # print('anchor_explanation', explanations[index])
+
+        kb1.add_knowledge(explanations[index])
 
 
 populate_casebase(n_cases=2)
