@@ -151,7 +151,7 @@ def test_load_kb():
     print(KB.name)
 
 def test_add_more():
-    KB = KnowledgeBase("aaab") # create empty knowledge base
+    KB = KnowledgeBase("t_ab") # create empty knowledge base
     e1 = Explanation(feature=[1,2],names=[4,3],precision=[0.67,0.9],coverage=[0.2,0.05], prediction=0)
     e2 = Explanation(feature=[3,4],names=[2,2],precision=[0.8,0.99],coverage=[0.4,0.10], prediction=1)
 
@@ -175,6 +175,6 @@ def test_similarity():
 #test_kb_load()
 #test_kb_load()
 #test_knowledge_base()
-#test_add_more()
-#test_load_kb()
 test_add_more()
+#test_load_kb()
+# test_add_more()

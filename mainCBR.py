@@ -167,9 +167,13 @@ def populate_casebase(n_cases=2):
 
         # Add to KB
         from DNN.knowledge_base import KnowledgeBase
+        print(type(explanations[index]))
         print(explanations[index])
-        # kb1 = KnowledgeBase('kb1')
-        # kb1.add_knowledge(explanations[index])
+
+        kb1 = KnowledgeBase('kb1')
+        # print('anchor_explanation', explanations[index])
+
+        kb1.add_knowledge(explanations[index])
 
 
 populate_casebase(n_cases=2)

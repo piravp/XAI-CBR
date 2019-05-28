@@ -106,7 +106,10 @@ public class InstanceController {
         p.getCaseBases().get(casebaseID).removeCase(instanceID);
         System.out.println(cb.getCases().size());
         // Save changes to .prj file
-        p.save();
+        if(App.saveBoolean){
+            p.save();
+            System.out.println("LOG > JSONInstance was deleted.");
+        }
         return true;
     }
 
@@ -134,7 +137,10 @@ public class InstanceController {
         }
 
         // Save changes to .prj file
-        p.save();
+        if(App.saveBoolean){
+            p.save();
+            System.out.println("LOG > JSONInstances was deleted.");
+        }
 
         return true;
     }
@@ -165,7 +171,10 @@ public class InstanceController {
             for (Instance i : collection) {
                 collection.remove(i); 
             }
-            p.save();
+            if(App.saveBoolean){
+                p.save();
+                System.out.println("LOG > Instances matching pattern were deleted.");
+            }
         }
         return true;
     }
@@ -235,7 +244,10 @@ public class InstanceController {
                 newInstances.add(instance);
                 p.getCaseBases().get(casebaseID).addCase(instance);
                 // Save changes to .prj file
-                p.save();
+                if(App.saveBoolean){
+                    p.save();
+                    System.out.println("LOG > JSONInstances were saved.");
+                }
                 newCases.add(values);
             }
             AmalgamationFct afct = c.getActiveAmalgamFct();
@@ -291,7 +303,10 @@ public class InstanceController {
         }
         cb.addCase(instance);
         // Save changes to .prj file
-        p.save();
+        if(App.saveBoolean){
+            p.save();
+            System.out.println("LOG > JSONInstance was saved.");
+        }
         AmalgamationFct afct = c.getActiveAmalgamFct();
         if (afct.getType() == AmalgamationConfig.NEURAL_NETWORK_SOLUTION_DIRECTLY) {
             ArrayList<Instance> instances = new ArrayList<>();

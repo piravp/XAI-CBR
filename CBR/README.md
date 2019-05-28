@@ -31,7 +31,10 @@ mvn clean install
 
 To run a project (still in `CBR/libs/mycbr-rest`):
 ```sh
+# Operations are only persistent in memory
 java -DMYCBR.PROJECT.FILE=/path/to/project.prj -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar
+# With the save option, all operations are saved to the .prj file
+java -DMYCBR.PROJECT.FILE=/path/to/project.prj -Dsave=true -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar
 ```
 
 ### Rebuilding after changes to REST
@@ -41,3 +44,4 @@ Assuming you're in `CBR/libs/mycbr-rest`:
 mvn install:install-file -Dfile=../mycbr-sdk/target/myCBR-3.3-SNAPSHOT.jar -DpomFile=../mycbr-sdk/pom.xml -DlocalRepositoryPath=lib/no/ntnu/mycbr/mycbr-sdk/
 mvn clean install 
 ```
+Or run `rebuild_rest.sh` 
