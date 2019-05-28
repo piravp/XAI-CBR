@@ -68,7 +68,16 @@ class experiments():
         # java -DMYCBR.PROJECT.FILE=/path/to/project.prj -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar
         os.system("java -DMYCBR.PROJECT.FILE={} -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar".format(project))
         #Initiate cases into the project
+        #exp = experiments(verbose=True)
 
+        #os.system("java -{}".format("help"))
+        p = Popen(["java","-help"])
+        #p.terminate()
+        print("test")
+
+        # java -DMYCBR.PROJECT.FILE=/path/to/project.prj -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar
+        os.system("java -DMYCBR.PROJECT.FILE={} -jar ./target/mycbr-rest-1.0-SNAPSHOT.jar".format(project))
+        #Initiate cases into the project
         pass
 
     def experiment_1_sim(self):

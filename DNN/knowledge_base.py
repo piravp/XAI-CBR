@@ -178,6 +178,12 @@ def test_user_defined():
     ex1 = KB.get(0)
     print(ex1,ex1.user_defined)
 
+def test_empty_kb():
+    KB = KnowledgeBase("t_kb") # create empty knowledge base
+    e1 = Explanation(feature=[1,2],names=[4,3],precision=[0.67,0.9],coverage=[0.2,0.05], prediction=0)
+    print(type(e1),e1)
+    KB.add_knowledge(e1)
+
 #test_knowledge_base()
 #test_knowledge_base_load()
 # test_knowledge_base_save()
@@ -188,3 +194,4 @@ def test_user_defined():
 #test_load_kb()
 #test_user_defined()
 #test_similarity()
+test_empty_kb()
