@@ -35,7 +35,8 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
             with filepath.open(mode='r') as json_file:
                 print("Loading from file", filepath)
                 #data = json.load(json_file)
-                self.load_json(json_file)
+                if(self.load_json(json_file)):
+                    print("Succesfully loaded KnowledeBase with size: {}, id: {}".format(len(self.KB),self.id))
                 #data = json.load(fp=json_file,cls=decode_json)
                 #data = json.load(json_file, object_hook=self.decode_knowledge_base)
 
@@ -91,7 +92,8 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                     class_name = exp.pop("__class__")
                     if(class_name == "Explanation"):
                         self.KB[key] = Explanation(**exp)
-            print("Succesfully loaded",self.KB, self.id)
+                return True
+        return False
 
     def get(self, id, default=None): # return knowledge
         id = self.convert_id(id)
@@ -169,12 +171,19 @@ def test_similarity():
 
     print(e1 == e2)
     print(e2 == e3)
+
+def test_user_defined():
+    KB = KnowledgeBase("test_kb") # create empty knowledge base
+    print(KB.KB)
+    ex1 = KB.get(0)
+    print(ex1,ex1.user_defined)
+
 #test_knowledge_base()
 #test_knowledge_base_load()
 # test_knowledge_base_save()
 #test_kb_load()
 #test_kb_load()
 #test_knowledge_base()
-test_add_more()
+# test_add_more()
 #test_load_kb()
 # test_add_more()

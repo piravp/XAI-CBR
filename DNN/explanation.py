@@ -3,7 +3,8 @@ from Induction.Anchor import anchor_explanation
 import random
 import json
 class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # extend AnchorExplanation
-    def __init__(self,names,feature,precision, prediction,coverage, instance=None, **args):
+    def __init__(self,names,feature,precision, prediction,coverage, instance=None, user_defined=True, **args):
+        self.user_defined = user_defined # whether or not a particular explanation was made by anchor or not
         if(not all([names,feature,precision,coverage])): # if ether of these have a value other than a list or 0.
             raise ValueError("Need input: names, feature, precision, coverage")
         elif(prediction is None):
@@ -28,10 +29,11 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
                     #names = value # this is the one we ultimatly want to store.
                     instance = instance.flatten() # np.array (x,1)-> (x,)
                 names = [int(instance[f]) for f in feature] # encoded feature values.
+                #Assumes that when instance is not none, then the explanation is from Anchor
+                self.user_defined = False
             # otherwise assume that the names are a list of ints
             elif(any([isinstance(n,str)for n in names])): # if any of the names are a string, we need to fix these too.
                 raise ValueError("Need an instance to correct string names:{} to encoded values",names)
-
             # Init input
             exp_map['names'] = names
             exp_map['feature'] = feature
@@ -66,7 +68,8 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
                 "feature":self.exp_map['feature'],
                 "precision":self.exp_map['precision'],
                 "coverage":self.exp_map['coverage'],
-                "prediction":self.exp_map['prediction']
+                "prediction":self.exp_map['prediction'],
+                "user_defined":self.user_defined
                 }
 
 

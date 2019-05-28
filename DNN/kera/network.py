@@ -13,7 +13,7 @@ import pathlib
 import sklearn
 
 class BlackBox():
-    def __init__(self, name, optimizer=None, loss=None, model=None,c_path=None):
+    def __init__(self, name, optimizer=None, loss=None, model=None,c_path=None,verbose=False):
         self.modelpath = pathlib.Path(__file__).parent/"models" # Keep track of folder path of model. 
         self.name = name
         # checkpoint callback variables.
@@ -45,7 +45,8 @@ class BlackBox():
             self.name = name
 
             self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
-        print(self.model.summary())
+        if(verbose):
+            print(self.model.summary())
 
         #self.input_shape= (height, width, depth)
         #if(K.image_data_format()=="channels_first"):
