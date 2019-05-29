@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Project name="adult2" author="" >
+<instances name="Person">
+  <instance id="Person-cb09" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb018" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb019" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Female" />
+    <att name="Age" value="54" />
+  </instance>
+  <instance id="Person-cb012" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person #2" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="56" />
+  </instance>
+  <instance id="Person-cb013" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person #1" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="23" />
+  </instance>
+  <instance id="Person-cb010" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="_unknown_" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb021" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="_unknown_" />
+    <att name="Age" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb011" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb022" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="_unknown_" />
+    <att name="Age" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb016" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb017" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb014" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb015" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb04" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Female" />
+    <att name="Age" value="12" />
+  </instance>
+  <instance id="Person-cb03" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="8" />
+  </instance>
+  <instance id="Person-cb08" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="_unknown_" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb07" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb020" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="_unknown_" />
+    <att name="Age" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb06" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="_unknown_" />
+    <att name="Age" value="22" />
+  </instance>
+  <instance id="Person-cb05" >
+    <att name="Education" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Gender" value="Male" />
+    <att name="Age" value="10" />
+  </instance>
+</instances>
+<cb name="cb0">
+     <case name="Person-cb09" />
+     <case name="Person-cb018" />
+     <case name="Person-cb019" />
+     <case name="Person-cb012" />
+     <case name="Person-cb013" />
+     <case name="Person-cb010" />
+     <case name="Person-cb011" />
+     <case name="Person-cb016" />
+     <case name="Person-cb017" />
+     <case name="Person-cb014" />
+     <case name="Person-cb015" />
+     <case name="Person-cb04" />
+     <case name="Person-cb08" />
+     <case name="Person-cb07" />
+     <case name="Person-cb06" />
+     <case name="Person-cb05" />
+</cb>
+</Project>

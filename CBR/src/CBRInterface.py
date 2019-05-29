@@ -12,6 +12,14 @@ class RESTApi:
     def __init__(self):
         pass
 
+    def checkStatus(self): 
+        try:
+            res = requests.get('http://localhost:8080/casebase')
+            return res.status_code # 200 is success
+        except Exception:
+            return 500
+        
+
     # ----------------------------------------------------------------------------- #
     #                               Case-Base                                       #
     # ----------------------------------------------------------------------------- #

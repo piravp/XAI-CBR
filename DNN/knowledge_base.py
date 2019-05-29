@@ -118,6 +118,13 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
         else:
             print("ID '{}' not in knowledge base".format(id))
 
+    def reset_knowledge(self):
+        # simply reset knowledge base dictionary.
+        self.id = self.convert_id(0) # back to 0
+        self.KB = defaultdict(Explanation) # empty json object
+        self.save() # overwrite the old knowledge-base
+
+
     def convert_id(self,id):
         if(isinstance(id,int)):
             id = str(id)
