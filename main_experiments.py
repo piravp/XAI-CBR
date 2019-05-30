@@ -20,6 +20,7 @@ import numpy as np
 import subprocess
 from subprocess import Popen,CREATE_NEW_CONSOLE,PIPE
 import time
+import json
 
 import argparse
 
@@ -28,7 +29,8 @@ from DNN.kera import network # Import black-box (ANN)
 from DNN.kera import pre_processing # Import dataset preprocessing
 from DNN.Induction.Anchor import anchor_tabular, utils # explanatory framework
 from DNN import knowledge_base,explanation
-from CBR.src import CBRInterface,case
+from CBR.src import CBRInterface
+from CBR.src.case import Case
 # Integraded gradients
 from deepexplain.tensorflow import DeepExplain
 from keras import backend as K
@@ -37,8 +39,8 @@ from keras.models import Model
 class Experiments():
     def __init__(self, verbose=False):
         #* Init Dataset
-        dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
-        self.dataset = dataman.ret
+        self.dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
+        self.dataset = self.dataman.ret
         if(verbose):
             print("Keys", self.dataset.__dict__.keys())
         
@@ -69,7 +71,7 @@ class Experiments():
         # Init CaseBase
         self.CBR = CBRInterface.RESTApi() # load CBR restAPI class, for easy access.
 
-    def get_attribution(self,instance):
+    def get_attribution(self, instance):
         # Get attribution from an instance on the black box (ANN)
         #attribution_weights_full = []
         with DeepExplain(session=K.get_session()) as de: # Init session, to keep gradients.
@@ -82,18 +84,39 @@ class Experiments():
 
             attribution_weights_instance = []
             instance = instance.reshape(1,-1)
-            attribution = de.explain('intgrad',target_tensor, input_tensors, explainer.encoder.transform(instance).toarray())
+            attribution = de.explain('intgrad',target_tensor, input_tensors, 
+                                    self.anchors_explainer.encoder.transform(instance).toarray())
             one_hot_vector = attribution[0][0]
 
             # Compress one_hot_encoded input vector attribution into one per original attribute. (71 -> 12) 
             start = 0
             for n in self.n_values: # itterate over each categorie
                 compressed = sum(one_hot_vector[start:start+n])
-                attribution_weights_instance.append(compressed)
+                attribution_weights_instance.append(np.around(compressed, decimals=4))
                 start += n # increase start slice
 
         return attribution_weights_instance # return list of attributions.
 
+    def get_attribution_multiple(self, instances):
+        attribution_weights_full = []
+        with DeepExplain(session=K.get_session()) as de:
+            input_tensors = self.bb.model.inputs
+            output_layer = self.bb.model.outputs
+            fModel = Model(inputs=input_tensors, outputs=output_layer)
+            target_tensor = fModel(input_tensors)
+            attribution = de.explain('intgrad',target_tensor, input_tensors, 
+                                        [self.anchors_explainer.encoder.transform(instances).toarray()])
+            for attrib in attribution[0]:
+                attribution_weights_instance = []
+                # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
+                start = 0
+                for n in self.n_values:
+                    compressed = sum(attrib[start:start+n])
+                    attribution_weights_instance.append(np.around(compressed, decimals=4))
+                    start += n                                                          # increase start slice
+                attribution_weights_full.append(attribution_weights_instance)      # need to be converted to string to save in case-base
+                
+        return attribution_weights_full
 
     def start_MyCBR(self, project, jar, storage=False): # Start myCBR project file # TO put everything into the same console, remove flag.
         print("Starting myCBR Rest server") # ,stdout=PIPE,stderr=PIPE
@@ -115,8 +138,90 @@ class Experiments():
             if os.name == 'nt': # teriminate doest work on windows.
                 subprocess.call(['taskkill','/F','/T','/PID',str(self.process.pid)])
             self.process.terminate() # terminalte process
-            
 
+    def run_test(self):
+        print(self.dataset.__dict__.keys())
+        # simply test some different things.
+        np.random.seed(1) # init seed
+        # Say we want to select X number of instances and put into the CaseBase.
+        # Get cases from validation dataset, and prediction from
+
+        self.dataset.data_validation # Attributes, encoded and all
+        self.dataset.validation_labels # labels, 0s and 1s
+        
+        n = 10
+
+        # Select random number of indexes from validation indexes
+        idx_cases_val = np.random.choice(self.dataset.validation_idx,n,replace=False)# non repeating instances
+        idx_cases_val = np.sort(idx_cases_val) # easier to work with
+
+        # select random number of index from test indexes, to vertify the similarity.
+        idx_cases_test = np.random.choice(self.dataset.test_idx,n,replace=False)# non repeating instances
+        idx_cases_test = np.sort(idx_cases_test) # easier to work with
+
+        # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input.
+        init_cases = self.dataset.data_test_full.values[idx_cases_val]
+        init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
+        init_cases_labels = self.dataset.labels_test[idx_cases_val] # labels corresponding to input.
+
+        test_cases = self.dataset.data_test_full.values[idx_cases_test]
+        test_cases_enc = self.anchors_explainer.encoder.transform(self.dataset.data_test_enc_full[idx_cases_test])
+
+        # Now we can generate cases from these lists, and vertify their results in the next examples.
+
+        # Generate cases from the list, with or without explanation parts.
+        
+        """start = time.clock()
+        for i, instance in enumerate(init_cases):
+            attribution = self.get_attribution(instance=init_cases_enc[i])
+            #case = Case(instance,explanation=init_cases_labels[i])
+        end = time.clock()
+        print("time:", end-start)
+
+        start_2 = time.clock()
+        a = [self.get_attribution(instance=init_cases_enc[i]) for i, instance in enumerate(init_cases)]
+        end_2 = time.clock()
+        print("time:",end_2-start_2) """
+
+        start = time.clock()
+        attributions = self.get_attribution_multiple(init_cases_enc)
+        end = time.clock()
+        print("time:", end-start)
+
+        start = time.clock()
+        explanations = []
+        predictions = []
+        # Generate explanations for each case.
+        for i, instance in enumerate(init_cases_enc):
+            exp = self.anchors_explainer.explain_instance(instance, self.bb.predict, threshold=0.95,verbose=False)
+            custom_exp = explanation.Explanation(**exp.exp_map)
+            explanations.append(custom_exp)
+            predictions.append(custom_exp.exp_map['prediction']) 
+        end = time.clock()
+        print("time:", end-start)
+
+        # Create cases from these
+
+        initial_case_objects = [] # list of cases
+
+        for i, inc in enumerate(init_cases):  
+            initial_case_objects.append(Case(age=inc[0], workclass=inc[1], education=inc[2], martial_status=inc[3], occupation=inc[4],
+                relationship=inc[5], race=inc[6], sex=inc[7], capital_gain=inc[8], capital_loss=inc[9],
+                hours_per_week=inc[10],country=inc[11],
+                weight=str(attributions[i]), prediction = predictions[i], explanation = i))
+
+        print(initial_case_objects[0])
+        print(json.dumps(initial_case_objects[0], default=Case.default))
+        print(json.dumps(initial_case_objects, default=Case.default))
+        
+
+
+        # We need to get representations that can be used.
+        
+
+        # generate cases from these
+        # We need to get the prediction from test_cases.
+        
 
     ########################################################################
     # **************************** EXPERIMENTS *****************************
@@ -263,10 +368,12 @@ if __name__ == "__main__":
 
     subparsers = parser.add_subparsers(title="action", dest="experiment", help="experiment to run")
 
+    parser_test = subparsers.add_parser("test")
+
     parser_rest = subparsers.add_parser("start_server")
 
     parser_sim = subparsers.add_parser("exp_sim")
-
+    
     parser_1 = subparsers.add_parser("exp_1")
     parser_1.add_argument("-N","--num_cases",help="number of cases we initiate with", default=4,
                     type=check_positive)
@@ -321,4 +428,6 @@ if __name__ == "__main__":
     elif(args.experiment == "start_server"):
         project = projects/"adult"/"adult.prj"
         experiments.start_server(project.absolute(),jar.absolute())
+    elif(args.experiment == "test"):
+        experiments.run_test()
     

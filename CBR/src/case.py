@@ -1,4 +1,6 @@
-class Case():
+import ast
+import json
+class Case(json.JSONEncoder):
     def __init__(self, age:int, workclass:str, education:str, martial_status:str, occupation:str,
         relationship:str, race:str, sex:str, capital_gain:int, capital_loss:int,
         hours_per_week:int,country:str, explanation:int, prediction:int, weight, similarity=None, caseID=None):
@@ -24,33 +26,45 @@ class Case():
         self.country = country              # 'British-Commonwealth', 'China', 'Euro_east', 'Euro_south', 'Euro_west',
                                             #+'Latin-America', 'Other', 'SE-Asia', 'South-America', 'United-States'
         self.prediction = prediction        # 0, 1 [ < 50 000,  >=50 000]
-        self.weight = weight                # [a,b,c,d,e,f,g,h,i,j] 12 weights, one per attribute. age - country
+        if(isinstance(weight, str)):
+            # Need to map the list from "[a,b,c,]" to [a,b,c]
+            self.weight = ast.literal_eval(weight)
+        else:
+            self.weight = weight                # [a,b,c,d,e,f,g,h,i,j] 12 weights, one per attribute. age - country
         # Soulution part
         self.explanation = explanation      # id pointer to knowledge base.
         # TODO: Turn String to int values.
 
-    def checkSimilarity(self, other:Case):
+    def checkSimilarity(self, other):
         # Check the similarity between this case and another.
         # Simply check wheter or not the explanation fits
         pass
-    
-    def default(self): # Return the case as json, for when to put into the CBR system
+
+    # pylint: disable=E0202
+    def default(self, o): # Return the case as json, for when to put into the CBR system
         # Everything should be a string?
+        print("defaulting", type(o))
         return {
-            "Age":            self.age,
-            "CapitalGain":    self.capital_gain,
-            "CapitalLoss":    self.capital_loss,
-            "Country":        self.country,
-            "Education":      self.education, 
-            "Explanation":    self.explanation,
-            "HoursPerWeek":   self.hours_per_week,
-            "MaritalStatus":  self.martial_status,
-            "Occupation":     self.occupation,
-            "Prediction":     self.prediction, 
-            "Race":           self.race,
-            "Relationship":   self.relationship,
-            "Sex":            self.sex,
-            "Weight":         self.weight,
-            "Workclass":      self.workclass
-    }
+            "Age":            o.age,
+            "CapitalGain":    o.capital_gain,
+            "CapitalLoss":    o.capital_loss,
+            "Country":        o.country,
+            "Education":      o.education, 
+            "Explanation":    o.explanation,
+            "HoursPerWeek":   o.hours_per_week,
+            "MaritalStatus":  o.martial_status,
+            "Occupation":     o.occupation,
+            "Prediction":     o.prediction, 
+            "Race":           o.race,
+            "Relationship":   o.relationship,
+            "Sex":            o.sex,
+            "Weight":         str(o.weight),
+            "Workclass":      o.workclass
+            }
+        #else:
+            #print("Default...",type(obj))
+            #return json.JSONEncoder.default(self, obj)
+
+    def __str__(self):
+        return json.dumps(self.default(self))
 

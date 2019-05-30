@@ -62,6 +62,7 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
                 self.exp_map['coverage'  ] == other.exp_map['coverage' ] and 
                 self.exp_map['prediction'] == other.exp_map['prediction'])
 
+    # pylint: disable=E0202
     def default(self, obj): # no need to store whole dictionary.
         return {"__class__":obj.__class__.__name__,
                 "names":self.exp_map["names"],

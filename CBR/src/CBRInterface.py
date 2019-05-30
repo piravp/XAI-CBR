@@ -95,6 +95,10 @@ class RESTApi:
         return r.text
         # return 'http://localhost:8080/concepts/{}/casebases/{}/instances?{}'.format(conceptID, casebaseID, cases)
 
+    def addInstancesCases(self,casebaseID, conceptID, cases):
+        r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances' 
+                .format(conceptID, casebaseID), params={"cases" : json.dumps(cases)})
+        return r.text
     # Return cases for one specific case-base
     def getAllInstancesInCaseBase(self, conceptID, casebaseID):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/instances'.format(conceptID, casebaseID))

@@ -42,7 +42,6 @@ class Datamanager():
         # format data to correct output format. Model specific
         self.__o_switcher = {
             "one-hot":self.one_hot_vector,
-            "float":self.float_value,
             "normal":self.normal
         }
 
@@ -101,42 +100,6 @@ class Datamanager():
         #t_targets = torch.from_numpy(np.array([misc.int_to_one_hot_vector(int(target),5,start_val=1) for target in data_targets])).float() # cast to float tensor
         #t_targets = torch.from_numpy(np.array(data_targets)).float()
         return t_inputs, t_targets
-
-    def return_batch(self, batch_size):
-        """ Return two tensors(inputs, targets) of size batch_size from training dataset"""
-
-        tot_size = self.ret.data_train.shape[0]
-
-        if(batch_size <= 0): # if 0 or smaller
-            raise ValueError("Batch size must be greater than 0")
-
-        num = self.return_num(batch_size, tot_size) # return how many we should return
-        idx = np.random.choice(np.arange(tot_size), size=num, replace=True) # Only want unique indexes
-
-        data_inputs = self.ret.data_train[idx]
-        data_targets = self.ret.train_labels[idx]
-
-        return self.return_mod(data_inputs, data_targets)
-    
-    def return_keras(self): # return all data we have. From train
-        return self.return_mod(self.ret.data_train, self.ret.train_labels)
-
-    def return_keras_val(self):
-        return self.return_mod(self.ret.data_validation, self.ret.validation_labels)
-
-    def return_background(self, num): # return examples from training set.
-        return self.validation_data[:num]
-
-    def return_val(self):
-        """ Return two tensors(inputs,targets) from validationset """
-        data = self.validation_data 
-        # as we use this only for evaluation, we don't need to shuffle. 
-        if(len(data[0]) == 0):
-            raise ValueError("No validation data")
-        data_inputs = data[0]
-        data_targets = data[1]
-        #return torch.from_numpy(np.array(data_inputs)).float(), torch.from_numpy(np.array(data_targets)).float()
-        return self.return_mod(data_inputs = data[0], data_targets=data[1])
     
     def adults(self):
 
@@ -317,7 +280,8 @@ class Datamanager():
         disc_data = disc.discretize(data.values)
 
         # Store data to retrieve age later
-        self.ret.data_test_full = data_test[['age', 'hours per week']].copy()#.values
+        self.ret.data_test_full_values = data_test[['age', 'hours per week']].copy()#.values
+        self.ret.data_test_full = data_test.copy()
 
         disc_data_test = disc.discretize(data_test.values)
         self.ret.ordinal_discretizer = disc
@@ -366,6 +330,7 @@ class Datamanager():
         # All numpy arrays, as with float values.
         self.ret.data_train = data.values.astype(float)
         data_test = data_test.values.astype(float)
+        self.ret.data_test_enc_full = data_test.copy() # create a copy of the data_test set.
 
         self.ret.train_labels = self.ret.labels
 
@@ -458,6 +423,17 @@ class Datamanager():
             # And transform back to single element
             row[i] = encoder.transform(np.array([row[i]]))[0]
         return row
+
+    def translate_case(self,row, index): # we need to know the index of the row to be translated.
+        # traslate an encoded instance into a decoded instance that can be sent to the CaseBase
+        # First we need to translate ourself.
+        row = self.translate(row)
+        print(row)
+
+        # then we need to get original values for columns: Age and HoursPerWeek.
+        # we can find these from the
+
+
 
 def read_data_pd(name,columns,header, encoding="latin-1"):
     # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte
