@@ -28,7 +28,7 @@ from DNN.kera import network # Import black-box (ANN)
 from DNN.kera import pre_processing # Import dataset preprocessing
 from DNN.Induction.Anchor import anchor_tabular, utils # explanatory framework
 from DNN import knowledge_base,explanation
-from CBR.src import CBRInterface
+from CBR.src import CBRInterface,case
 # Integraded gradients
 from deepexplain.tensorflow import DeepExplain
 from keras import backend as K
@@ -97,7 +97,8 @@ class Experiments():
 
     def start_MyCBR(self, project, jar, storage=False): # Start myCBR project file # TO put everything into the same console, remove flag.
         print("Starting myCBR Rest server") # ,stdout=PIPE,stderr=PIPE
-        self.process = Popen(["java","-DMYCBR.PROJECT.FILE={}".format(project),"-Dsave={}".format(storage),"-jar",str(jar)],shell=True)#, creationflags=CREATE_NEW_CONSOLE)
+        self.process = Popen(["java","-DMYCBR.PROJECT.FILE={}".format(project),
+                            "-Dsave={}".format(storage),"-jar",str(jar)],shell=True)#, creationflags=CREATE_NEW_CONSOLE)
         # Return once it is up and running
 
     def myCBR_running(self):
@@ -110,13 +111,58 @@ class Experiments():
 
     def stop_MyCBR(self):
         if(self.process.poll() is None): # check if process is still running.
-            print("KILLING PROCESSES")
-            subprocess.call(['taskkill','/F','/T','/PID',str(self.process.pid)])
+            print("KILLING RUNNING PROCESSES BEFORE EXITING")
+            if os.name == 'nt': # teriminate doest work on windows.
+                subprocess.call(['taskkill','/F','/T','/PID',str(self.process.pid)])
             self.process.terminate() # terminalte process
+            
+
 
     ########################################################################
     # **************************** EXPERIMENTS *****************************
     ########################################################################
+
+    def run_experiment_sim(self, project, jar, storage=False):
+        """
+            ? Test different similarity measures against the CaseBase
+            
+            Fill the case-base with cases, and corresponding knowledge in the knowledge-base
+
+            Query the CaseBase with the different similarity measurements made.
+
+            Test firstly using only the similarty measure itself ( returns a float for each case)
+
+            Finally test wether or not the attribution could improve uppon the similarity measurement.
+
+        """
+
+        # Start the caseBase 
+        np.random.seed(1) # init seed
+        #Load the case-base system
+
+        #Initiate cases into the project
+        self.start_MyCBR(project, jar, storage) # Start CBR project.
+        self.myCBR_running() # Continue running.
+
+        # Get the concept ID, and CaseBase ID
+        conceptID = self.CBR.getConceptID()
+        casebaseID = self.CBR.getCaseBaseID()
+        
+        print(conceptID, casebaseID)
+        # Check whether or not the casebase if filled with cases or not.
+        size = self.CBR.getCaseBaseSize(conceptID = conceptID, casebaseID = casebaseID)
+        print("size", size)
+        if(size == 0):  # We need to fill the CaseBase with cases
+            # Lets fill it with 100 cases
+            # And get the explanation from each.
+
+
+
+            pass
+
+        # Perform different similarty measurments.
+
+
 
     def run_experiment_1(self, N, M, project, jar, storage=False): # N is number of cases in casebase, M is number of retrievals
         """ 
@@ -131,7 +177,6 @@ class Experiments():
         #Load the case-base system
 
         #Initiate cases into the project
-<<<<<<< HEAD
         self.start_MyCBR(project, jar, storage) # Start CBR project.
         self.myCBR_running() # Continue running.
 
@@ -145,22 +190,12 @@ class Experiments():
         # Randomly select N from validation set.
         
         # Randomly select M from test set to check against.
-=======
-        #exp = Experiments(verbose=True)
->>>>>>> 51e8a841b9d4f9053962d58a66db263e950de165
 
         # Fill the case-base with cases.
 
-        self.stop_MyCBR()
-
-    def run_experiment_sim(self):
-        """
-            ? Test different similarity measures against the CaseBase
-
-        """
         
 
-    def run_experiment_2(self):
+    def run_experiment_2(self,project, jar, storage=False):
         """  
             ? Test wheter or not we are able to use previous explanations in tandom with custom explanations given by a domain expert.
 
@@ -170,14 +205,14 @@ class Experiments():
         """
         np.random.seed(1) # init seed
 
-    def run_experiment_3(self):
+    def run_experiment_3(self,project, jar, storage=False):
         """
             ? Test whether the attribution score from integradet gradients can be used to help with the retrieval of relevant cases 
 
         """
         np.random.seed(1) # init seed
 
-    def run_experiment_4(self):
+    def run_experiment_4(self,project, jar, storage=False):
         """
             ? Test whether the attribution score can be used for retrieval alone on the case-base
 
@@ -187,7 +222,7 @@ class Experiments():
 
         # pre initiate 
 
-    def run_experiment_5(self):
+    def run_experiment_5(self,project, jar, storage=False):
         """
             ? Test whether we need to present the user with previous cases, aswell as the current explanation.
             
@@ -200,7 +235,11 @@ class Experiments():
         
         """
         np.random.seed(1) # init seed
-
+        
+    def start_server(self, project, jar, storage=False):
+        # Simply start the Server, and dont stop running
+        self.start_MyCBR(project=project,jar=jar)
+        self.myCBR_running() # Continue running.
 
 def check_bool(value):
     if(value == "True"):
@@ -224,13 +263,23 @@ if __name__ == "__main__":
 
     subparsers = parser.add_subparsers(title="action", dest="experiment", help="experiment to run")
 
-    parser_a = subparsers.add_parser("exp_1")
-    parser_a.add_argument("-N","--num_cases",help="number of cases we initiate with", default=4,
+    parser_rest = subparsers.add_parser("start_server")
+
+    parser_sim = subparsers.add_parser("exp_sim")
+
+    parser_1 = subparsers.add_parser("exp_1")
+    parser_1.add_argument("-N","--num_cases",help="number of cases we initiate with", default=4,
                     type=check_positive)
-    parser_a.add_argument("-M","--num_retrieval",help="number of queries against the CaseBase (without retain step)", default=4,
+    parser_1.add_argument("-M","--num_retrieval",help="number of queries against the CaseBase (without retain step)", default=4,
                     type=check_positive)
 
-    parser_b = subparsers.add_parser("exp_2")
+    parser_2 = subparsers.add_parser("exp_2")
+
+    parser_3 = subparsers.add_parser("exp_3")
+
+    parser_4 = subparsers.add_parser("exp_4")
+
+    parser_5 = subparsers.add_parser("exp_5")
 
 
     args = parser.parse_args() # get arguments from command line
@@ -247,50 +296,29 @@ if __name__ == "__main__":
     projects = parent/"CBR"/"projects"
     # Java runnable file of MyCBR REst
     jar = parent/"CBR"/"libs"/"mycbr-rest"/"target"/"mycbr-rest-1.0-SNAPSHOT.jar"
-
-    if(args.experiment == "exp_1"): # Test multiple different value combinations.
+    if(args.experiment == "exp_sim"):
+        print("Starting Experiment sim with verbose", args.verbose)
+        project = projects/"adult_sim"/"adult_sim.prj"
+        try:
+            experiments.run_experiment_sim(project=project.absolute(), jar=jar.absolute())
+        finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
+            experiments.stop_MyCBR()
+    elif(args.experiment == "exp_1"): # Test multiple different value combinations.
         N = [2,4,6,8,16,32,64,128,256]
         M = [2,3,6,8,16,32,64,128,2560]
         print("Starging Experiment 1 with num_cases = , num_retrievals = ".format(args.num_cases, args.num_retrieval))
         project = projects/"adult2-test"/"adult2.prj"
         # For experiment 1, we require a empty case-base, that we fill with cases and explanation.
-        experiments.run_experiment_1(N=args.num_cases, M=args.num_retrieval, project=project.absolute(), jar=jar.absolute())
+        try:
+            experiments.run_experiment_1(N=args.num_cases, M=args.num_retrieval, project=project.absolute(), jar=jar.absolute())
+        finally:
+            experiments.stop_MyCBR()
     elif(args.experiment == "exp_2"):
-        experiments.run_experiment_2(N=args.num_cases, M=args.num_retrieval, project=project.absolute(), jar=jar.absolute())
-    elif(args.experiment == "exp_sim"):
-        experiments.run_experiment_sim(N=args.num_cases, M=args.num_retrieval, project=project.absolute(), jar=jar.absolute())
-    # Allways run this one
-    experiments.stop_MyCBR() # stop MyCBR process if still running
-
-
-def exp_case_base_size():
-    """ Test initializing casebase of different sizes and querying new problems. """
-    np.random.seed(1) # init seed
-
-    dataman = pre_processing.Datamanager(dataset="adults",in_mod="normal",out_mod="normal")
-    dataset = dataman.ret
-
-    explainer = anchor_tabular.AnchorTabularExplainer(
-        dataset.class_names, dataset.feature_names,
-        dataset.data_train, dataset.categorical_names)
-        
-    # ! Explainer.encoder.transform return sparse matrix, instead of dense np.array
-    explainer.fit(dataset.data_train, dataset.train_labels, 
-                dataset.data_validation, dataset.validation_labels) # Fit the labels to the explainer.
-    print(network)
-
-    bb = network.BlackBox(name="NN-adult-5",c_path="NN-Adult-5/NN-Adult-5-8531.hdf5")
-
-    bb.evaluate(data_train=explainer.encoder.transform(dataset.data_train).toarray(),train_labels=dataset.train_labels,
-                    data_test=explainer.encoder.transform(dataset.data_test).toarray(),test_labels=dataset.test_labels)
-
-    exit()
-    # Check if REST api is running with project.
-    CBR = CBRInterface.RESTApi() # load CBR restAPI class, for easy access.
-
-
-<<<<<<< HEAD
-#exp = experiments(verbose=True)
-=======
-exp = Experiments(verbose=True)
->>>>>>> 51e8a841b9d4f9053962d58a66db263e950de165
+        try:
+            experiments.run_experiment_2(N=args.num_cases, M=args.num_retrieval, project=project.absolute(), jar=jar.absolute())
+        finally:
+            experiments.stop_MyCBR()
+    elif(args.experiment == "start_server"):
+        project = projects/"adult"/"adult.prj"
+        experiments.start_server(project.absolute(),jar.absolute())
+    

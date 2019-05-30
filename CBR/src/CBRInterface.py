@@ -12,13 +12,12 @@ class RESTApi:
     def __init__(self):
         pass
 
-    def checkStatus(self): 
+    def checkStatus(self):  # Assumes that the MyCBR project have a casebase.
         try:
             res = requests.get('http://localhost:8080/casebase')
             return res.status_code # 200 is success
-        except Exception:
+        except Exception: # Anything else is either server not ready or 404 missing. 
             return 500
-        
 
     # ----------------------------------------------------------------------------- #
     #                               Case-Base                                       #
@@ -34,6 +33,12 @@ class RESTApi:
         res = requests.get('http://localhost:8080/casebase')
         return helper.pprint(res.json())
 
+    def getCaseBaseID(self):
+        r = requests.get('http://localhost:8080/casebase')
+        r_json = r.json() # resulting json
+        if(len(r_json["caseBases"]) != 1):
+            raise ValueError("More than one CaseBase in the project")
+        return r_json["caseBases"][0] # return the first concept ID
 
     # ----------------------------------------------------------------------------- #
     #                                Concept                                        #
@@ -48,6 +53,14 @@ class RESTApi:
     def getConcepts(self):
         r = requests.get('http://localhost:8080/concepts')
         return helper.pprint(r.json())
+
+    def getConceptID(self):
+        r = requests.get('http://localhost:8080/concepts')
+        r_json = r.json() # resulting json
+        if(len(r_json["concept"]) != 1):
+            raise ValueError("More than one concept in the CaseBase")
+        return r_json["concept"][0] # return the first concept ID
+
 
     # TODO: Add support for adding attributes with more types (integer, etc.)
 
@@ -81,7 +94,6 @@ class RESTApi:
                 .format(conceptID, casebaseID), params={"cases" : json.dumps(cases)})
         return r.text
         # return 'http://localhost:8080/concepts/{}/casebases/{}/instances?{}'.format(conceptID, casebaseID, cases)
-
 
     # Return cases for one specific case-base
     def getAllInstancesInCaseBase(self, conceptID, casebaseID):

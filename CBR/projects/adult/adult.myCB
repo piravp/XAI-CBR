@@ -1,0 +1,781 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Project name="adult" author="" >
+<instances name="Person">
+  <instance id="Person-cb09" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Professional" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="30" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="39" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="Bachelors" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Self-emp-inc" />
+  </instance>
+  <instance id="Person-cb029" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb012" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="age = 27.50 &#60; age &#60;= 29.50 AND education = High School grad AND hours per week = 39.50 &#60; hours per week &#60;= 41.50" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb034" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb013" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="age = 27.50 &#60; age &#60;= 29.50 AND education = High School grad AND hours per week = 39.50 &#60; hours per week &#60;= 41.50" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb035" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb010" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Never-Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="70" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="23" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Not-in-family" />
+    <att name="Workclass" value="Private" />
+  </instance>
+  <instance id="Person-cb032" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb011" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb033" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb016" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="education = High School grad AND age = 27.50 &#60; age &#60;= 29.50 AND capital gain = None" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb038" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb017" >
+    <att name="Sex" value="_unknown_" />
+    <att name="MaritalStatus" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="_unknown_" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="45" />
+    <att name="CapitalGain" value="_unknown_" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="_unknown_" />
+    <att name="Education" value="_unknown_" />
+    <att name="Country" value="_unknown_" />
+    <att name="CapitalLoss" value="_unknown_" />
+    <att name="Relationship" value="_unknown_" />
+    <att name="Workclass" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb039" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb014" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="age = 27.50 &#60; age &#60;= 29.50 AND education = High School grad AND hours per week = 39.50 &#60; hours per week &#60;= 41.50" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb036" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb015" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="occupation = Service AND education = High School grad" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb037" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb030" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb031" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb018" >
+    <att name="Sex" value="_unknown_" />
+    <att name="MaritalStatus" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="_unknown_" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="45" />
+    <att name="CapitalGain" value="_unknown_" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="_unknown_" />
+    <att name="Education" value="_unknown_" />
+    <att name="Country" value="_unknown_" />
+    <att name="CapitalLoss" value="_unknown_" />
+    <att name="Relationship" value="_unknown_" />
+    <att name="Workclass" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb019" >
+    <att name="Sex" value="_unknown_" />
+    <att name="MaritalStatus" value="_unknown_" />
+    <att name="Occupation" value="_unknown_" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="_unknown_" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="45" />
+    <att name="CapitalGain" value="_unknown_" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="_unknown_" />
+    <att name="Education" value="_unknown_" />
+    <att name="Country" value="_unknown_" />
+    <att name="CapitalLoss" value="_unknown_" />
+    <att name="Relationship" value="_unknown_" />
+    <att name="Workclass" value="_unknown_" />
+  </instance>
+  <instance id="Person-cb023" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="occupation = Service AND education = High School grad AND capital gain = None" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb024" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269415283203125, 0.03459945201873779, -0.2358735656738281, 0.19599466323852538, 0.09430627822875977, -0.029762659072875976, 0.24076885223388672, 0.2615517997741699, -0.24461034774780274, -0.14017852783203125, 0.07193006992340088, -0.004561663269996643]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb021" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="occupation = Service AND education = High School grad AND capital gain = None" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb043" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb022" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="education = High School grad AND age = 27.50 &#60; age &#60;= 29.50 AND capital gain = None" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb027" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb028" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb025" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.12234427452087403, 0.13707404136657714, -0.06344054222106933, 0.2812738800048828, -0.29712194442749024, -0.023560488224029542, 0.008310049176216125, 0.16158281326293944, -0.40829078674316405, 0.006085299849510193, 0.04536623954772949, 0.076749267578125]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb026" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb04" >
+    <att name="Sex" value="Female" />
+    <att name="MaritalStatus" value="Never-Married" />
+    <att name="Occupation" value="Professional" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="25" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="23" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="Bachelors" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Own-child" />
+    <att name="Workclass" value="Private" />
+  </instance>
+  <instance id="Person-cb03" >
+    <att name="Sex" value="Female" />
+    <att name="MaritalStatus" value="Never-Married" />
+    <att name="Occupation" value="Professional" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="55" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="37" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="Asian-Pac-Islander" />
+    <att name="Education" value="Prof-School" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Not-in-family" />
+    <att name="Workclass" value="Private" />
+  </instance>
+  <instance id="Person-cb02" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb01" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb08" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Never-Married" />
+    <att name="Occupation" value="White-Collar" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="25" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="Bachelors" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Not-in-family" />
+    <att name="Workclass" value="Private" />
+  </instance>
+  <instance id="Person-cb041" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Service" />
+    <att name="Explanation" value="1" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[0.1223, 0.1371, -0.0634, 0.2813, -0.2971, -0.0236, 0.0083, 0.1616, -0.4083, 0.0061, 0.0454, 0.0767]" />
+    <att name="Age" value="52" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb07" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Professional" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="50" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="32" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="Bachelors" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb020" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="education = High School grad AND age = 27.50 &#60; age &#60;= 29.50 AND capital gain = None" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb042" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+  <instance id="Person-cb06" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Separated" />
+    <att name="Occupation" value="Sales" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="50" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="42" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="White" />
+    <att name="Education" value="Masters" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Not-in-family" />
+    <att name="Workclass" value="Private" />
+  </instance>
+  <instance id="Person-cb05" >
+    <att name="Sex" value="Female" />
+    <att name="MaritalStatus" value="Never-Married" />
+    <att name="Occupation" value="Sales" />
+    <att name="Explanation" value="_unknown_" />
+    <att name="HoursPerWeek" value="16" />
+    <att name="Weight" value="_unknown_" />
+    <att name="Age" value="23" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Race" value="Black" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Own-child" />
+    <att name="Workclass" value="Private" />
+  </instance>
+  <instance id="Person-cb040" >
+    <att name="Sex" value="Male" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="Occupation" value="Other" />
+    <att name="Explanation" value="0" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Weight" value="[-0.1269, 0.0346, -0.2359, 0.196, 0.0943, -0.0298, 0.2408, 0.2616, -0.2446, -0.1402, 0.0719, -0.0046]" />
+    <att name="Age" value="29" />
+    <att name="CapitalGain" value="None" />
+    <att name="Prediction" value="0" />
+    <att name="Race" value="White" />
+    <att name="Education" value="High School grad" />
+    <att name="Country" value="United-States" />
+    <att name="CapitalLoss" value="None" />
+    <att name="Relationship" value="Husband" />
+    <att name="Workclass" value="Local-gov" />
+  </instance>
+</instances>
+<cb name="cb0">
+     <case name="Person-cb09" />
+     <case name="Person-cb029" />
+     <case name="Person-cb012" />
+     <case name="Person-cb034" />
+     <case name="Person-cb013" />
+     <case name="Person-cb035" />
+     <case name="Person-cb010" />
+     <case name="Person-cb032" />
+     <case name="Person-cb011" />
+     <case name="Person-cb033" />
+     <case name="Person-cb016" />
+     <case name="Person-cb038" />
+     <case name="Person-cb017" />
+     <case name="Person-cb039" />
+     <case name="Person-cb014" />
+     <case name="Person-cb036" />
+     <case name="Person-cb015" />
+     <case name="Person-cb037" />
+     <case name="Person-cb030" />
+     <case name="Person-cb031" />
+     <case name="Person-cb018" />
+     <case name="Person-cb019" />
+     <case name="Person-cb023" />
+     <case name="Person-cb024" />
+     <case name="Person-cb021" />
+     <case name="Person-cb043" />
+     <case name="Person-cb022" />
+     <case name="Person-cb027" />
+     <case name="Person-cb028" />
+     <case name="Person-cb025" />
+     <case name="Person-cb026" />
+     <case name="Person-cb04" />
+     <case name="Person-cb03" />
+     <case name="Person-cb02" />
+     <case name="Person-cb01" />
+     <case name="Person-cb08" />
+     <case name="Person-cb041" />
+     <case name="Person-cb07" />
+     <case name="Person-cb020" />
+     <case name="Person-cb042" />
+     <case name="Person-cb06" />
+     <case name="Person-cb05" />
+     <case name="Person-cb040" />
+</cb>
+</Project>

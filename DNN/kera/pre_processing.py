@@ -8,6 +8,7 @@ from collections import defaultdict
 import sklearn
 #import lime
 from DNN.Induction.Anchor import discretize
+
 class Set(object): # Set of variables.
     """ object that contain all variables we need for anchor etc"""
     def __init__(self, adict):
@@ -434,10 +435,6 @@ class Datamanager():
         data_targets = np.array([misc.int_to_one_hot_vector(int(item), size=self.classes, zero_offset=1) for item in data_targets])
         #data_targets = data_targets.apply(lambda item: misc.int_to_one_hot_vector(int(item), size=self.classes, zero_offset=1))# 
         return data_targets
-
-    def float_value(self,data_targets):
-        """ Return output as a float, with each class coresponding to an fraction between 0 and 1 """
-        pass
 
     #for i,v in enumerate(dataset.data_train[1]):
     #    print("{}:{}, ".format(dataset.feature_names[i],dataset.categorical_names[i][int(v)]),end="")

@@ -65,7 +65,6 @@ def post_process(explanationForNCases, verbose):
     from keras import backend as K
     from keras.models import Model
 
-
     def generate_integrated_gradient():
         attribution_weights_full = []
         with DeepExplain(session=K.get_session()) as de:
