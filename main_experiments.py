@@ -131,6 +131,7 @@ class Experiments():
         #Load the case-base system
 
         #Initiate cases into the project
+<<<<<<< HEAD
         self.start_MyCBR(project, jar, storage) # Start CBR project.
         self.myCBR_running() # Continue running.
 
@@ -144,6 +145,9 @@ class Experiments():
         # Randomly select N from validation set.
         
         # Randomly select M from test set to check against.
+=======
+        #exp = Experiments(verbose=True)
+>>>>>>> 51e8a841b9d4f9053962d58a66db263e950de165
 
         # Fill the case-base with cases.
 
@@ -285,4 +289,8 @@ def exp_case_base_size():
     CBR = CBRInterface.RESTApi() # load CBR restAPI class, for easy access.
 
 
+<<<<<<< HEAD
 #exp = experiments(verbose=True)
+=======
+exp = Experiments(verbose=True)
+>>>>>>> 51e8a841b9d4f9053962d58a66db263e950de165
