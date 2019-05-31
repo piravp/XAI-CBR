@@ -507,7 +507,7 @@ if __name__ == "__main__":
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_2"):
         try:
-            experiments.run_experiment_2(N=args.num_cases, M=args.num_retrieval, project=project.absolute(), jar=jar.absolute())
+            experiments.run_experiment_2(project=project.absolute(), jar=jar.absolute())
         finally:
             experiments.stop_MyCBR()
     elif(args.experiment == "start_server"):
