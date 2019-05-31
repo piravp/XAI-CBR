@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<Project name="adult_empty" author="" >
+<Project name="adult_sim" author="" >
 <svs>
   <sv name="_unknown_"/>
   <sv name="_undefined_"/>
@@ -55,16 +55,6 @@
 </qsym>
 </fct>
     </desc>
-    <desc name="Salary" type="Symbol" mult="false" >
-      <symbol value="More than $50.000" />
-      <symbol value="Less than $50.000" />
-<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
-<qsym name="More than $50.000">
-</qsym>
-<qsym name="Less than $50.000">
-</qsym>
-</fct>
-    </desc>
     <desc name="CapitalLoss" type="Symbol" mult="false" >
       <symbol value="High" />
       <symbol value="Low" />
@@ -88,6 +78,16 @@
 <qsym name="Female">
 </qsym>
 <qsym name="Male">
+</qsym>
+</fct>
+    </desc>
+    <desc name="Prediction" type="Symbol" mult="false" >
+      <symbol value="More than $50.000" />
+      <symbol value="Less than $50.000" />
+<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="More than $50.000">
+</qsym>
+<qsym name="Less than $50.000">
 </qsym>
 </fct>
     </desc>
@@ -247,10 +247,10 @@
     <amalgam name="default function" type="EUCLIDEAN" active="true" >
       <entry name="CapitalGain" active="true" fct="default function" weight="1.0"/>
       <entry name="Workclass" active="true" fct="default function" weight="1.0"/>
-      <entry name="Salary" active="true" fct="default function" weight="1.0"/>
       <entry name="CapitalLoss" active="true" fct="default function" weight="1.0"/>
       <entry name="Explanation" active="true" fct="default function" weight="1.0"/>
       <entry name="Sex" active="true" fct="default function" weight="1.0"/>
+      <entry name="Prediction" active="true" fct="default function" weight="1"/>
       <entry name="HoursPerWeek" active="true" fct="default function" weight="1.0"/>
       <entry name="Weight" active="true" fct="default function" weight="1.0"/>
       <entry name="MaritalStatus" active="true" fct="default function" weight="1.0"/>
@@ -268,5 +268,5 @@
     <node name="Person" sim="1.0" parent="inheritanceDesc" />
   </fct>
 </hierarchy>
-<cases no="0" cb="cb0"/>
+<cases no="2" cb="cb0"/>
 </Project>

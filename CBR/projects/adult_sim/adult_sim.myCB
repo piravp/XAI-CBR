@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Project name="adult_sim" author="" >
+<instances name="Person">
+  <instance id="Person-cb02" >
+    <att name="Workclass" value="Private" />
+    <att name="CapitalGain" value="None" />
+    <att name="CapitalLoss" value="None" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Occupation" value="White-Collar" />
+    <att name="Explanation" value="1" />
+    <att name="Weight" value="[0.2294, 0.0456, 0.1239, 0.1684, 0.1011, -0.0256, 0.2009, 0.0934, -0.313, -0.1419, 0.008, 0.0147]" />
+    <att name="Sex" value="Male" />
+    <att name="Age" value="37" />
+    <att name="Race" value="White" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Country" value="United-States" />
+    <att name="Relationship" value="Husband" />
+    <att name="Education" value="Bachelors" />
+  </instance>
+  <instance id="Person-cb01" >
+    <att name="Workclass" value="Local-gov" />
+    <att name="CapitalGain" value="None" />
+    <att name="CapitalLoss" value="None" />
+    <att name="MaritalStatus" value="Married" />
+    <att name="HoursPerWeek" value="40" />
+    <att name="Occupation" value="Professional" />
+    <att name="Explanation" value="0" />
+    <att name="Weight" value="[-0.0638, -0.0805, -0.1177, 0.2998, 0.1467, -0.029, 0.0827, 0.1366, -0.352, -0.0536, -0.0006, 0.0945]" />
+    <att name="Sex" value="Male" />
+    <att name="Age" value="35" />
+    <att name="Race" value="Black" />
+    <att name="Prediction" value="_unknown_" />
+    <att name="Country" value="United-States" />
+    <att name="Relationship" value="Husband" />
+    <att name="Education" value="High School grad" />
+  </instance>
+</instances>
+<cb name="cb0">
+     <case name="Person-cb02" />
+     <case name="Person-cb01" />
+</cb>
+</Project>

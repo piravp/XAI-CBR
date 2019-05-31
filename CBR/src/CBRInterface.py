@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib
 import seaborn as sb
 import matplotlib.pyplot as plt
+from CBR.src.case import Case
 # https://www.openml.org/d/1590
 
 class RESTApi:
@@ -62,6 +63,13 @@ class RESTApi:
         return r_json["concept"][0] # return the first concept ID
 
 
+    # Get all algamationfunctions
+    def getAlgamationFunctions(self,conceptID):
+        #http://localhost:8080/concepts/Person/amalgamationFunctions
+        r = requests.get('http://localhost:8080/concepts/{}/amalgamationFunctions'.format(conceptID))
+        r_json = r.json() # resulting JSON.
+        return r_json["amalgamationFunctions"] # return list of algamation functions.
+
     # TODO: Add support for adding attributes with more types (integer, etc.)
 
     def addAttribute(self, conceptID, attrName, attrJSON):
@@ -90,15 +98,28 @@ class RESTApi:
     # Add several instances
     # An instance is created by providing conceptID, casebaseID and arbitrary caseID(string) and doing a PUT call
     def addInstancesJSON(self, casebaseID, conceptID, cases):
+        print({"cases" : json.dumps(cases)})
+
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances' 
                 .format(conceptID, casebaseID), params={"cases" : json.dumps(cases)})
         return r.text
         # return 'http://localhost:8080/concepts/{}/casebases/{}/instances?{}'.format(conceptID, casebaseID, cases)
 
-    def addInstancesCases(self,casebaseID, conceptID, cases):
+    def addInstancesCases(self, casebaseID, conceptID, cases):
+
+        # dumped = json.dumps(cases, default=Case.default)
+        # dumped = json.dumps(cases, default=Case.default)
+        caseAsJson = {
+            "cases" : cases
+        }
+        # dumped = {'cases' : dumped}
+        # print(dumped)
+        # print(json.dumps(cases, default=Case.default))
+
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances' 
-                .format(conceptID, casebaseID), params={"cases" : json.dumps(cases)})
+                .format(conceptID, casebaseID), params={"cases" : json.dumps(caseAsJson, default=Case.default)})
         return r.text
+        
     # Return cases for one specific case-base
     def getAllInstancesInCaseBase(self, conceptID, casebaseID):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/instances'.format(conceptID, casebaseID))

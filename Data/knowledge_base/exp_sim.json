@@ -1,0 +1,57 @@
+{
+    "__class__": "KnowledgeBase",
+    "name": "exp_sim.json",
+    "id": 1,
+    "KB": {
+        "0": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                5
+            ],
+            "feature": [
+                2,
+                0
+            ],
+            "precision": [
+                0.8726415094339622,
+                0.9527272727272728
+            ],
+            "coverage": [
+                0.5451,
+                0.0928
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "1": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                7,
+                0,
+                6
+            ],
+            "feature": [
+                2,
+                4,
+                5,
+                0
+            ],
+            "precision": [
+                0.329700272479564,
+                0.4727021423635107,
+                0.9124203821656051,
+                0.9782082324455206
+            ],
+            "coverage": [
+                0.1759,
+                0.0484,
+                0.0255,
+                0.0163
+            ],
+            "prediction": 1,
+            "user_defined": false
+        }
+    }
+}
