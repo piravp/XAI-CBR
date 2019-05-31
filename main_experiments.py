@@ -126,7 +126,7 @@ class Experiments():
             custom_exp = explanation.Explanation(**exp.exp_map) # create explanation object,
             explanations.append(custom_exp)
             predictions.append(custom_exp.exp_map['prediction']) 
-        return explanation, predictions
+        return explanations, predictions # return two lists, one with explanation and one with predictions. 
 
     def get_cases(self, instances, predictions, explanations, weights, KB): 
         case_objects = [] # list of cases
@@ -136,7 +136,7 @@ class Experiments():
             case_objects.append(Case(age=inc[0], workclass=inc[1], education=inc[2], martial_status=inc[3], occupation=inc[4],
                 relationship=inc[5], race=inc[6], sex=inc[7], capital_gain=inc[8], capital_loss=inc[9],
                 hours_per_week=inc[10],country=inc[11],
-                weight=str(attributions[i]), prediction = predictions[i], explanation = exp_id))
+                weight=str(weights[i]), prediction = predictions[i], explanation = exp_id))
         return case_objects
 
     def start_MyCBR(self, project, jar, storage=False): # Start myCBR project file # TO put everything into the same console, remove flag.
@@ -152,7 +152,7 @@ class Experiments():
             count += 1
             time.sleep(5)
             status = self.CBR.checkStatus()
-            if(count == 5):
+            if(count == 8):
                 print("Took too long time to start up project")
                 self.stop_MyCBR()
                 exit()
@@ -357,10 +357,21 @@ class Experiments():
         self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
 
         # Genererate case objects from these.   
-        cases = self.get_cases(instances = init_cases, predictions = prediction, 
+        cases = self.get_cases(instances = init_cases, predictions = predictions, 
                                 explanations = explanations, weights = attributions, KB = self.KB)
-        cases = self.get_cases(instances = init_cases, predictions = prediction,
-                                explanations = explanations, weights = attributions, KB = self.KB)
+        
+        cases_test = self.get_cases(instances = test_cases, predictions = test_predictions,
+                                explanations = test_explanations, weights = test_attributions, KB = self.KB_test)
+        #print(json.dumps(json.dumps(cases,default=Case.default)))
+        #print("cases:",json.dumps(cases,default=Case.default))
+
+        #print(json.dumps(cases_test,default=Case.default))
+
+        # put the cases into CaseBase via rest api
+
+        #print(self.CBR.addInstancesCase(casebaseID = casebaseID, conceptID = conceptID, case=cases[0]))
+
+        print(self.CBR.addInstancesCases(casebaseID = casebaseID, conceptID = conceptID, cases=cases))
 
         # INIT EXPERIMENT:
     
@@ -414,6 +425,11 @@ class Experiments():
         # Simply start the Server, and dont stop running
         self.start_MyCBR(project=project,jar=jar)
         self.myCBR_running() # Continue running.
+
+        conceptID = self.CBR.getConceptID()
+        casebaseID = self.CBR.getCaseBaseID()
+        
+        print(conceptID, casebaseID)
 
 def check_bool(value):
     if(value == "True"):
@@ -480,10 +496,10 @@ if __name__ == "__main__":
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_1"): # Test multiple different value combinations.
-        N = 100 # number of total cases to test
+        N = 2 # number of total cases to test
         M = 10 # amount of cases we add per test.
-        print("Starging Experiment 1 with num_cases = , num_retrievals = ".format(args.num_cases, args.num_retrieval))
-        project = projects/"adult_exp1"/"adult_empty.prj"
+        print("Starging Experiment 1")
+        project = projects/"adult_exp1"/"adult_exp1.prj"
         # For experiment 1, we require a empty case-base, that we fill with cases and explanation.
         try:
             experiments.run_experiment_1(N=N, M=M, project=project.absolute(), jar=jar.absolute())

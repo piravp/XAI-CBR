@@ -35,12 +35,33 @@ class Case(json.JSONEncoder):
         self.explanation = explanation      # id pointer to knowledge base.
         # TODO: Turn String to int values.
 
+        self.instanceJson = lambda : {
+            'cases':[{
+                "Age": self.age,
+                "Workclass": self.workclass,
+                "Education": self.education,
+                "MaritalStatus": self.martial_status,
+                "Occupation": self.occupation,
+                "Relationship": self.relationship,
+                "Race": self.race,
+                "Sex": self.sex,
+                "CapitalGain": self.capital_gain,
+                "CapitalLoss": self.capital_loss,
+                "HoursPerWeek": self.hours_per_week,
+                "Country": self.country,
+                "Weight": str(self.weight),
+                "Salary": self.prediction,
+                "Explanation": self.explanation
+            }]
+        }
+
     def checkSimilarity(self, other):
         # Check the similarity between this case and another.
         # Simply check wheter or not the explanation fits
         pass
 
-    @staticmethod
+    # pylint: disable=E0202
+    @staticmethod 
     def default(o):
         return {
             "Age":            o.age,
