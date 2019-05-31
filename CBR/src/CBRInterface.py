@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib
 import seaborn as sb
 import matplotlib.pyplot as plt
-from CBR.src.case import Case
+from case import Case
 # https://www.openml.org/d/1590
 
 class RESTApi:
@@ -96,6 +96,11 @@ class RESTApi:
     #     return r.status_code
 
     # Add several instances
+    # Add instances
+    #input should be:
+    #{cases: 
+    # [{id:"caseid0",otherattribute:value,..},..,{id:"caseid1",otherattribute:value,..}] 
+    # }
     # An instance is created by providing conceptID, casebaseID and arbitrary caseID(string) and doing a PUT call
     def addInstancesJSON(self, casebaseID, conceptID, cases):
         print({"cases" : json.dumps(cases)})
@@ -105,21 +110,28 @@ class RESTApi:
         return r.text
         # return 'http://localhost:8080/concepts/{}/casebases/{}/instances?{}'.format(conceptID, casebaseID, cases)
 
-    def addInstancesCases(self, casebaseID, conceptID, cases):
 
-        # dumped = json.dumps(cases, default=Case.default)
-        # dumped = json.dumps(cases, default=Case.default)
-        caseAsJson = {
-            "cases" : cases
-        }
-        # dumped = {'cases' : dumped}
-        # print(dumped)
-        # print(json.dumps(cases, default=Case.default))
-
-        r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances' 
-                .format(conceptID, casebaseID), params={"cases" : json.dumps(caseAsJson, default=Case.default)})
+    def addInstancesCase(self, casebaseID, conceptID, case):
+        print(json.dumps(case.instanceJson()))
+        r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances?' 
+                .format(conceptID, casebaseID), params={"cases" : json.dumps(case.instanceJson())})
         return r.text
+
+    def addInstancesCases(self, casebaseID, conceptID, cases):
+        # Requires
+        # "cases":'cases':[{c1}{c2}]
+        # {'cases':[{'Age':10},{'Age':30}]}
+        # "cases"={'cases':[{'Age':10},{'Age':30}]}
+        caseAsJson = {
+            "cases":cases
+        }
+        print(json.dumps(caseAsJson,default=Case.default))
+        #print(json.dumps(caseAsJson))
         
+        r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances?' 
+                .format(conceptID, casebaseID), params={"cases" : json.dumps(caseAsJson,default=Case.default)})
+        return r.text
+    
     # Return cases for one specific case-base
     def getAllInstancesInCaseBase(self, conceptID, casebaseID):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/instances'.format(conceptID, casebaseID))
