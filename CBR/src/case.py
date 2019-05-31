@@ -9,7 +9,7 @@ class Case(json.JSONEncoder):
         #self.column_index = ()
         self.similarity = similarity
 
-        self.age = age                      # intege <0,+>
+        self.age = age                      # integer <0,+>
         self.workclass = workclass          # 'Federal-gov', 'Local-gov', 'Private', 'Self-emp-inc', 'Self-emp-not-inc',
                                             #+'State-gov', 'Without-pay'
         self.education = education          # 'Associates', 'Bachelors', 'Doctorate', 'Dropout', 'High School grad', 
@@ -64,22 +64,22 @@ class Case(json.JSONEncoder):
     @staticmethod 
     def default(o):
         return {
-            "Age":            o.age,
-            "CapitalGain":    o.capital_gain,
-            "CapitalLoss":    o.capital_loss,
-            "Country":        o.country,
-            "Education":      o.education, 
-            "Explanation":    o.explanation,
-            "HoursPerWeek":   o.hours_per_week,
-            "MaritalStatus":  o.martial_status,
-            "Occupation":     o.occupation,
-            "Prediction":     o.prediction, 
-            "Race":           o.race,
-            "Relationship":   o.relationship,
-            "Sex":            o.sex,
-            "Weight":         str(o.weight),
-            "Workclass":      o.workclass
-            }
+                "Age":            o.age,
+                "CapitalGain":    o.capital_gain,
+                "CapitalLoss":    o.capital_loss,
+                "Country":        o.country,
+                "Education":      o.education, 
+                "Explanation":    o.explanation,
+                "HoursPerWeek":   o.hours_per_week,
+                "MaritalStatus":  o.martial_status,
+                "Occupation":     o.occupation,
+                "Prediction":     o.prediction, 
+                "Race":           o.race,
+                "Relationship":   o.relationship,
+                "Sex":            o.sex,
+                "Weight":         str(o.weight),
+                "Workclass":      o.workclass
+        }
 
     def __str__(self):
         return json.dumps(Case.default(self))

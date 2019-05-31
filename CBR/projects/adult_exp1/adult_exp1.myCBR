@@ -250,7 +250,7 @@
       <entry name="CapitalLoss" active="true" fct="default function" weight="1.0"/>
       <entry name="Explanation" active="true" fct="default function" weight="1.0"/>
       <entry name="Sex" active="true" fct="default function" weight="1.0"/>
-      <entry name="Prediction" active="true" fct="default function" weight="1"/>
+      <entry name="Prediction" active="true" fct="default function" weight="null"/>
       <entry name="HoursPerWeek" active="true" fct="default function" weight="1.0"/>
       <entry name="Weight" active="true" fct="default function" weight="1.0"/>
       <entry name="MaritalStatus" active="true" fct="default function" weight="1.0"/>

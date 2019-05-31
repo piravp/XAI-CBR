@@ -15,6 +15,11 @@
 import os
 import signal
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+# Turn off warnings
+import tensorflow as tf
+tf.logging.set_verbosity(tf.logging.ERROR)
+
 import pathlib
 import numpy as np
 import subprocess
@@ -202,7 +207,7 @@ class Experiments():
         start = time.clock()
         attributions = self.get_attribution_multiple(init_cases_enc)
         end = time.clock()
-        print("time:", end-start)
+        print("Seconds used to generate attribution weights:", end-start)
 
         start = time.clock()
         explanations = []
@@ -213,8 +218,9 @@ class Experiments():
             custom_exp = explanation.Explanation(**exp.exp_map)
             explanations.append(custom_exp)
             predictions.append(custom_exp.exp_map['prediction']) 
+            print("Generated explanation for case {}.".format(i))
         end = time.clock()
-        print("time:", end-start)
+        print("Seconds used to generate anchor explanations:", end-start)
 
         # Create cases from these
 
@@ -244,7 +250,7 @@ class Experiments():
     # **************************** EXPERIMENTS *****************************
     ########################################################################
 
-    def run_experiment_sim(self, project, jar, storage=False):
+    def run_experiment_sim(self, N, project, jar, storage=True):
         """
             ? Test different similarity measures against the CaseBase
             
@@ -278,10 +284,37 @@ class Experiments():
             # And get the explanation from each.
             raise ValueError("CaseBase is not empty, can't perform experiment")
 
+        self.dataset.data_validation # Attributes, encoded and all
+        self.dataset.validation_labels # labels, 0s and 1s
+        
+        n = N
+
+        # Select random number of indexes from validation indexes
+        idx_cases_val = np.random.choice(self.dataset.validation_idx, n, replace=False)# non repeating instances
+        # idx_cases_val = np.sort(idx_cases_val) # easier to work with
+
+        # select random number of index from test indexes, to vertify the similarity.
+        idx_cases_test = np.random.choice(self.dataset.test_idx, 10, replace=False)# non repeating instances
+        # idx_cases_test = np.sort(idx_cases_test) # easier to work with
+
+        # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input. Validation set.
+        init_cases = self.dataset.data_test_full.values[idx_cases_val]
+        init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
+        init_cases_labels = self.dataset.labels_test[idx_cases_val] # labels corresponding to input. True labels
+
+        # Test set.
+        test_cases = self.dataset.data_test_full.values[idx_cases_test]
+        test_cases_enc = self.anchors_explainer.encoder.transform(self.dataset.data_test_enc_full[idx_cases_test])
+
+        # Now we can generate cases from these lists, and vertify their results in the next examples.
+
+        # Generate cases from the list, with or without explanation parts.
+    
+
         start = time.clock()
         attributions = self.get_attribution_multiple(init_cases_enc)
         end = time.clock()
-        print("time:", end-start)
+        print("Seconds used to generate attribution weights:", end-start)
 
         start = time.clock()
         explanations = []
@@ -292,8 +325,39 @@ class Experiments():
             custom_exp = explanation.Explanation(**exp.exp_map)
             explanations.append(custom_exp)
             predictions.append(custom_exp.exp_map['prediction']) 
+            print("Generated explanation for case {}.".format(i))
         end = time.clock()
-        print("time:", end-start)
+        print("Seconds used to generate anchor explanations:", end-start)
+
+        # Create cases from these
+
+
+        # Create knowledge-base
+        print('Checking knowledge-base...')
+        self.KB = knowledge_base.KnowledgeBase("exp_sim")
+        self.KB.reset_knowledge() # empty the knowledge-base before we begin.
+
+        initial_case_objects = [] # list of cases
+        for i, inc in enumerate(init_cases):
+            exp_id = self.KB.add_knowledge(explanations[i])  
+            case = Case(age=inc[0], workclass=inc[1], education=inc[2], martial_status=inc[3], occupation=inc[4], relationship=inc[5], race=inc[6], sex=inc[7], capital_gain=inc[8], 
+                        capital_loss=inc[9], hours_per_week=inc[10],country=inc[11], weight=str(attributions[i]), prediction = predictions[i], explanation = exp_id)
+            initial_case_objects.append(case)
+
+            # self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=case)
+
+        # Add all of the cases (from validation set) to the case-base
+        print(self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=initial_case_objects))
+
+        # Generate Case objects from test_cases, add to separate knowledge-base
+        # idx_cases_test
+
+
+            # print(initial_case_objects[0])
+            # print(json.dumps(initial_case_objects[0], default=Case.default))
+            # print(json.dumps(initial_case_objects, default=Case.default))
+
+        
 
         # Perform different similarty measurments. 
         # Get all similarity measurment functions from the CBR system.
@@ -492,7 +556,7 @@ if __name__ == "__main__":
         print("Starting Experiment sim with verbose", args.verbose)
         project = projects/"adult_sim"/"adult_sim.prj"
         try:
-            experiments.run_experiment_sim(project=project.absolute(), jar=jar.absolute())
+            experiments.run_experiment_sim(N=2, project=project.absolute(), jar=jar.absolute())
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_1"): # Test multiple different value combinations.
@@ -506,10 +570,16 @@ if __name__ == "__main__":
         finally:
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_2"):
+        project = projects/"adult_full_s"/"adult_full_s.prj"
         try:
             experiments.run_experiment_2(project=project.absolute(), jar=jar.absolute())
         finally:
             experiments.stop_MyCBR()
+    # elif(args.experiment == "full"):
+    #     try:
+    #         experiments.run_test_full(N=100, project=project.absolute(), jar=jar.absolute())
+    #     finally:
+    #         experiments.stop_MyCBR()
     elif(args.experiment == "start_server"):
         project = projects/"adult"/"adult.prj"
         experiments.start_server(project.absolute(),jar.absolute())
