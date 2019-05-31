@@ -47,7 +47,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
         
         for k,e in self.KB.items():
             if(e == exp):
-                return k
+                return k # return key k, which is also the ID.
         self.KB[str(self.id)] = exp
             # if storage successfull, return ID, otherwise return error
         self.save() # save knowledge base

@@ -62,6 +62,13 @@ class RESTApi:
         return r_json["concept"][0] # return the first concept ID
 
 
+    # Get all algamationfunctions
+    def getAlgamationFunctions(self,conceptID):
+        #http://localhost:8080/concepts/Person/amalgamationFunctions
+        r = requests.get('http://localhost:8080/concepts/{}/amalgamationFunctions'.format(conceptID))
+        r_json = r.json() # resulting JSON.
+        return r_json["amalgamationFunctions"] # return list of algamation functions.
+
     # TODO: Add support for adding attributes with more types (integer, etc.)
 
     def addAttribute(self, conceptID, attrName, attrJSON):
@@ -97,8 +104,9 @@ class RESTApi:
 
     def addInstancesCases(self,casebaseID, conceptID, cases):
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances' 
-                .format(conceptID, casebaseID), params={"cases" : json.dumps(cases)})
+                .format(conceptID, casebaseID), params={"cases" : json.dumps(cases, default=Case.default)})
         return r.text
+        
     # Return cases for one specific case-base
     def getAllInstancesInCaseBase(self, conceptID, casebaseID):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/instances'.format(conceptID, casebaseID))

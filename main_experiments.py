@@ -210,19 +210,20 @@ class Experiments():
                 hours_per_week=inc[10],country=inc[11],
                 weight=str(attributions[i]), prediction = predictions[i], explanation = i))
 
-        print(initial_case_objects[0])
         print(json.dumps(initial_case_objects[0], default=Case.default))
         print(json.dumps(initial_case_objects, default=Case.default))
+        #print(json.dumps(initial_case_objects, default=Case.default))
+        conceptID = self.CBR.getConceptID()
+        casebaseID = self.CBR.getCaseBaseID()
         
-
-
+        print(conceptID, casebaseID)
+        print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
+        
         # We need to get representations that can be used.
         
-
         # generate cases from these
         # We need to get the prediction from test_cases.
         
-
     ########################################################################
     # **************************** EXPERIMENTS *****************************
     ########################################################################
@@ -240,7 +241,6 @@ class Experiments():
             Finally test wether or not the attribution could improve uppon the similarity measurement.
 
         """
-
         # Start the caseBase 
         np.random.seed(1) # init seed
         #Load the case-base system
@@ -265,7 +265,10 @@ class Experiments():
 
             pass
 
-        # Perform different similarty measurments.
+        # Perform different similarty measurments. 
+        # Get all similarity measurment functions from the CBR system.
+
+        print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
 
 
 
@@ -284,6 +287,8 @@ class Experiments():
         #Initiate cases into the project
         self.start_MyCBR(project, jar, storage) # Start CBR project.
         self.myCBR_running() # Continue running.
+
+
 
         # INIT EXPERIMENT:
         
@@ -414,7 +419,7 @@ if __name__ == "__main__":
         N = [2,4,6,8,16,32,64,128,256]
         M = [2,3,6,8,16,32,64,128,2560]
         print("Starging Experiment 1 with num_cases = , num_retrievals = ".format(args.num_cases, args.num_retrieval))
-        project = projects/"adult2-test"/"adult2.prj"
+        project = projects/"adult_exp1"/"adult_empty.prj"
         # For experiment 1, we require a empty case-base, that we fill with cases and explanation.
         try:
             experiments.run_experiment_1(N=args.num_cases, M=args.num_retrieval, project=project.absolute(), jar=jar.absolute())

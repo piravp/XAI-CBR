@@ -40,10 +40,8 @@ class Case(json.JSONEncoder):
         # Simply check wheter or not the explanation fits
         pass
 
-    # pylint: disable=E0202
-    def default(self, o): # Return the case as json, for when to put into the CBR system
-        # Everything should be a string?
-        print("defaulting", type(o))
+    @staticmethod
+    def default(o):
         return {
             "Age":            o.age,
             "CapitalGain":    o.capital_gain,
@@ -61,10 +59,7 @@ class Case(json.JSONEncoder):
             "Weight":         str(o.weight),
             "Workclass":      o.workclass
             }
-        #else:
-            #print("Default...",type(obj))
-            #return json.JSONEncoder.default(self, obj)
 
     def __str__(self):
-        return json.dumps(self.default(self))
+        return json.dumps(Case.default(self))
 
