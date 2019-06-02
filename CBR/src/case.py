@@ -73,7 +73,7 @@ class Case(json.JSONEncoder):
                 "HoursPerWeek":   o.hours_per_week,
                 "MaritalStatus":  o.martial_status,
                 "Occupation":     o.occupation,
-                "Prediction":     o.prediction, 
+                "Prediction":     str(o.prediction),
                 "Race":           o.race,
                 "Relationship":   o.relationship,
                 "Sex":            o.sex,
