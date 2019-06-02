@@ -118,16 +118,10 @@ class RESTApi:
         return r.text
 
     def addInstancesCases(self, casebaseID, conceptID, cases):
-        # Requires
-        # "cases":'cases':[{c1}{c2}]
-        # {'cases':[{'Age':10},{'Age':30}]}
-        # "cases"={'cases':[{'Age':10},{'Age':30}]}
+        # Requires "cases":{"cases":[{c1}{c2}]}
         caseAsJson = {
             "cases":cases
         }
-        print(json.dumps(caseAsJson,default=Case.default))
-        #print(json.dumps(caseAsJson))
-        
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances?' 
                 .format(conceptID, casebaseID), params={"cases" : json.dumps(caseAsJson,default=Case.default)})
         return r.text

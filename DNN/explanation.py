@@ -42,7 +42,7 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             exp_map['prediction'] = int(prediction)
             super(Explanation, self).__init__(type_='tabular', exp_map=exp_map, as_html=None)
 
-    def get_explanation(self,decoder_f,decoder_v, partial_index=None):
+    def get_explanation(self,decoder_f, decoder_v, partial_index=None):
         # return string: "a"="1" AND "b"="2"
         feature = self.features(partial_index)
         names = self.names(partial_index)
@@ -53,6 +53,15 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
 
     def __str__(self): 
         return str(self.exp_map)
+
+    def check_similarity(self,other):
+        """ Check if two explanations fit on eachother """
+        # Simply check if a the two lists 'feature' and 'names' are equal to eachother.
+        if( self.exp_map["feature"] == other.exp_map["feature"] and 
+            self.exp_map["names"] == other.exp_map["names"]):
+            return True
+        return False
+
     
     def __eq__(self, other):
         """Override the default Equals behavior"""

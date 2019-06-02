@@ -102,7 +102,7 @@ class Experiments():
 
         return attribution_weights_instance # return list of attributions.
 
-    def get_attribution_multiple(self, instances):
+    def get_attribution_multiple(self, instances, compress=True):
         attribution_weights_full = []
         with DeepExplain(session=K.get_session()) as de:
             input_tensors = self.bb.model.inputs
@@ -112,28 +112,34 @@ class Experiments():
             attribution = de.explain('intgrad',target_tensor, input_tensors, 
                                         [self.anchors_explainer.encoder.transform(instances).toarray()])
             for attrib in attribution[0]:
-                attribution_weights_instance = []
-                # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
-                start = 0
-                for n in self.n_values:
-                    compressed = sum(attrib[start:start+n])
-                    attribution_weights_instance.append(np.around(compressed, decimals=4))
-                    start += n                                                          # increase start slice
-                attribution_weights_full.append(attribution_weights_instance)      # need to be converted to string to save in case-base
+                if(not compress): # If we to compress or not.
+                    attribution_weights_full.append(attrib.tolist())
+                else:
+                    attribution_weights_instance = []
+                    # Compress attribution vector (71 elements, based on one-hot-vector) to only needing 12 elements
+                    start = 0
+                    for n in self.n_values:
+                        compressed = sum(attrib[start:start+n])
+                        attribution_weights_instance.append(np.around(compressed, decimals=4))
+                        start += n                                                          # increase start slice
+                    attribution_weights_full.append(attribution_weights_instance)      # need to be converted to string to save in case-base
                 
         return attribution_weights_full
 
-    def get_explanation_prediction(self, instances):
+    def get_explanation_prediction(self, encoding):
         explanations = []
         predictions = []
-        for instance in instances:
+        for instance in encoding:
             exp = self.anchors_explainer.explain_instance(instance, self.bb.predict, threshold=0.95,verbose=False)
             custom_exp = explanation.Explanation(**exp.exp_map) # create explanation object,
             explanations.append(custom_exp)
             predictions.append(custom_exp.exp_map['prediction']) 
         return explanations, predictions # return two lists, one with explanation and one with predictions. 
 
-    def get_cases(self, instances, predictions, explanations, weights, KB): 
+    def get_cases(self, instances, encoding, KB, compress): 
+        attributions = self.get_attribution_multiple(encoding, compress)
+        explanations, predictions = self.get_explanation_prediction(encoding)
+
         case_objects = [] # list of cases
         for i, inc in enumerate(instances):  
             exp_id = KB.add_knowledge(explanations[i])
@@ -141,8 +147,40 @@ class Experiments():
             case_objects.append(Case(age=inc[0], workclass=inc[1], education=inc[2], martial_status=inc[3], occupation=inc[4],
                 relationship=inc[5], race=inc[6], sex=inc[7], capital_gain=inc[8], capital_loss=inc[9],
                 hours_per_week=inc[10],country=inc[11],
-                weight=str(weights[i]), prediction = predictions[i], explanation = exp_id))
+                weight=attributions[i], prediction = predictions[i], explanation = exp_id))
         return case_objects
+
+    def generate_init_cases(self,N, compress=True):
+        """ 
+            N is number of cases to generate
+            Generate initial cases from validation data to query the CBR system with.
+            Returns a list of case objects.
+        """
+        # Select random number of indexes from validation indexes
+        idx_cases_val = np.random.choice(self.dataset.validation_idx, N, replace=False)# non repeating instances
+
+        # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input.
+        init_cases = self.dataset.data_test_full.values[idx_cases_val]
+        init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
+
+        cases = self.get_cases(instances = init_cases, encoding=init_cases_enc, KB = self.KB, compress=compress)
+        return cases        
+
+    def generate_test_cases(self, N, compress=True):
+        """ 
+            N is number of cases to generate
+            Generate initial knowledge cases from test data to be put into the CBR system.
+            Returns a list of case objects.
+        """
+        # select random number of index from test indexes, to vertify the similarity.
+        idx_cases_test = np.random.choice(self.dataset.test_idx, N, replace=False)# non repeating instances
+
+        test_cases = self.dataset.data_test_full.values[idx_cases_test]
+        test_cases_enc = self.dataset.data_test_enc_full[idx_cases_test]
+
+        cases_test = self.get_cases(instances = test_cases, encoding=test_cases_enc, KB = self.KB_test, compress=compress)
+        return cases_test
+
 
     def start_MyCBR(self, project, jar, storage=False): # Start myCBR project file # TO put everything into the same console, remove flag.
         print("Starting myCBR Rest server") # ,stdout=PIPE,stderr=PIPE
@@ -365,8 +403,7 @@ class Experiments():
         print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
 
 
-
-    def run_experiment_1(self, N, M, project, jar, storage=False): # N is number of cases in casebase, M is number of retrievals
+    def run_experiment_1(self, N, N_T, M, project, jar, storage=False): # N is number of cases in casebase, M is number of retrievals
         """ 
             ? Test whether or not we are able to use previous explanations in the CBR system 
             
@@ -392,50 +429,24 @@ class Experiments():
         if(size != 0):
             raise ValueError("The case-base is not empty")
 
-        # Select random number of indexes from validation indexes
-        idx_cases_val = np.random.choice(self.dataset.validation_idx, N, replace=False)# non repeating instances
-
-        # select random number of index from test indexes, to vertify the similarity.
-        idx_cases_test = np.random.choice(self.dataset.test_idx, N, replace=False)# non repeating instances
-
-        # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input.
-        init_cases = self.dataset.data_test_full.values[idx_cases_val]
-        init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
-
-        test_cases = self.dataset.data_test_full.values[idx_cases_test]
-        test_cases_enc = self.dataset.data_test_enc_full[idx_cases_test]
-
-        #Generate validation cases.
-        attributions = self.get_attribution_multiple(init_cases_enc)
-        explanations, predictions = self.get_explanation_prediction(init_cases_enc)
-
-        # Generate test cases
-        test_attributions = self.get_attribution_multiple(test_cases_enc)
-        test_explanations, test_predictions =  self.get_explanation_prediction(test_cases_enc)
-
         # Init knowledge base for validation data
         self.KB = knowledge_base.KnowledgeBase("exp1")
         self.KB.reset_knowledge() # empty the knowledge-base before we begin.
 
         self.KB_test = knowledge_base.KnowledgeBase("exp1_test")
         self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
-
-        # Genererate case objects from these.   
-        cases = self.get_cases(instances = init_cases, predictions = predictions, 
-                                explanations = explanations, weights = attributions, KB = self.KB)
         
-        cases_test = self.get_cases(instances = test_cases, predictions = test_predictions,
-                                explanations = test_explanations, weights = test_attributions, KB = self.KB_test)
-        #print(json.dumps(json.dumps(cases,default=Case.default)))
-        #print("cases:",json.dumps(cases,default=Case.default))
+        init_cases = self.generate_init_cases(N)
+        test_cases = self.generate_test_cases(N_T) 
+        
+        print(len(init_cases), len(test_cases))
 
-        #print(json.dumps(cases_test,default=Case.default))
 
-        # put the cases into CaseBase via rest api
-
-        #print(self.CBR.addInstancesCase(casebaseID = casebaseID, conceptID = conceptID, case=cases[0]))
-
-        print(self.CBR.addInstancesCases(casebaseID = casebaseID, conceptID = conceptID, cases=cases))
+        # * PERFORM EXPERIMENT
+        for n in range(M,N+M,M):
+            print("Adding cases from",n-M,"to",n)
+            # * Add cases to CaseBase in bulks.
+            print("Cases added:",self.CBR.addInstancesCases(casebaseID = casebaseID, conceptID = conceptID, cases=init_cases[n-M:n]))
 
         # INIT EXPERIMENT:
     
@@ -461,13 +472,96 @@ class Experiments():
         """
         np.random.seed(1) # init seed
 
-    def run_experiment_4(self,project, jar, storage=False):
+    def run_experiment_4(self,N,N_T,M, compress=True):
         """
-            ? Test whether the attribution score can be used for retrieval alone on the case-base
+            ? Test whether the attribution score can be used for retrieval alone on the CaseBase
 
         """
+        ############# initializeing #############
         np.random.seed(1) # init seed
-        # Init the case-base
+        #Load the case-base system
+
+        # Init knowledge base for validation data
+        self.KB = knowledge_base.KnowledgeBase("exp4")
+        self.KB.reset_knowledge() # empty the knowledge-base before we begin.
+
+        self.KB_test = knowledge_base.KnowledgeBase("exp4_test")
+        self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
+
+        # Genererate case objects from these.   
+        test_cases = self.generate_test_cases(N_T, compress) 
+        init_cases = self.generate_init_cases(N, compress)
+
+        ################### STARTING EXPERIMENT ###################
+
+        print("Generating",N,"cases completed")
+
+        print("Cosine Similarity, self:",test_cases[0].checkCosineDistance(test_cases[0]))
+        print("Eucluidian similarity, self:", test_cases[0].checkEuclidianDistance(test_cases[0]))
+
+        print(test_cases[0])
+
+        measurements = []
+        measurements_hits = []
+        measurements_top_k = []
+        # * PERFORM EXPERIMENT
+        for n in range(M,N+M,M):
+            # We don't need to add cases to MyCBR in this experiment, but simply only use a section of the CaseBase list at a time.
+            cases = init_cases[0:n]
+            top_hits = 0 # count how many of the explanations are similar enough to be used again.
+            possible_hits = 0 # count wheter or not any of the explanations present could be used to explain.
+            top_k = 0 # if we hid the target from the top k cases.
+            # We need query every case
+            for t_c in test_cases:
+                # Query the cases for most similar case.
+                #query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0]) # sort by distance
+                query_c = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                # Check if the explanation from query_c top works
+                top_case = cases[query_c[0][1]] # get ID of best case
+                distance = query_c[0][0]
+
+                # TOP RESULT
+                exp_test_case = self.KB_test.get(t_c.explanation)
+                exp_val_case = self.KB.get(top_case.explanation)
+                if(exp_test_case.check_similarity(exp_val_case)):
+                    top_hits += 1 # one more hit.
+                    print("EQUAL:",exp_test_case.exp_map["feature"] ,"==", exp_val_case.exp_map["feature"],"case:",query_c[0][1],"d:", distance)
+                
+                top_k_hit = False
+                for q,i in query_c[:5]: # check first 5
+                    case = cases[i] # get ID of best case
+                    exp_case = self.KB.get(case.explanation)
+                    if(exp_test_case.check_similarity(exp_case)):
+                        top_k_hit = True
+
+                hit = False
+                #TODO: Count how far down the right solution was, if it existed at all. 
+                for c in cases:
+                    
+                    exp_case = self.KB.get(c.explanation)
+                    if(exp_test_case.check_similarity(exp_case)):
+                        hit = True
+                if(hit):
+                    possible_hits += 1
+                
+                if(top_k_hit):
+                    top_k += 1
+
+                #if(distance > 0.2):
+                #    continue # go to next iteration, we didnt find an fitting explanation
+                #print("Distance",query_c[0][0])
+                #print(top_case)
+                #print(t_c)
+                #Test the explanation against the test_case
+                #print(self.KB_test.get(t_c.explanation))
+                #print(self.KB.get(top_case.explanation))
+            measurements_hits.append(possible_hits)
+            measurements.append(top_hits)
+            measurements_top_k.append(top_k)
+            print("")
+        print(measurements)
+        print(measurements_hits)
+        print(measurements_top_k)
 
         # pre initiate 
 
@@ -487,7 +581,9 @@ class Experiments():
         
     def start_server(self, project, jar, storage=False):
         # Simply start the Server, and dont stop running
-        self.start_MyCBR(project=project,jar=jar)
+        subprocess.call(["java","-DMYCBR.PROJECT.FILE={}".format(project.absolute()),
+                            "-Dsave={}".format(storage),"-jar",str(jar.absolute())])
+        #self.start_MyCBR(project=project,jar=jar)
         self.myCBR_running() # Continue running.
 
         conceptID = self.CBR.getConceptID()
@@ -509,11 +605,10 @@ def check_positive(value):
     return ivalue
 
 if __name__ == "__main__":
-    
+    ############ Create Argument Parser ############
     parser = argparse.ArgumentParser(description="Experiments controller")
 
     parser.add_argument("-v","--verbose",default=False, type=bool)
-    #parser.add_argument("-s","--storage",default=False, type=bool)
 
     subparsers = parser.add_subparsers(title="action", dest="experiment", help="experiment to run")
 
@@ -541,17 +636,18 @@ if __name__ == "__main__":
     args = parser.parse_args() # get arguments from command line
 
     if(args.experiment is None):
-        raise ValueError("The arguments required to run, type -h for help")
+        raise ValueError("The experiment arguments required to run, type -h for help")
 
 
     experiments = Experiments(verbose=args.verbose)
 
     # Switch between the valid experiments
-
+    # ---------------- Switch between valid experiments for ease of use ------------
     parent = pathlib.Path(__file__).parent # Keep track of folder path of model.
     projects = parent/"CBR"/"projects"
     # Java runnable file of MyCBR REst
     jar = parent/"CBR"/"libs"/"mycbr-rest"/"target"/"mycbr-rest-1.0-SNAPSHOT.jar"
+
     if(args.experiment == "exp_sim"):
         print("Starting Experiment sim with verbose", args.verbose)
         project = projects/"adult_sim"/"adult_sim.prj"
@@ -560,13 +656,14 @@ if __name__ == "__main__":
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_1"): # Test multiple different value combinations.
-        N = 2 # number of total cases to test
+        N = 20 # number of total cases to test
+        N_T = 100 # number of test_cases
         M = 10 # amount of cases we add per test.
         print("Starging Experiment 1")
         project = projects/"adult_exp1"/"adult_exp1.prj"
         # For experiment 1, we require a empty case-base, that we fill with cases and explanation.
         try:
-            experiments.run_experiment_1(N=N, M=M, project=project.absolute(), jar=jar.absolute())
+            experiments.run_experiment_1(N=N, M=M, N_T=N_T, project=project.absolute(), jar=jar.absolute())
         finally:
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_2"):
@@ -575,6 +672,11 @@ if __name__ == "__main__":
             experiments.run_experiment_2(project=project.absolute(), jar=jar.absolute())
         finally:
             experiments.stop_MyCBR()
+    elif(args.experiment == "exp_4"):
+        N = 100 # number of total cases to test
+        N_T = 100 # number of test_cases
+        M = 10 # amount of cases we add per test.
+        experiments.run_experiment_4(N=N,N_T = N_T,M=M)
     # elif(args.experiment == "full"):
     #     try:
     #         experiments.run_test_full(N=100, project=project.absolute(), jar=jar.absolute())
@@ -582,7 +684,9 @@ if __name__ == "__main__":
     #         experiments.stop_MyCBR()
     elif(args.experiment == "start_server"):
         project = projects/"adult"/"adult.prj"
+        # Start Java program in the same terminal, for easy of use
         experiments.start_server(project.absolute(),jar.absolute())
+
     elif(args.experiment == "test"):
         experiments.run_test()
     
