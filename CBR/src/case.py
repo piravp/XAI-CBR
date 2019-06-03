@@ -1,5 +1,6 @@
 import ast
 import json
+from scipy import spatial
 class Case(json.JSONEncoder):
     def __init__(self, age:int, workclass:str, education:str, martial_status:str, occupation:str,
         relationship:str, race:str, sex:str, capital_gain:int, capital_loss:int,
@@ -50,10 +51,16 @@ class Case(json.JSONEncoder):
                 "HoursPerWeek": self.hours_per_week,
                 "Country": self.country,
                 "Weight": str(self.weight),
-                "Salary": self.prediction,
+                "Prediction": self.prediction,
                 "Explanation": self.explanation
             }]
         }
+
+    def checkCosineDistance(self,other):
+        return spatial.distance.cosine(self.weight, other.weight)
+
+    def checkEuclidianDistance(self,other):
+        return spatial.distance.euclidean(self.weight, other.weight)
 
     def checkSimilarity(self, other):
         # Check the similarity between this case and another.

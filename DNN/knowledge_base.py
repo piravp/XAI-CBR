@@ -27,7 +27,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
         # file_name is where we will store the knowlede base.
         # Either create a new file, if file_name do not already exist
         if(not filepath.exists()):
-            print("Nothing to load, no file")
+            print("Nothing to load, no file, creating new empty knowledge base")
             self.id = 0 # init ID to zero. 
             self.KB = defaultdict(Explanation) # empty json object
 
@@ -45,13 +45,15 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
         if(str(self.id) in self.KB.keys()): # If ID spot is not free.
             self.update_id() # simply need to figure out the next free number from our dict
         
+        # Check if the explanation generated is exactly the same as a previous explanation in the KB.
+        # This is when the Anchors are the same, and the coverage/precion scores are the same.
         for k,e in self.KB.items():
             if(e == exp):
-                return k # return key k, which is also the ID.
+                return str(k) # return key k, which is also the ID.
         self.KB[str(self.id)] = exp
             # if storage successfull, return ID, otherwise return error
         self.save() # save knowledge base
-        return self.id # id that we need to store in the Case.
+        return str(self.id) # id that we need to store in the Case.
 
     def update_id(self): # TODO: use the IDS of each explanation as well, not just number of instances.
         keys = self.KB.keys() # simply need a number not in this list.
@@ -86,6 +88,9 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
 
 
     def load_json(self, dct): # dict -> python objects
+        # __class__: explanation
+        #   KB:
+        #       __class__:explanation
         dct = json.load(dct) # read json file: str -> dict
         if("__class__" in dct):
             class_name = dct.pop("__class__")
@@ -97,6 +102,7 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
                 KB = dct.pop("KB")
                 for key, exp in KB.items():
                     class_name = exp.pop("__class__")
+                    # deal with explanation
                     if(class_name == "Explanation"):
                         self.KB[key] = Explanation(**exp)
                 return True
@@ -108,6 +114,13 @@ class KnowledgeBase(json.JSONEncoder, json.JSONDecoder):
             return self.KB.get(id)
         else: # Handle cases where knowledge is not present.
             return default
+
+    def get_user_knowledge(self): # simply return all the knowledge assosiated with the user.
+        user_knowledge = []
+        for key, knowledge in self.KB.items():
+            if(knowledge.user_defined):
+                user_knowledge.append(knowledge)
+        return knowledge
 
     def delete_knowledge(self,id,save=False): #Try to delete case with ID
         # simply pop the ID from dictionary and save.
