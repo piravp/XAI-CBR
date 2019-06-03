@@ -2,6 +2,7 @@
 from Induction.Anchor import anchor_explanation
 import random
 import json
+import copy
 class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # extend AnchorExplanation
     def __init__(self,names,feature,precision, prediction,coverage, instance=None, user_defined=True, **args):
         self.user_defined = user_defined # whether or not a particular explanation was made by anchor or not
@@ -50,6 +51,18 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
         for i,f in enumerate(feature): # f is the feature index, name[i] value index
             tmp.append("{} = {}".format(decoder_f[f], decoder_v[f][names[i]]))
         return ' AND '.join(tmp)
+    
+    def get_partial(self,p:int): #return explanation object.
+        if(p > len(self.features())):
+            p = len(self.features())
+        
+        exp_copy = copy.deepcopy(self)
+        # create explanation object from this one.
+        exp_copy.exp_map['names'] = self.names(p)
+        exp_copy.exp_map['feature'] = self.features(p)
+        exp_copy.exp_map['precision'] = self.precision(p)
+        exp_copy.exp_map['coverage'] = self.coverage(p)
+        return exp_copy # copy part of the explanation, and use it to explain a particular new instance
 
     def __str__(self): 
         return str(self.exp_map)

@@ -4,7 +4,7 @@ from scipy import spatial
 class Case(json.JSONEncoder):
     def __init__(self, age:int, workclass:str, education:str, martial_status:str, occupation:str,
         relationship:str, race:str, sex:str, capital_gain:int, capital_loss:int,
-        hours_per_week:int,country:str, explanation:int, prediction:int, weight, similarity=None, caseID=None):
+        hours_per_week:int,country:str, explanation:int, prediction:int, weight, similarity=None, caseID=None, KB = None):
         # column index: age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)
         #self.column_index = ()
@@ -36,25 +36,25 @@ class Case(json.JSONEncoder):
         self.explanation = explanation      # id pointer to knowledge base.
         # TODO: Turn String to int values.
 
-        self.instanceJson = lambda : {
-            'cases':[{
-                "Age": self.age,
-                "Workclass": self.workclass,
-                "Education": self.education,
-                "MaritalStatus": self.martial_status,
-                "Occupation": self.occupation,
-                "Relationship": self.relationship,
-                "Race": self.race,
-                "Sex": self.sex,
-                "CapitalGain": self.capital_gain,
-                "CapitalLoss": self.capital_loss,
-                "HoursPerWeek": self.hours_per_week,
-                "Country": self.country,
-                "Weight": str(self.weight),
-                "Prediction": self.prediction,
-                "Explanation": self.explanation
-            }]
-        }
+        if(KB is not None):
+            self.KB = KB # knowledge_base, that we keep the different explanations in.
+
+    def check_equal(self,other): # check if a case is exactly the same as this one.
+        if( self.age            == other.age            and
+            self.workclass      == other.workclass      and
+            self.education      == other.education      and
+            self.martial_status == other.martial_status and
+            self.occupation     == other.occupation     and
+            self.race           == other.race           and
+            self.sex            == other.sex            and
+            self.capital_gain   == other.capital_gain   and
+            self.capital_loss   == other.capital_loss   and
+            self.hours_per_week == other.hours_per_week and
+            self.country        == other.country):
+            return True
+        return False
+
+
 
     def checkCosineDistance(self,other):
         return spatial.distance.cosine(self.weight, other.weight)
@@ -62,10 +62,40 @@ class Case(json.JSONEncoder):
     def checkEuclidianDistance(self,other):
         return spatial.distance.euclidean(self.weight, other.weight)
 
-    def checkSimilarity(self, other):
+    def checkCosinePrediction(self,other): # if wrong prediction, no similarity
+        if(self.prediction == other.prediction):
+            return spatial.distance.cosine(self.weight, other.weight)
+        else:
+            return 1
+
+    # We want to figure out if the partial explanation holds related to its own.
+    def checkSimilarity(self, other, KB_s, KB_o): 
+        if(self.prediction != other.prediction): # if not even similar prediction, we might as well return with a low similarity score.
+            return 1 
         # Check the similarity between this case and another.
-        # Simply check wheter or not the explanation fits
-        pass
+        # Return partial or exact match between anchors.
+        exp_s = KB_s.get(self.explanation)
+        exp_o = KB_o.get(other.explanation)
+
+        # Use weights aswell
+        weight_distance = self.checkCosineDistance(other)
+        print(exp_s)
+        print(exp_o)
+
+        #print(exp_1.features(1))
+        #print(exp_1.names(1))
+        limit = len(exp_s.features()) # don't want to overeach
+
+        for exp in range(len(exp_o.features())): # if partial explanation fit, we can use it for generating an explanation.
+            if(exp>= limit):
+                print(exp_o.features(exp))
+        #print(exp_s.features())
+        print(exp_s.names())
+
+        print(self.weight)
+        print(other.weight)
+
+        print(self.checkCosinePrediction(other))
 
     # pylint: disable=E0202
     @staticmethod 
