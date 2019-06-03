@@ -39,7 +39,7 @@ public class InstanceController {
     public Case getInstance(@PathVariable(value = "conceptID") String conceptID,
             @PathVariable(value = "casebaseID") String casebaseID,
             @PathVariable(value = "instanceID") String instanceID) {
-        return new Case(instanceID);
+        return new Case(instanceID, conceptID);
     }
 
     // Get all instances in case base of a concept
@@ -51,18 +51,6 @@ public class InstanceController {
     public Collection<Case> getAllInstances(@PathVariable(value = "conceptID") String conceptID) {
         Project p = App.getProject();
 
-        /*
-         * Query query = new Query(conceptID);
-         * 
-         * System.out.println("p get all instances size: "+p.getAllInstances().size());
-         * //System.out.println("is getallcases"+App.getProject().getSuperConcept().
-         * getAllInstances().size());
-         * //System.out.println("is getallcases"+App.getProject().getSuperConcept().
-         * getAllInstances().size()); List<Instance> instances = new ArrayList<>();
-         * for(ICaseBase iCaseBase : p.getCaseBases().values()){
-         * logger.info("casebase has "+iCaseBase.getCases().size()+" cases ");
-         * instances.addAll(iCaseBase.getCases()); }
-         */
         Collection<Instance> instances = p.getAllInstances();
         Collection<Case> ret = new LinkedList<>();
         for (Instance instance : instances) {

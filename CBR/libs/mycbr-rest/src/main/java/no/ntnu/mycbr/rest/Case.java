@@ -28,7 +28,6 @@ public class Case {
     }
 
     public Case(String caseID, String conceptID) {
-
         Project project = App.getProject();
         Concept myConcept = project.getConceptByID(conceptID);
         Instance aInstance = myConcept.getInstance(caseID);
