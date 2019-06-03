@@ -12,31 +12,30 @@
     
     # Better Comments extension (VS code) used for easier reading of different comments.
 """
+# Turn off warnings
 import os
 import signal
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-# Turn off warnings
 import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.ERROR)
 
+# Helpers libs
 import pathlib
 import numpy as np
 import subprocess
 from subprocess import Popen,CREATE_NEW_CONSOLE,PIPE
 import time
 import json
-
 import argparse
 
-# set seed from numpy to 1.
+# Main libs
 from DNN.kera import network # Import black-box (ANN)
 from DNN.kera import pre_processing # Import dataset preprocessing
 from DNN.Induction.Anchor import anchor_tabular, utils # explanatory framework
 from DNN import knowledge_base,explanation
 from CBR.src import CBRInterface
 from CBR.src.case import Case
-# Integraded gradients
+# Integrated gradients
 from deepexplain.tensorflow import DeepExplain
 from keras import backend as K
 from keras.models import Model
@@ -68,13 +67,58 @@ class Experiments():
         if(verbose):
             self.bb.evaluate(data_train=self.anchors_explainer.encoder.transform(self.dataset.data_train).toarray(),train_labels=self.dataset.train_labels,
                     data_test=self.anchors_explainer.encoder.transform(self.dataset.data_test).toarray(),test_labels=self.dataset.test_labels)
-        
-        # Init IntGrad
-
-        # Init KnowledgeBase
 
         # Init CaseBase
         self.CBR = CBRInterface.RESTApi() # load CBR restAPI class, for easy access.
+
+    # ----------------------------------------------------------------------------------------------------- #
+    #                              H A N D L I N G   M Y C B R                                              #
+    #                       Starting, stopping and checking status of myCBR                                 #
+    # ----------------------------------------------------------------------------------------------------- #
+
+    def start_MyCBR(self, project, jar, storage=False): # Start myCBR project file # TO put everything into the same console, remove flag.
+        print("Starting myCBR Rest server") # ,stdout=PIPE,stderr=PIPE
+        self.process = Popen(["java","-DMYCBR.PROJECT.FILE={}".format(project),
+                            "-Dsave={}".format(storage),"-jar",str(jar)],shell=True)#, creationflags=CREATE_NEW_CONSOLE)
+        # Return once it is up and running
+
+    def myCBR_running(self):
+        status = self.CBR.checkStatus()
+        count = 0
+        while(status == 404 or status == 500): # if not sucessfull, keep sleeping
+            count += 1
+            time.sleep(5)
+            status = self.CBR.checkStatus()
+            if(count == 8):
+                print("Took too long time to start up project")
+                self.stop_MyCBR()
+                exit()
+            print("Current status code myCBR:",status)
+        print("------------MyCBR ready------------")
+        # TODO: count number of steps required
+
+    def stop_MyCBR(self):
+        if(self.process.poll() is None): # check if process is still running.
+            print("KILLING RUNNING PROCESSES BEFORE EXITING")
+            if os.name == 'nt': # teriminate doest work on windows.
+                subprocess.call(['taskkill','/F','/T','/PID',str(self.process.pid)])
+            self.process.terminate() # terminalte process
+
+    def start_server(self, project, jar, storage=False):
+        # Simply start the Server, and dont stop running
+        subprocess.call(["java","-DMYCBR.PROJECT.FILE={}".format(project.absolute()),
+                            "-Dsave={}".format(storage),"-jar",str(jar.absolute())])
+        #self.start_MyCBR(project=project,jar=jar)
+        self.myCBR_running() # Continue running.
+
+        conceptID = self.CBR.getConceptID()
+        casebaseID = self.CBR.getCaseBaseID()
+        print(conceptID, casebaseID)
+
+    # ----------------------------------------------------------------------------------------------------- #
+    #                               G R A D I E N T  A N D  A N C H O R                                     #
+    #           Helpers to generate integrated gradient (single and multiple) and anchor explanations       #
+    # ----------------------------------------------------------------------------------------------------- #
 
     def get_attribution(self, instance):
         # Get attribution from an instance on the black box (ANN)
@@ -136,6 +180,12 @@ class Experiments():
             predictions.append(custom_exp.exp_map['prediction'])
         return explanations, predictions # return two lists, one with explanation and one with predictions. 
 
+
+    # ----------------------------------------------------------------------------------------------------- #
+    #                                 H A N D L I N G  C A S E S                                            #
+    #          Generate cases from validation set, test set and divide cases in batches                     #
+    # ----------------------------------------------------------------------------------------------------- #
+
     def get_cases(self, instances, encoding, KB, compress): 
         attributions = self.get_attribution_multiple(encoding, compress)
         explanations, predictions = self.get_explanation_prediction(encoding)
@@ -150,10 +200,6 @@ class Experiments():
                 weight=attributions[i], prediction = predictions[i], explanation = exp_id))
         return case_objects
 
-    def divide_batches(self, l, n): 
-        # looping till length l 
-        for i in range(0, len(l), n):  
-            yield l[i:i + n] 
     def generate_init_cases(self,N, compress=True):
         """ 
             N is number of cases to generate
@@ -185,34 +231,12 @@ class Experiments():
         cases_test = self.get_cases(instances = test_cases, encoding=test_cases_enc, KB = self.KB_test, compress=compress)
         return cases_test
 
+    # Used to divide list l of cases into batches of n
+    def divide_batches(self, l, n): 
+        # looping till length l 
+        for i in range(0, len(l), n):  
+            yield l[i:i + n] 
 
-    def start_MyCBR(self, project, jar, storage=False): # Start myCBR project file # TO put everything into the same console, remove flag.
-        print("Starting myCBR Rest server") # ,stdout=PIPE,stderr=PIPE
-        self.process = Popen(["java","-DMYCBR.PROJECT.FILE={}".format(project),
-                            "-Dsave={}".format(storage),"-jar",str(jar)],shell=True)#, creationflags=CREATE_NEW_CONSOLE)
-        # Return once it is up and running
-
-    def myCBR_running(self):
-        status = self.CBR.checkStatus()
-        count = 0
-        while(status == 404 or status == 500): # if not sucessfull, keep sleeping
-            count += 1
-            time.sleep(5)
-            status = self.CBR.checkStatus()
-            if(count == 8):
-                print("Took too long time to start up project")
-                self.stop_MyCBR()
-                exit()
-            print("Current status code myCBR:",status)
-        print("------------MyCBR ready------------")
-        # TODO: count number of steps required
-
-    def stop_MyCBR(self):
-        if(self.process.poll() is None): # check if process is still running.
-            print("KILLING RUNNING PROCESSES BEFORE EXITING")
-            if os.name == 'nt': # teriminate doest work on windows.
-                subprocess.call(['taskkill','/F','/T','/PID',str(self.process.pid)])
-            self.process.terminate() # terminalte process
 
     def run_test(self):
         print(self.dataset.__dict__.keys())
@@ -288,34 +312,35 @@ class Experiments():
         # generate cases from these
         # We need to get the prediction from test_cases.
         
-    ########################################################################
-    # **************************** EXPERIMENTS *****************************
-    ########################################################################
+    # ----------------------------------------------------------------------------------------------------- #
+    #                             E  X  P  E  R  I  M  E  N  T  S                                           #
+    #          ************************************************************************                     #
+    # ----------------------------------------------------------------------------------------------------- #
 
     def run_experiment_sim(self, N, project, jar, storage=True):
         """
             Test different similarity measures against the CaseBase
             Fill the case-base with cases, and corresponding knowledge in the knowledge-base
             Query the CaseBase with the different similarity measurements made.
-            Test firstly using only the similarty measure itself ( returns a float for each case)
-            Finally test wether or not the attribution could improve uppon the similarity measurement.
+            Test firstly using only the similarty measure itself (returns a float for each case)
+            Finally test whether or not the attribution could improve upon the similarity measurement.
         """
-        # Start the caseBase 
-        np.random.seed(1) # init seed
-        #Load the case-base system
+        # Init random seed for consistency
+        np.random.seed(1) 
 
-        #Initiate cases into the project
-        self.start_MyCBR(project, jar, storage) # Start CBR project.
+        # Start CBR project
+        self.start_MyCBR(project, jar, storage) 
         self.myCBR_running() # Continue running.
 
         # Get the concept ID, and CaseBase ID
         conceptID = self.CBR.getConceptID()
         casebaseID = self.CBR.getCaseBaseID()
-        
         print('ConceptID:', conceptID, 'CasebaseID:', casebaseID)
-        # Check whether or not the casebase if filled with cases or not.
+
+        # Check whether or not the casebase is filled with cases
         size = self.CBR.getCaseBaseSize(conceptID = conceptID, casebaseID = casebaseID)
         if(size != 0):
+            print('> WARNING! Cases in this test are not meant to be overwritten.')
             raise ValueError("The case-base is not empty")
 
 
@@ -432,7 +457,7 @@ class Experiments():
 
     def run_experiment_2(self,project, jar, storage=False):
         """  
-            ? Test wheter or not we are able to use previous explanations in tandom with custom explanations given by a domain expert.
+            ? Test wheter or not we are able to use previous explanations in tandem with custom explanations given by a domain expert.
 
             Pre Initiate the knowledge-base with custom explanation anchors, to explain a given case-instance. 
             If the expert knowledge fit a new problem, then it is used instead of from the case-base. 
@@ -537,7 +562,6 @@ class Experiments():
         print(measurements)
         print(measurements_hits)
         print(measurements_top_k)
-
         # pre initiate 
 
     def run_experiment_5(self,project, jar, storage=False):
@@ -547,24 +571,12 @@ class Experiments():
         """
         np.random.seed(1) # init seed
     
-
     def run_experiment_x(self):
         """
         
         """
         np.random.seed(1) # init seed
         
-    def start_server(self, project, jar, storage=False):
-        # Simply start the Server, and dont stop running
-        subprocess.call(["java","-DMYCBR.PROJECT.FILE={}".format(project.absolute()),
-                            "-Dsave={}".format(storage),"-jar",str(jar.absolute())])
-        #self.start_MyCBR(project=project,jar=jar)
-        self.myCBR_running() # Continue running.
-
-        conceptID = self.CBR.getConceptID()
-        casebaseID = self.CBR.getCaseBaseID()
-        
-        print(conceptID, casebaseID)
 
 def check_bool(value):
     if(value == "True"):
