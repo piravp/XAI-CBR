@@ -6,27 +6,6 @@
         "0": {
             "__class__": "Explanation",
             "names": [
-                3,
-                2
-            ],
-            "feature": [
-                2,
-                3
-            ],
-            "precision": [
-                0.9468599033816425,
-                0.976878612716763
-            ],
-            "coverage": [
-                0.1322,
-                0.0222
-            ],
-            "prediction": 0,
-            "user_defined": false
-        },
-        "1": {
-            "__class__": "Explanation",
-            "names": [
                 1,
                 0,
                 6,
@@ -71,6 +50,27 @@
                 0.0118
             ],
             "prediction": 1,
+            "user_defined": false
+        },
+        "1": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                1
+            ],
+            "feature": [
+                5,
+                3
+            ],
+            "precision": [
+                0.8927392739273927,
+                0.9901477832512315
+            ],
+            "coverage": [
+                0.1003,
+                0.0276
+            ],
+            "prediction": 0,
             "user_defined": false
         }
     }

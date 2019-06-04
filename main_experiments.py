@@ -397,12 +397,14 @@ class Experiments():
 
         # Create knowledge-base
         print('Checking knowledge-base...')
-        self.KB = knowledge_base.KnowledgeBase("exp_sim")   # Init knowledge base for validation data
-        # self.KB.reset_knowledge() # empty the knowledge-base before we begin.
+        self.KB = knowledge_base.KnowledgeBase("exp_fill")   # Init knowledge base for validation data
+        self.KB.reset_knowledge() # empty the knowledge-base before we begin.
+        self.KB_test = knowledge_base.KnowledgeBase("exp_fill_test")   # Init knowledge base for test data (not used but need to be init)
+        self.KB.reset_knowledge() # empty the knowledge-base before we begin.
+
 
         # Genererate case objects from these.   
-        cases = self.get_cases(instances = init_cases, predictions = predictions, 
-                                explanations = explanations, weights = attributions, KB = self.KB)
+        cases, _ = self.generate_cases(N=N, N_T=1)
         
         # Add all of the cases (from validation set) to the case-base
         # NOTE! HTTP header is limited to about 10 cases, so adding cases need to be done in batches of max 10.
@@ -446,13 +448,19 @@ class Experiments():
         self.KB_test = knowledge_base.KnowledgeBase("exp_sim_test")
         # self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
 
-        _, test_cases = self.generate_cases(N=1, N_T=N_T)
+
+        _dummy, test_cases = self.generate_cases(N=1, N_T=N_T)
         # test_cases = self.generate_test_cases(N_T) 
         print('# of cases from test set:', len(test_cases))
     
 
-        single_test_case = test_cases[0]
-        self.addTestCaseTemporarily(testCase=single_test_case)
+        # single_test_case = test_cases[0]
+
+        for i in range(0, N_T):
+            print(">>>>>>>>> Adding test case {} <<<<<<<<<<<<<".format(i))
+            t_case = test_cases[i]
+            self.addTestCaseTemporarily(testCase=t_case, topK=3)
+            print('\n\n')
         # Delete after use so that one case is not considered before testing the next case
 
 
@@ -468,25 +476,26 @@ class Experiments():
 
 
     # Note that there are no persistent effects as myCBR is run with save(storage) flag set to false
-    def addTestCaseTemporarily(self, testCase):
+    def addTestCaseTemporarily(self, testCase, topK):
         print('\nRunning function addTestCaseTemp()...')
         caseID = self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=[testCase])
         caseID = eval(caseID)[0] #Convert from string to list and get only item
         print('caseID', caseID)
 
-        df = self.CBR.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID=caseID, k=5)
+        df = self.CBR.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID=caseID, k=topK)
         df = df.iloc[1:]    # Exclude the test-case itself which is also returned as it is part of the cb
-        print(df)
+        # print(df)
 
 
         # Print explanation
 
         # Explanation for test case
+        print('\nEXPLANATION FOR TEST CASE:')
         testExpId = testCase.explanation 
         exp = self.KB_test.get(testExpId)
-        print(exp)
+        # print(exp)
         print(exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
-        print()
+        print('---')
 
         # # Explanation for val case (in case-base)
         # res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID='Person-cb010')
@@ -495,14 +504,14 @@ class Experiments():
         # print(test_exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
         # print()
 
-        print()
+        print('\TOP K MOST SIMILAR VALIDATION CASES:')        
         for casename, row in df.iterrows():
             # Explanation for val case (in case-base)
-            print(casename, row)
+            print(casename, row.to_string())
             res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID=casename)
             valExpId = int(res["case"]["Explanation"])
-            exp_test = self.KB.get(valExpId)
-            print(exp_test.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
+            exp_val = self.KB.get(valExpId)
+            print(exp_val.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
             print()
             # print(index)
 
@@ -561,7 +570,6 @@ class Experiments():
         
         # Randomly select M from test set to check against.
         
-
     def run_experiment_2(self,project, jar, storage=False):
         """  
             ? Test wheter or not we are able to use previous explanations in tandem with custom explanations given by a domain expert.
@@ -691,7 +699,6 @@ class Experiments():
         show_results(measurements_dict_top_k_cp)
         print("None (random)")
         show_results(measurements_dict_top_k_n)
-        
 
     def run_experiment_5(self, N, N_T, M, unique=True, compress=True):
         """
@@ -803,14 +810,14 @@ if __name__ == "__main__":
         print("Starting experiment fill with verbose", args.verbose)
         project = projects/"adult_fill"/"adult_fill.prj"
         try:
-            experiments.run_experiment_sim(N=50, project=project.absolute(), jar=jar.absolute())
+            experiments.run_experiment_fill(N=50, project=project.absolute(), jar=jar.absolute(), storage=True)
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_sim"):
         print("Starting experiment sim with verbose", args.verbose)
         project = projects/"adult_sim"/"adult_sim.prj"
         try:
-            experiments.run_experiment_sim(N_T=1, project=project.absolute(), jar=jar.absolute())
+            experiments.run_experiment_sim(N_T=2, project=project.absolute(), jar=jar.absolute())
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_1"): # Test multiple different value combinations.
