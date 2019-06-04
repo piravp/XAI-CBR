@@ -2,6 +2,7 @@
 from Induction.Anchor import anchor_explanation
 import random
 import json
+import copy
 class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # extend AnchorExplanation
     def __init__(self,names,feature,precision, prediction,coverage, instance=None, user_defined=True, **args):
         self.user_defined = user_defined # whether or not a particular explanation was made by anchor or not
@@ -35,10 +36,10 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             elif(any([isinstance(n,str)for n in names])): # if any of the names are a string, we need to fix these too.
                 raise ValueError("Need an instance to correct string names:{} to encoded values",names)
             # Init input
-            exp_map['names'] = names
-            exp_map['feature'] = feature
-            exp_map['precision'] = precision
-            exp_map['coverage'] = coverage
+            exp_map['names'     ] = names
+            exp_map['feature'   ] = feature
+            exp_map['precision' ] = precision
+            exp_map['coverage'  ] = coverage
             exp_map['prediction'] = int(prediction)
             super(Explanation, self).__init__(type_='tabular', exp_map=exp_map, as_html=None)
 
@@ -50,15 +51,29 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
         for i,f in enumerate(feature): # f is the feature index, name[i] value index
             tmp.append("{} = {}".format(decoder_f[f], decoder_v[f][names[i]]))
         return ' AND '.join(tmp)
+    
+    def get_partial(self,p:int): #return explanation object.
+        if(p > len(self.features())):
+            p = len(self.features())
+        
+        exp_copy = copy.deepcopy(self)
+        # create explanation object from this one.
+        exp_copy.exp_map['names'    ] = self.names(p)
+        exp_copy.exp_map['feature'  ] = self.features(p)
+        exp_copy.exp_map['precision'] = self.precision(p)
+        exp_copy.exp_map['coverage' ] = self.coverage(p)
+        return exp_copy # copy part of the explanation, and use it to explain a particular new instance
 
     def __str__(self): 
         return str(self.exp_map)
 
-    def check_similarity(self,other):
-        """ Check if two explanations fit on eachother """
-        # Simply check if a the two lists 'feature' and 'names' are equal to eachother.
-        if( self.exp_map["feature"] == other.exp_map["feature"] and 
-            self.exp_map["names"] == other.exp_map["names"]):
+    def check_similarity(self,other,p=None): # p: partial_index
+        """ 
+            Check if two explanations fit on eachother
+            fully if partial index not set, assumes p is not too large for both
+        """
+        if( self.features(p) == other.features(p) and
+            self.names(p)    == other.names(p)):
             return True
         return False
 

@@ -22,6 +22,7 @@ tf.logging.set_verbosity(tf.logging.ERROR)
 # Helpers libs
 import pathlib
 import numpy as np
+import pandas as pd
 import subprocess
 from subprocess import Popen,CREATE_NEW_CONSOLE,PIPE
 import time
@@ -39,6 +40,8 @@ from CBR.src.case import Case
 from deepexplain.tensorflow import DeepExplain
 from keras import backend as K
 from keras.models import Model
+
+from collections import defaultdict
 
 class Experiments():
     def __init__(self, verbose=False):
@@ -186,6 +189,12 @@ class Experiments():
     #          Generate cases from validation set, test set and divide cases in batches                     #
     # ----------------------------------------------------------------------------------------------------- #
 
+    # Used to divide list l of cases into batches of n
+    def divide_batches(self, l, n): 
+        # looping till length l 
+        for i in range(0, len(l), n):  
+            yield l[i:i + n] 
+
     def get_cases(self, instances, encoding, KB, compress): 
         attributions = self.get_attribution_multiple(encoding, compress)
         explanations, predictions = self.get_explanation_prediction(encoding)
@@ -197,10 +206,42 @@ class Experiments():
             case_objects.append(Case(age=inc[0], workclass=inc[1], education=inc[2], martial_status=inc[3], occupation=inc[4],
                 relationship=inc[5], race=inc[6], sex=inc[7], capital_gain=inc[8], capital_loss=inc[9],
                 hours_per_week=inc[10],country=inc[11],
-                weight=attributions[i], prediction = predictions[i], explanation = exp_id))
+                weight=attributions[i], prediction = predictions[i], explanation = exp_id, KB=KB))
         return case_objects
 
-    def generate_init_cases(self,N, compress=True):
+    # def generate_init_cases(self,N, compress=True):
+    #     """ 
+    #         N is number of cases to generate
+    #         Generate initial cases from validation data to query the CBR system with.
+    #         Returns a list of case objects.
+    #     """
+    #     # Select random number of indexes from validation indexes
+    #     idx_cases_val = np.random.choice(self.dataset.validation_idx, N, replace=False)# non repeating instances
+
+    #     # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input.
+    #     init_cases = self.dataset.data_test_full.values[idx_cases_val]
+    #     init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
+
+    #     cases = self.get_cases(instances = init_cases, encoding=init_cases_enc, KB = self.KB, compress=compress)
+    #     return cases 
+
+    # def generate_test_cases(self, N, compress=True):
+    #     """ 
+    #         N is number of cases to generate
+    #         Generate initial knowledge cases from test data to be put into the CBR system.
+    #         Returns a list of case objects.
+    #     """
+    #     # select random number of index from test indexes, to vertify the similarity.
+    #     idx_cases_test = np.random.choice(self.dataset.test_idx, N, replace=False)# non repeating instances
+
+    #     test_cases = self.dataset.data_test_full.values[idx_cases_test]
+    #     test_cases_enc = self.dataset.data_test_enc_full[idx_cases_test]
+
+    #     cases_test = self.get_cases(instances = test_cases, encoding=test_cases_enc, KB = self.KB_test, compress=compress)
+    #     return cases_test
+
+    def generate_cases(self, N, N_T, unique=False, compress=True):
+        # Genererate case objects from these.   
         """ 
             N is number of cases to generate
             Generate initial cases from validation data to query the CBR system with.
@@ -213,30 +254,33 @@ class Experiments():
         init_cases = self.dataset.data_test_full.values[idx_cases_val]
         init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
 
-        cases = self.get_cases(instances = init_cases, encoding=init_cases_enc, KB = self.KB, compress=compress)
-        return cases        
-
-    def generate_test_cases(self, N, compress=True):
-        """ 
-            N is number of cases to generate
-            Generate initial knowledge cases from test data to be put into the CBR system.
-            Returns a list of case objects.
-        """
-        # select random number of index from test indexes, to vertify the similarity.
-        idx_cases_test = np.random.choice(self.dataset.test_idx, N, replace=False)# non repeating instances
+        idx_cases_test = np.random.choice(self.dataset.test_idx, N_T*2, replace=False)# non repeating instances
 
         test_cases = self.dataset.data_test_full.values[idx_cases_test]
         test_cases_enc = self.dataset.data_test_enc_full[idx_cases_test]
 
-        cases_test = self.get_cases(instances = test_cases, encoding=test_cases_enc, KB = self.KB_test, compress=compress)
-        return cases_test
+        # Whether or not we want unique cases in the test_set, we don't bother with the initial cases. 
+        if(unique):
+            # Check if cases_test are unique from init_cases
+            indexes = []
+            for i, t_case in enumerate(test_cases_enc):
+                if(check_contains(t_case, init_cases_enc)):
+                    indexes.append(i)
 
-    # Used to divide list l of cases into batches of n
-    def divide_batches(self, l, n): 
-        # looping till length l 
-        for i in range(0, len(l), n):  
-            yield l[i:i + n] 
+            for i in indexes: # Set elements to None, for easy of deletion.
+                test_cases[i] = np.nan
+                test_cases_enc[i] = np.nan
 
+            # Remove these None elements. 
+            test_cases =     [case for case in test_cases if not pd.isnull(case).any()]
+            test_cases_enc = [case for case in test_cases_enc if not pd.isnull(case).any()]
+            if(len(test_cases) != len(test_cases_enc)):
+                raise ValueError("Not equal lenghts between encoded and raw test cases")
+
+        cases = self.get_cases(instances = init_cases, encoding=init_cases_enc, KB = self.KB, compress=compress)
+        cases_test = self.get_cases(instances = test_cases[:N_T], encoding=test_cases_enc[:N_T], KB = self.KB_test, compress=compress)
+
+        return cases, cases_test
 
     def run_test(self):
         print(self.dataset.__dict__.keys())
@@ -313,7 +357,7 @@ class Experiments():
         # We need to get the prediction from test_cases.
         
     # ----------------------------------------------------------------------------------------------------- #
-    #                             E  X  P  E  R  I  M  E  N  T  S                                           #
+    #                               E  X  P  E  R  I  M  E  N  T  S                                         #
     #          ************************************************************************                     #
     # ----------------------------------------------------------------------------------------------------- #
 
@@ -402,7 +446,8 @@ class Experiments():
         self.KB_test = knowledge_base.KnowledgeBase("exp_sim_test")
         # self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
 
-        test_cases = self.generate_test_cases(N_T) 
+        _, test_cases = self.generate_cases(N=1, N_T=N_T)
+        # test_cases = self.generate_test_cases(N_T) 
         print('# of cases from test set:', len(test_cases))
     
 
@@ -499,7 +544,7 @@ class Experiments():
         self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
         
         init_cases = self.generate_init_cases(N)
-        test_cases = self.generate_test_cases(N_T) 
+        test_cases = self.generate_test_cases(N_T,init_cases=init_cases) 
         
         print(len(init_cases), len(test_cases))
 
@@ -534,12 +579,12 @@ class Experiments():
         """
         np.random.seed(1) # init seed
 
-    def run_experiment_4(self,N,N_T,M, compress=True):
+    def run_experiment_4(self,N,N_T,M, unique=True, compress=True):
         """
             ? Test whether the attribution score can be used for retrieval alone on the CaseBase
 
         """
-        ############# initializeing #############
+        ############# initializing #############
         np.random.seed(1) # init seed
         #Load the case-base system
 
@@ -551,13 +596,12 @@ class Experiments():
         self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
 
         # Genererate case objects from these.   
-        test_cases = self.generate_test_cases(N_T, compress) 
-        init_cases = self.generate_init_cases(N, compress)
-
+        # N, N_T, unique=False, compress=True
+        init_cases, test_cases = self.generate_cases(N, N_T, unique=unique,compress=compress)
+        print(len(init_cases), len(test_cases))
         ################### STARTING EXPERIMENT ###################
 
         print("Generating",N,"cases completed")
-
         print("Cosine Similarity, self:",test_cases[0].checkCosineDistance(test_cases[0]))
         print("Eucluidian similarity, self:", test_cases[0].checkEuclidianDistance(test_cases[0]))
 
@@ -566,18 +610,30 @@ class Experiments():
         measurements = []
         measurements_hits = []
         measurements_top_k = []
+
+        measurements_dict_top_k_e = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_c = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_n = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_cp = defaultdict(list) # dictionary of lists.
+
         # * PERFORM EXPERIMENT
-        for n in range(M,N+M,M):
+        for n in range(M,N+M,M): # Loop trough the all test_cases.
             # We don't need to add cases to MyCBR in this experiment, but simply only use a section of the CaseBase list at a time.
-            cases = init_cases[0:n]
+            cases = init_cases[0:n] # Keep track of the CaseBase
             top_hits = 0 # count how many of the explanations are similar enough to be used again.
             possible_hits = 0 # count wheter or not any of the explanations present could be used to explain.
             top_k = 0 # if we hid the target from the top k cases.
+            measurements_dict_top_k_e[n] = [0]*len(cases) # empty list of K elements.
+            measurements_dict_top_k_c[n] = [0]*len(cases) # empty list of K elements.
+            measurements_dict_top_k_n[n] = [0]*len(cases) # empty list of K elements.
+            measurements_dict_top_k_cp[n] = [0]*len(cases) # empty list of K elements.
             # We need query every case
             for t_c in test_cases:
                 # Query the cases for most similar case.
-                #query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0]) # sort by distance
-                query_c = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0]) # sort by distance
+                query_c = sorted([(t_c.checkCosineDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_cp = sorted([(t_c.checkCosinePrediction(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_n = range(0,len(cases)) # simply the cases index, unsorted, baseline. 
                 # Check if the explanation from query_c top works
                 top_case = cases[query_c[0][1]] # get ID of best case
                 distance = query_c[0][0]
@@ -586,28 +642,36 @@ class Experiments():
                 exp_test_case = self.KB_test.get(t_c.explanation)
                 exp_val_case = self.KB.get(top_case.explanation)
                 if(exp_test_case.check_similarity(exp_val_case)):
-                    top_hits += 1 # one more hit.
                     print("EQUAL:",exp_test_case.exp_map["feature"] ,"==", exp_val_case.exp_map["feature"],"case:",query_c[0][1],"d:", distance)
                 
-                top_k_hit = False
-                for q,i in query_c[:5]: # check first 5
-                    case = cases[i] # get ID of best case
-                    exp_case = self.KB.get(case.explanation)
-                    if(exp_test_case.check_similarity(exp_case)):
-                        top_k_hit = True
+                for k, (sim, i) in enumerate(query_e): # query results, (similarity, case index)
+                    case = cases[i] # get case nr i. 
+                    exp_case = self.KB.get(case.explanation) # 
 
-                hit = False
-                #TODO: Count how far down the right solution was, if it existed at all. 
-                for c in cases:
-                    
-                    exp_case = self.KB.get(c.explanation)
-                    if(exp_test_case.check_similarity(exp_case)):
-                        hit = True
-                if(hit):
-                    possible_hits += 1
+                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
+                        measurements_dict_top_k_e[n][k] += 1 
                 
-                if(top_k_hit):
-                    top_k += 1
+                for k, (sim, i) in enumerate(query_c): # query results, (similarity, case index)
+                    case = cases[i] # get case nr i. 
+                    exp_case = self.KB.get(case.explanation) # 
+
+                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
+                        measurements_dict_top_k_c[n][k] += 1 
+                
+                for k, (sim, i) in enumerate(query_cp): # query results, (similarity, case index)
+                    case = cases[i] # get case nr i. 
+                    exp_case = self.KB.get(case.explanation) # 
+
+                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
+                        measurements_dict_top_k_cp[n][k] += 1 
+
+                for k in (query_n): # query results, (similarity, case index)
+                    case = cases[k] # get case nr i. 
+                    exp_case = self.KB.get(case.explanation) # 
+
+                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
+                        measurements_dict_top_k_n[n][k] += 1 
+
 
                 #if(distance > 0.2):
                 #    continue # go to next iteration, we didnt find an fitting explanation
@@ -617,28 +681,65 @@ class Experiments():
                 #Test the explanation against the test_case
                 #print(self.KB_test.get(t_c.explanation))
                 #print(self.KB.get(top_case.explanation))
-            measurements_hits.append(possible_hits)
-            measurements.append(top_hits)
-            measurements_top_k.append(top_k)
-            print("")
-        print(measurements)
-        print(measurements_hits)
-        print(measurements_top_k)
-        # pre initiate 
 
-    def run_experiment_5(self,project, jar, storage=False):
+            print("")
+        print("Euclidian")
+        show_results(measurements_dict_top_k_e)
+        print("Cosine")
+        show_results(measurements_dict_top_k_c)
+        print("Cosine Prediction")
+        show_results(measurements_dict_top_k_cp)
+        print("None (random)")
+        show_results(measurements_dict_top_k_n)
+        
+
+    def run_experiment_5(self, N, N_T, M, unique=True, compress=True):
         """
             ? Test whether we need to present the user with previous cases, aswell as the current explanation.
             
         """
+
         np.random.seed(1) # init seed
+        #Load the case-base system
+
+        # Init knowledge base for validation data
+        self.KB = knowledge_base.KnowledgeBase("exp4")
+        self.KB.reset_knowledge() # empty the knowledge-base before we begin.
+
+        self.KB_test = knowledge_base.KnowledgeBase("exp4_test")
+        self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
+
+        # Genererate case objects from these.   
+        # N, N_T, unique=False, compress=True
+        init_cases, test_cases = self.generate_cases(N, N_T, unique=unique,compress=compress)
+        print(len(init_cases), len(test_cases))
+
+        measurements_dict_top_k_e = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_c = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_n = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_cp = defaultdict(list) # dictionary of lists.
     
+        # Randomly check similarity between two cases
+        
+        print(test_cases[1].checkSimilarity(init_cases[0], self.KB_test, self.KB))
+            
+    def run_experiment_6(self,project,jar,storage=False):
+        """
+            ? Test how the system perform with no initial casebase, and retaining each instance. 
+        """
+
     def run_experiment_x(self):
         """
         
         """
         np.random.seed(1) # init seed
         
+
+def check_contains(element, elements): # CHeck a list of numpy arrays contains a numpy array. 
+    for e in elements: # check against everyone in elements.
+        if(np.array_equal(e,element)):
+            return True
+    return False
 
 def check_bool(value):
     if(value == "True"):
@@ -652,6 +753,16 @@ def check_positive(value):
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     return ivalue
+
+def show_results(dictionary):
+    for key, item in dictionary.items():
+        print("k {} {} {}".format(key,item,sum(item)))
+        # Want to calculate partial sums.
+        # 5 added cases at a time.
+        partial_sums = []
+        for k in range(5,len(item)+5,5):
+            partial_sums.append(sum(item[0:k]))
+        print(partial_sums)
 
 if __name__ == "__main__":
     ############ Create Argument Parser ############
@@ -703,7 +814,7 @@ if __name__ == "__main__":
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_1"): # Test multiple different value combinations.
-        N = 20 # number of total cases to test
+        N = 40 # number of total cases to test
         N_T = 100 # number of test_cases
         M = 10 # amount of cases we add per test.
         print("Starting experiment 1")
@@ -720,20 +831,24 @@ if __name__ == "__main__":
         finally:
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_4"):
-        N = 100 # number of total cases to test
-        N_T = 100 # number of test_cases
-        M = 10 # amount of cases we add per test.
-        experiments.run_experiment_4(N=N,N_T = N_T,M=M)
+        N = 80 # number of total cases to test
+        N_T = 80 # number of test_cases
+        M = 10 # amount of casebase cases we add per test.
+        experiments.run_experiment_4(N=N,N_T=N_T,M=M, unique=True)
     # elif(args.experiment == "full"):
     #     try:
     #         experiments.run_test_full(N=100, project=project.absolute(), jar=jar.absolute())
     #     finally:
     #         experiments.stop_MyCBR()
+    elif(args.experiment == "exp_5"):
+        N = 10 # number of total cases to test
+        N_T = 10 # number of test_cases
+        M = 5 # amount of casebase cases we add per test.
+        experiments.run_experiment_5(N=N,N_T=N_T,M=M, unique=True)
     elif(args.experiment == "start_server"):
         project = projects/"adult"/"adult.prj"
         # Start Java program in the same terminal, for easy of use
         experiments.start_server(project.absolute(),jar.absolute())
-
     elif(args.experiment == "test"):
         experiments.run_test()
     
