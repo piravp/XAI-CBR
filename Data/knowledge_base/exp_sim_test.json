@@ -1,0 +1,28 @@
+{
+    "__class__": "KnowledgeBase",
+    "name": "exp_sim_test.json",
+    "id": 0,
+    "KB": {
+        "0": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                2
+            ],
+            "feature": [
+                2,
+                3
+            ],
+            "precision": [
+                0.9468599033816425,
+                0.976878612716763
+            ],
+            "coverage": [
+                0.1322,
+                0.0222
+            ],
+            "prediction": 0,
+            "user_defined": false
+        }
+    }
+}

@@ -317,13 +317,9 @@ class Experiments():
     #          ************************************************************************                     #
     # ----------------------------------------------------------------------------------------------------- #
 
-    def run_experiment_sim(self, N, project, jar, storage=True):
+    def run_experiment_fill(self, N, project, jar, storage=True):
         """
-            Test different similarity measures against the CaseBase
-            Fill the case-base with cases, and corresponding knowledge in the knowledge-base
-            Query the CaseBase with the different similarity measurements made.
-            Test firstly using only the similarty measure itself (returns a float for each case)
-            Finally test whether or not the attribution could improve upon the similarity measurement.
+            Experiment to check whether the case-base is populated correctly (with cases from validation set).
         """
         # Init random seed for consistency
         np.random.seed(1) 
@@ -347,46 +343,25 @@ class Experiments():
         # Select random number of indexes from validation indexes
         idx_cases_val = np.random.choice(self.dataset.validation_idx, N, replace=False)# non repeating instances
 
-        # select random number of index from test indexes, to vertify the similarity.
-        # idx_cases_test = np.random.choice(self.dataset.test_idx, N, replace=False)# non repeating instances
-
         # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input. Validation set.
         init_cases = self.dataset.data_test_full.values[idx_cases_val]
         init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
-        init_cases_labels = self.dataset.labels_test[idx_cases_val] # labels corresponding to input. True labels
-
-        # # Test set.
-        # test_cases = self.dataset.data_test_full.values[idx_cases_test]
-        # test_cases_enc = self.anchors_explainer.encoder.transform(self.dataset.data_test_enc_full[idx_cases_test])
-
+       
         #Generate validation cases.
         attributions = self.get_attribution_multiple(init_cases_enc)
         explanations, predictions = self.get_explanation_prediction(init_cases_enc)
 
-        # # Generate test cases
-        # test_attributions = self.get_attribution_multiple(test_cases_enc)
-        # test_explanations, test_predictions =  self.get_explanation_prediction(test_cases_enc)
-
         # Create knowledge-base
         print('Checking knowledge-base...')
-
-        # Init knowledge base for validation data
-        self.KB = knowledge_base.KnowledgeBase("exp_sim")
+        self.KB = knowledge_base.KnowledgeBase("exp_sim")   # Init knowledge base for validation data
         # self.KB.reset_knowledge() # empty the knowledge-base before we begin.
-
-        self.KB_test = knowledge_base.KnowledgeBase("exp_sim_test")
-        # self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
 
         # Genererate case objects from these.   
         cases = self.get_cases(instances = init_cases, predictions = predictions, 
                                 explanations = explanations, weights = attributions, KB = self.KB)
         
-        # cases_test = self.get_cases(instances = test_cases, predictions = test_predictions,
-        #                         explanations = test_explanations, weights = test_attributions, KB = self.KB_test)
-       
-
         # Add all of the cases (from validation set) to the case-base
-        # NOTE! HTTP header is limited to about 10 cases, so adding cases need to be done in batches of 10.
+        # NOTE! HTTP header is limited to about 10 cases, so adding cases need to be done in batches of max 10.
         batch_size = 10
         cases_batch = self.divide_batches(l=cases, n=batch_size)
         for i, batch in enumerate(cases_batch):
@@ -394,13 +369,100 @@ class Experiments():
             print(self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=batch))
             print()
 
-        # print(self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=cases))
+
+    def run_experiment_sim(self, N_T, project, jar, storage=False):
+        """
+            Experiment to check if similarity measures are useful
+            by comparing cases from test-cases against cases already in cb from validation-set
+        """
+
+        # Init same seed every time for consistency
+        np.random.seed(1) 
+
+        # Start CBR project
+        self.start_MyCBR(project, jar, storage) 
+        self.myCBR_running() # Continue running.
+
+        # Get the concept ID, and CaseBase ID
+        conceptID = self.CBR.getConceptID()
+        casebaseID = self.CBR.getCaseBaseID()
+        print('ConceptID:', conceptID, 'CasebaseID:', casebaseID)
+
+        # Check whether or not the casebase is filled with cases
+        size = self.CBR.getCaseBaseSize(conceptID = conceptID, casebaseID = casebaseID)
+        if(size == 0):
+            raise ValueError("Case-base is empty")
+
+
+        # Init knowledge base for validation data
+        print('Checking knowledge-base...')
+        self.KB = knowledge_base.KnowledgeBase("exp_sim")
+        # self.KB.reset_knowledge() # empty the knowledge-base before we begin.
+
+        self.KB_test = knowledge_base.KnowledgeBase("exp_sim_test")
+        # self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
+
+        test_cases = self.generate_test_cases(N_T) 
+        print('# of cases from test set:', len(test_cases))
+    
+
+        single_test_case = test_cases[0]
+        self.addTestCaseTemporarily(testCase=single_test_case)
+        # Delete after use so that one case is not considered before testing the next case
+
 
         # Generate Case objects from test_cases, add to separate knowledge-base
-        # idx_cases_test
 
+        # self.CBR.retrieve_k_sim_byID(conceptID=conceptID, casebaseID=casebaseID, queryID='', k=5)
+        # 1. Retreve cases from CB
+        # 2. Perform k most similar and find most similar cases
+        # 3. Retrieve explanation for most similar case
+        # 4. Present explanation to user
 
         # print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
+
+
+    # Note that there are no persistent effects as myCBR is run with save(storage) flag set to false
+    def addTestCaseTemporarily(self, testCase):
+        print('\nRunning function addTestCaseTemp()...')
+        caseID = self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=[testCase])
+        caseID = eval(caseID)[0] #Convert from string to list and get only item
+        print('caseID', caseID)
+
+        df = self.CBR.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID=caseID, k=5)
+        df = df.iloc[1:]    # Exclude the test-case itself which is also returned as it is part of the cb
+        print(df)
+
+
+        # Print explanation
+
+        # Explanation for test case
+        testExpId = testCase.explanation 
+        exp = self.KB_test.get(testExpId)
+        print(exp)
+        print(exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
+        print()
+
+        # # Explanation for val case (in case-base)
+        # res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID='Person-cb010')
+        # valExpId = int(res["case"]["Explanation"])
+        # test_exp = self.KB.get(valExpId)
+        # print(test_exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
+        # print()
+
+        print()
+        for casename, row in df.iterrows():
+            # Explanation for val case (in case-base)
+            print(casename, row)
+            res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID=casename)
+            valExpId = int(res["case"]["Explanation"])
+            exp_test = self.KB.get(valExpId)
+            print(exp_test.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
+            print()
+            # print(index)
+
+        #TODO: Hours per week er tom i case-basen. Fiks.
+        
 
 
     def run_experiment_1(self, N, N_T, M, project, jar, storage=False): # N is number of cases in casebase, M is number of retrievals
@@ -422,8 +484,8 @@ class Experiments():
         # Get the concept ID, and CaseBase ID
         conceptID = self.CBR.getConceptID()
         casebaseID = self.CBR.getCaseBaseID()
-        
         print(conceptID, casebaseID)
+
         # Check whether or not the casebase if filled with cases or not.
         size = self.CBR.getCaseBaseSize(conceptID = conceptID, casebaseID = casebaseID)
         if(size != 0):
@@ -600,23 +662,17 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(title="action", dest="experiment", help="experiment to run")
 
     parser_test = subparsers.add_parser("test")
-
     parser_rest = subparsers.add_parser("start_server")
-
+    parser_fill = subparsers.add_parser("exp_fill")
     parser_sim = subparsers.add_parser("exp_sim")
-    
     parser_1 = subparsers.add_parser("exp_1")
     #parser_1.add_argument("-N","--num_cases",help="number of cases we initiate with", default=4,
     #                type=check_positive)
     #parser_1.add_argument("-M","--num_retrieval",help="number of queries against the CaseBase (without retain step)", default=4,
     #                type=check_positive)
-
     parser_2 = subparsers.add_parser("exp_2")
-
     parser_3 = subparsers.add_parser("exp_3")
-
     parser_4 = subparsers.add_parser("exp_4")
-
     parser_5 = subparsers.add_parser("exp_5")
 
 
@@ -627,19 +683,23 @@ if __name__ == "__main__":
 
 
     experiments = Experiments(verbose=args.verbose)
-
-    # Switch between the valid experiments
     # ---------------- Switch between valid experiments for ease of use ------------
     parent = pathlib.Path(__file__).parent # Keep track of folder path of model.
     projects = parent/"CBR"/"projects"
     # Java runnable file of MyCBR REst
     jar = parent/"CBR"/"libs"/"mycbr-rest"/"target"/"mycbr-rest-1.0-SNAPSHOT.jar"
-
-    if(args.experiment == "exp_sim"):
-        print("Starting Experiment sim with verbose", args.verbose)
-        project = projects/"adult_sim"/"adult_sim.prj"
+    if(args.experiment == "exp_fill"):
+        print("Starting experiment fill with verbose", args.verbose)
+        project = projects/"adult_fill"/"adult_fill.prj"
         try:
             experiments.run_experiment_sim(N=50, project=project.absolute(), jar=jar.absolute())
+        finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
+            experiments.stop_MyCBR()
+    elif(args.experiment == "exp_sim"):
+        print("Starting experiment sim with verbose", args.verbose)
+        project = projects/"adult_sim"/"adult_sim.prj"
+        try:
+            experiments.run_experiment_sim(N_T=1, project=project.absolute(), jar=jar.absolute())
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_1"): # Test multiple different value combinations.

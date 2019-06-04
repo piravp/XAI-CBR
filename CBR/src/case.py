@@ -3,7 +3,7 @@ import json
 from scipy import spatial
 class Case(json.JSONEncoder):
     def __init__(self, age:int, workclass:str, education:str, martial_status:str, occupation:str,
-        relationship:str, race:str, sex:str, capital_gain:int, capital_loss:int,
+        relationship:str, race:str, sex:str, capital_gain:str, capital_loss:str,
         hours_per_week:int,country:str, explanation:int, prediction:int, weight, similarity=None, caseID=None):
         # column index: age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)

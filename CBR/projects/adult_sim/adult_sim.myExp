@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Project name="adult_sim" author="" >
+<exp obj="adult_sim" type="Concept" >
+  <desc>
+  </desc>
+</exp>
+<exp obj="Person" type="Concept" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Weight" c="Person" type="AttributeDesc" >
+  <desc>
+                                                  </desc>
+</exp>
+<exp obj="CapitalLoss" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="MaritalStatus" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Education" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Occupation" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Country" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Explanation" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                      </desc>
+</exp>
+<exp obj="HoursPerWeek" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Workclass" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="CapitalGain" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Race" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Age" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Sex" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Relationship" c="Person" type="AttributeDesc" >
+  <desc>
+                                                                                          </desc>
+</exp>
+<exp obj="Prediction" c="Person" type="AttributeDesc" >
+  <desc>
+&#10;                                                                                    </desc>
+</exp>
+<exp obj="Person-cb019" c="Person" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+<exp obj="Person-cb016" c="Person" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+<exp obj="Person-cb013" c="Person" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+<exp obj="Person-cb01" c="Person" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+<exp obj="Person-cb010" c="Person" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+<exp obj="Person-cb050" c="Person" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+</Project>

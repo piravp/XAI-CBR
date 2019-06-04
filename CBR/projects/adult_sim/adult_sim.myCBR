@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<Project name="adult" author="" >
+<Project name="adult_sim" author="" >
 <svs>
   <sv name="_unknown_"/>
   <sv name="_undefined_"/>
@@ -19,14 +19,16 @@
       <symbol value="High" />
       <symbol value="Low" />
       <symbol value="None" />
-<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<fct name="CapGainFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
 <qsym name="High">
-<csym name="Low" sim="0.2"/>
+<csym name="Low" sim="0.5"/>
 </qsym>
 <qsym name="Low">
-<csym name="High" sim="0.2"/>
+<csym name="High" sim="0.5"/>
+<csym name="None" sim="0.5"/>
 </qsym>
 <qsym name="None">
+<csym name="Low" sim="0.5"/>
 </qsym>
 </fct>
     </desc>
@@ -59,12 +61,16 @@
       <symbol value="High" />
       <symbol value="Low" />
       <symbol value="None" />
-<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<fct name="CapLossFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
 <qsym name="High">
+<csym name="Low" sim="0.5"/>
 </qsym>
 <qsym name="Low">
+<csym name="High" sim="0.5"/>
+<csym name="None" sim="0.5"/>
 </qsym>
 <qsym name="None">
+<csym name="Low" sim="0.5"/>
 </qsym>
 </fct>
     </desc>
@@ -74,18 +80,25 @@
     <desc name="Sex" type="Symbol" mult="false" >
       <symbol value="Female" />
       <symbol value="Male" />
-<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<fct name="SexFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
 <qsym name="Female">
 </qsym>
 <qsym name="Male">
 </qsym>
 </fct>
     </desc>
-    <desc name="Prediction" type="Integer" min="0" max="1" mult="false" >
-      <fct name="default function" type="Integer" ltype="CONSTANT" lparam="1.0" rtype="CONSTANT" rparam="1.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    <desc name="Prediction" type="Symbol" mult="false" >
+      <symbol value="0" />
+      <symbol value="1" />
+<fct name="PredFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="0">
+</qsym>
+<qsym name="1">
+</qsym>
+</fct>
     </desc>
-    <desc name="HoursPerWeek" type="Integer" min="0" max="168" mult="false" >
-      <fct name="default function" type="Integer" ltype="CONSTANT" lparam="1.0" rtype="CONSTANT" rparam="1.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    <desc name="HoursPerWeek" type="Integer" min="0" max="100" mult="false" >
+      <fct name="HPWFunc3" type="Integer" ltype="POLYNOMIAL_WITH" lparam="9.0" rtype="POLYNOMIAL_WITH" rparam="9.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
     </desc>
     <desc name="Weight" type="String" mult="false" >
       <fct name="default function" type="String" symm="true" config="EQUALITY" n="3" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
@@ -142,20 +155,62 @@
       <symbol value="Bachelors" />
       <symbol value="Doctorate" />
       <symbol value="Dropout" />
-<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<fct name="EducationFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
 <qsym name="Masters">
+<csym name="High School grad" sim="0.3"/>
+<csym name="Associates" sim="0.6"/>
+<csym name="Prof-School" sim="0.8"/>
+<csym name="Bachelors" sim="0.8"/>
+<csym name="Doctorate" sim="0.6"/>
+<csym name="Dropout" sim="0.4"/>
 </qsym>
 <qsym name="High School grad">
+<csym name="Masters" sim="0.3"/>
+<csym name="Associates" sim="0.6"/>
+<csym name="Prof-School" sim="0.2"/>
+<csym name="Bachelors" sim="0.4"/>
+<csym name="Doctorate" sim="0.2"/>
+<csym name="Dropout" sim="0.8"/>
 </qsym>
 <qsym name="Associates">
+<csym name="Masters" sim="0.6"/>
+<csym name="High School grad" sim="0.6"/>
+<csym name="Prof-School" sim="0.4"/>
+<csym name="Bachelors" sim="0.8"/>
+<csym name="Doctorate" sim="0.2"/>
+<csym name="Dropout" sim="0.8"/>
 </qsym>
 <qsym name="Prof-School">
+<csym name="Masters" sim="0.8"/>
+<csym name="High School grad" sim="0.2"/>
+<csym name="Associates" sim="0.4"/>
+<csym name="Bachelors" sim="0.6"/>
+<csym name="Doctorate" sim="0.8"/>
+<csym name="Dropout" sim="0.2"/>
 </qsym>
 <qsym name="Bachelors">
+<csym name="Masters" sim="0.8"/>
+<csym name="High School grad" sim="0.4"/>
+<csym name="Associates" sim="0.8"/>
+<csym name="Prof-School" sim="0.6"/>
+<csym name="Doctorate" sim="0.4"/>
+<csym name="Dropout" sim="0.6"/>
 </qsym>
 <qsym name="Doctorate">
+<csym name="Masters" sim="0.6"/>
+<csym name="High School grad" sim="0.2"/>
+<csym name="Associates" sim="0.2"/>
+<csym name="Prof-School" sim="0.8"/>
+<csym name="Bachelors" sim="0.4"/>
+<csym name="Dropout" sim="0.1"/>
 </qsym>
 <qsym name="Dropout">
+<csym name="Masters" sim="0.4"/>
+<csym name="High School grad" sim="0.8"/>
+<csym name="Associates" sim="0.8"/>
+<csym name="Prof-School" sim="0.2"/>
+<csym name="Bachelors" sim="0.6"/>
+<csym name="Doctorate" sim="0.1"/>
 </qsym>
 </fct>
     </desc>
@@ -211,7 +266,7 @@
       <symbol value="British-Commonwealth" />
       <symbol value="Latin-America" />
       <symbol value="Other" />
-<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<fct name="CountryFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
 <qsym name="Euro-west">
 </qsym>
 <qsym name="Euro-south">
@@ -234,25 +289,35 @@
 </qsym>
 </fct>
     </desc>
-    <desc name="Age" type="Integer" min="0" max="150" mult="false" >
-      <fct name="default function" type="Integer" ltype="CONSTANT" lparam="1.0" rtype="CONSTANT" rparam="1.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    <desc name="Age" type="Integer" min="5" max="90" mult="false" >
+      <fct name="AgeAdvFunc" type="AdvancedInteger" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX">
+        <point x="-85.0" y="0.0" />
+        <point x="-50.0" y="0.03" />
+        <point x="-28.0" y="0.05" />
+        <point x="0.0" y="1.0" />
+        <point x="28.0" y="0.05" />
+        <point x="50.0" y="0.03" />
+        <point x="85.0" y="0.0" />
+      </fct>
+      <fct name="default function" type="Integer" ltype="SMOOTH_STEP_AT" lparam="-42.0" rtype="SMOOTH_STEP_AT" rparam="42.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+      <fct name="AgeFunc" type="Integer" ltype="POLYNOMIAL_WITH" lparam="7.0" rtype="POLYNOMIAL_WITH" rparam="7.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
     </desc>
-    <amalgam name="default function" type="EUCLIDEAN" active="true" >
-      <entry name="CapitalGain" active="true" fct="default function" weight="1.0"/>
+    <amalgam name="GlobalFunc" type="EUCLIDEAN" active="true" >
+      <entry name="CapitalGain" active="true" fct="CapGainFunc" weight="1.0"/>
       <entry name="Workclass" active="true" fct="default function" weight="1.0"/>
-      <entry name="CapitalLoss" active="true" fct="default function" weight="1.0"/>
-      <entry name="Explanation" active="true" fct="default function" weight="1.0"/>
-      <entry name="Sex" active="true" fct="default function" weight="1.0"/>
-      <entry name="Prediction" active="true" fct="default function" weight="1.0"/>
+      <entry name="CapitalLoss" active="true" fct="CapLossFunc" weight="1.0"/>
+      <entry name="Explanation" active="false" fct="default function" weight="1.0"/>
+      <entry name="Sex" active="true" fct="SexFunc" weight="1.0"/>
+      <entry name="Prediction" active="true" fct="PredFunc" weight="1.0"/>
       <entry name="HoursPerWeek" active="true" fct="default function" weight="1.0"/>
-      <entry name="Weight" active="true" fct="default function" weight="1.0"/>
+      <entry name="Weight" active="false" fct="default function" weight="1.0"/>
       <entry name="MaritalStatus" active="true" fct="default function" weight="1.0"/>
       <entry name="Occupation" active="true" fct="default function" weight="1.0"/>
-      <entry name="Education" active="true" fct="default function" weight="1.0"/>
+      <entry name="Education" active="true" fct="EducationFunc" weight="1.0"/>
       <entry name="Relationship" active="true" fct="default function" weight="1.0"/>
       <entry name="Race" active="true" fct="default function" weight="1.0"/>
-      <entry name="Country" active="true" fct="default function" weight="1.0"/>
-      <entry name="Age" active="true" fct="default function" weight="1.0"/>
+      <entry name="Country" active="true" fct="CountryFunc" weight="1.0"/>
+      <entry name="Age" active="true" fct="AgeFunc" weight="1.0"/>
     </amalgam>
   </concept>
 </model>
@@ -261,5 +326,5 @@
     <node name="Person" sim="1.0" parent="inheritanceDesc" />
   </fct>
 </hierarchy>
-<cases no="42" cb="cb0"/>
+<cases no="50" cb="cb0"/>
 </Project>
