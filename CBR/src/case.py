@@ -1,11 +1,12 @@
 import ast
 import json
 from scipy import spatial
+import numpy as np
 
 class Case(json.JSONEncoder):
     def __init__(self, age:int, workclass:str, education:str, martial_status:str, occupation:str,
-        relationship:str, race:str, sex:str, capital_gain:int, capital_loss:int,
-        hours_per_week:int,country:str, explanation:int, prediction:int, weight, similarity=None, caseID=None, KB = None):
+        relationship:str, race:str, sex:str, capital_gain:str, capital_loss:str,
+        hours_per_week:int,country:str, explanation:int, prediction:int, weight, KB, similarity=None, caseID=None):
         # column index: age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)
         #self.column_index = ()
@@ -34,7 +35,7 @@ class Case(json.JSONEncoder):
         else:
             self.weight = weight                # [a,b,c,d,e,f,g,h,i,j] 12 weights, one per attribute. age - country
         # Soulution part
-        self.explanation = explanation      # id pointer to knowledge base.
+        self.explanation = explanation      # id pointer to knowledge base. self.KB.get(self.explanation) return Explanation object.
         # TODO: Turn String to int values.
         #age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)
@@ -52,6 +53,7 @@ class Case(json.JSONEncoder):
             10:self.hours_per_week,
             11:self.country
         }
+        self.discretizise = [0,10] # features that need to be discretisized.
 
         if(KB is not None):
             self.KB = KB # knowledge_base, that we keep the different explanations in.
@@ -85,46 +87,51 @@ class Case(json.JSONEncoder):
             return 1
 
     # We want to figure out if the partial explanation holds related to its own.
-    def checkSimilarityPartialExplanation(self, other, KB_s, KB_o): 
+    def checkSimilarityPartialExplanation(self, other): 
         if(self.prediction != other.prediction): # if not even similar prediction, we might as well return with a low similarity score.
             return 0 # return -1, as in the prediction is not even correct.
         # Check the similarity between this case and another.
         # Return partial or exact match between anchors.
-        exp_s = KB_s.get(self.explanation)
-        exp_o = KB_o.get(other.explanation)
+        exp_s = self.KB.get(self.explanation)
+        exp_o = other.KB.get(other.explanation)
 
         partial_fit = 0
 
         limit = len(exp_s.features()) # don't want to overeach
         for exp in range(len(exp_o.features())): # if partial explanation fit, we can use it for generating an explanation.
-            if(exp>= limit):
-                print(exp_o.features(exp))
+            if(exp >= limit):
+                print(exp_o.features(limit))
             if(exp_o.check_similarity(exp_s)):
                 partial_fit = exp
 
         return partial_fit
 
-    def checkAnchorFitting(self, other, KB_o, decoder_f, decoder_v):
-        # check if the others explanation fit on our case.
+    def checkAnchorFitting(self, other, preprocess):
+        # self should be a test_case, and other a case from the CBR
+        # check if the others explanation fit on our case, and how much
+        # We need to decode our self, and check against the others explanation.
         if(self.prediction != other.prediction): # if not even similar prediction, we might as well return with a low similarity score.
-            return 0 # return -1, as in the prediction is not even correct
+            return 0,0 # return -1, as in the prediction is not even correct
         #check if explanation fits
-        exp_o = KB_o.get(other.explanation)
-
-        partial_fit = 0
+        exp_o = other.KB.get(other.explanation)
+        # e.g exp.features() -> [4,5], attribute 4 and 5.
+        partial_fit = 0 # [0,1,2] only 0 if first feature anchor fit
+        #print(exp_o.get_explanation_encoded())
         for p in range(len(exp_o.features())): # if partial explanation fit, we can use it for generating an explanation.
-            f = exp_o.feature(p)[p] # partial index and index.
+            # Decode self.features
+            f = exp_o.features(p)[p] # partial index and index.
             v = exp_o.names(p)[p]  
-            
-            f_dec = decoder_f[f] # get freature f
-            v_dec = decoder_v[f][v] # from feature f, get value v
 
-            if(self.columns[f] != v_dec):
-                return partial_fit
+            # Encode the value from self case, to check against the explanation of another case with encoded Anchor
+            v_dec = preprocess.encode_row(f,self.columns[f])
+
+            if(v != v_dec):
+                if(partial_fit == 0):
+                    return partial_fit, 0
+                return partial_fit, np.around(exp_o.precision(partial_fit-1), decimals=3)
             else:
                 partial_fit += 1
-
-        return partial_fit
+        return partial_fit, np.around(exp_o.precision(partial_fit-1), decimals=3)
 
 
     def isSolved(self):

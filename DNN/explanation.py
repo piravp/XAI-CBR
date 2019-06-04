@@ -52,6 +52,15 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             tmp.append("{} = {}".format(decoder_f[f], decoder_v[f][names[i]]))
         return ' AND '.join(tmp)
     
+    def get_explanation_encoded(self):
+        # first we need to join feature = name,
+        # 
+        tmp = []
+        names = self.names()
+        for i,f in enumerate(self.features()):
+            tmp.append("{} = {}".format(f, names[i]))
+        return ' AND '.join(tmp)
+    
     def get_partial(self,p:int): #return explanation object.
         if(p > len(self.features())):
             p = len(self.features())

@@ -1,7 +1,7 @@
 {
     "__class__": "KnowledgeBase",
     "name": "exp4_test.json",
-    "id": 9,
+    "id": 99,
     "KB": {
         "0": {
             "__class__": "Explanation",
@@ -10,10 +10,11 @@
                 0,
                 6,
                 0,
+                4,
+                2,
+                9,
                 1,
                 2,
-                4,
-                9,
                 3
             ],
             "feature": [
@@ -21,33 +22,36 @@
                 3,
                 0,
                 5,
-                7,
-                1,
                 6,
+                1,
                 11,
+                7,
+                9,
                 10
             ],
             "precision": [
-                0.3214880621876735,
-                0.6221786064769381,
-                0.7811501597444089,
-                0.732463295269168,
-                0.7805128205128206,
-                0.8375394321766562,
-                0.8912655971479501,
-                0.9220532319391636,
-                0.9598393574297188
+                0.34258745141588004,
+                0.5876777251184834,
+                0.7460106382978723,
+                0.8253706754530478,
+                0.8592057761732852,
+                0.912,
+                0.9446064139941691,
+                0.9446064139941691,
+                0.9400630914826499,
+                0.9525691699604744
             ],
             "coverage": [
-                0.164,
-                0.0832,
-                0.0499,
-                0.0456,
-                0.0456,
-                0.03,
-                0.0276,
-                0.0265,
-                0.0111
+                0.1638,
+                0.0831,
+                0.0517,
+                0.0473,
+                0.0415,
+                0.0264,
+                0.0251,
+                0.0251,
+                0.0238,
+                0.0097
             ],
             "prediction": 1,
             "user_defined": false
@@ -55,20 +59,20 @@
         "1": {
             "__class__": "Explanation",
             "names": [
-                3,
+                1,
                 1
             ],
             "feature": [
-                0,
-                3
+                3,
+                4
             ],
             "precision": [
-                0.9151873767258383,
-                0.9829545454545454
+                0.9118136439267887,
+                0.9802955665024631
             ],
             "coverage": [
-                0.0658,
-                0.0444
+                0.3189,
+                0.0816
             ],
             "prediction": 0,
             "user_defined": false
@@ -84,12 +88,12 @@
                 2
             ],
             "precision": [
-                0.9301745635910225,
-                0.9858490566037735
+                0.9161184210526315,
+                0.990909090909091
             ],
             "coverage": [
-                0.0685,
-                0.0386
+                0.0612,
+                0.0344
             ],
             "prediction": 0,
             "user_defined": false
@@ -105,12 +109,12 @@
                 4
             ],
             "precision": [
-                0.91015625,
-                0.9895287958115183
+                0.9111842105263158,
+                0.99
             ],
             "coverage": [
-                0.0853,
-                0.0262
+                0.0811,
+                0.0245
             ],
             "prediction": 0,
             "user_defined": false
@@ -119,19 +123,19 @@
             "__class__": "Explanation",
             "names": [
                 1,
-                4
+                0
             ],
             "feature": [
                 3,
-                2
+                0
             ],
             "precision": [
-                0.9135338345864662,
-                0.9766666666666667
+                0.9247058823529412,
+                0.9933333333333333
             ],
             "coverage": [
-                0.3202,
-                0.1823
+                0.3155,
+                0.0789
             ],
             "prediction": 0,
             "user_defined": false
@@ -140,19 +144,19 @@
             "__class__": "Explanation",
             "names": [
                 3,
-                6
+                4
             ],
             "feature": [
                 2,
-                4
+                5
             ],
             "precision": [
-                0.9415584415584416,
-                0.9852941176470589
+                0.916504854368932,
+                0.9644268774703557
             ],
             "coverage": [
-                0.1267,
-                0.0314
+                0.1274,
+                0.0151
             ],
             "prediction": 0,
             "user_defined": false
@@ -160,20 +164,20 @@
         "6": {
             "__class__": "Explanation",
             "names": [
-                0,
+                2,
                 3
             ],
             "feature": [
-                4,
+                3,
                 5
             ],
             "precision": [
-                0.8783783783783784,
-                1.0
+                0.9001996007984032,
+                0.9763313609467456
             ],
             "coverage": [
-                0.1244,
-                0.0254
+                0.1905,
+                0.0134
             ],
             "prediction": 0,
             "user_defined": false
@@ -189,12 +193,12 @@
                 2
             ],
             "precision": [
-                0.9187145557655955,
-                0.9862542955326461
+                0.9174484052532833,
+                0.972027972027972
             ],
             "coverage": [
-                0.3154,
-                0.1756
+                0.3225,
+                0.1797
             ],
             "prediction": 0,
             "user_defined": false
@@ -216,17 +220,17 @@
                 4
             ],
             "precision": [
-                0.34382808595702147,
-                0.5901639344262295,
-                0.6779261586802828,
-                0.7974806201550387,
-                0.9601990049751243
+                0.3548225887056472,
+                0.6566637246248896,
+                0.8011444921316166,
+                0.7979610750695088,
+                0.9701492537313433
             ],
             "coverage": [
-                0.0563,
-                0.0319,
-                0.025,
-                0.0222,
+                0.0585,
+                0.0351,
+                0.0267,
+                0.0229,
                 0.0
             ],
             "prediction": 1,
@@ -243,12 +247,2206 @@
                 4
             ],
             "precision": [
-                0.9191176470588235,
-                0.9695121951219512
+                0.9261083743842364,
+                0.9926470588235294
             ],
             "coverage": [
-                0.0685,
-                0.0204
+                0.0644,
+                0.0195
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "10": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0,
+                0,
+                3,
+                3,
+                4,
+                1,
+                4,
+                2
+            ],
+            "feature": [
+                2,
+                5,
+                3,
+                4,
+                10,
+                6,
+                7,
+                0,
+                1
+            ],
+            "precision": [
+                0.3436471362738644,
+                0.5483870967741935,
+                0.6813725490196079,
+                0.6806324110671936,
+                0.7572347266881029,
+                0.8121468926553672,
+                0.8206429780033841,
+                0.849624060150376,
+                0.9502487562189055
+            ],
+            "coverage": [
+                0.1596,
+                0.0732,
+                0.0732,
+                0.0054,
+                0.0026,
+                0.0025,
+                0.0025,
+                0.0001,
+                0.0001
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "11": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                3,
+                2
+            ],
+            "precision": [
+                0.9177570093457944,
+                0.9806451612903225
+            ],
+            "coverage": [
+                0.3189,
+                0.176
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "12": {
+            "__class__": "Explanation",
+            "names": [
+                2,
+                0
+            ],
+            "feature": [
+                3,
+                7
+            ],
+            "precision": [
+                0.8976833976833977,
+                0.9943181818181818
+            ],
+            "coverage": [
+                0.181,
+                0.1045
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "13": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                0
+            ],
+            "feature": [
+                4,
+                10
+            ],
+            "precision": [
+                0.9201596806387226,
+                0.9881656804733728
+            ],
+            "coverage": [
+                0.1121,
+                0.0408
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "14": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                3,
+                4
+            ],
+            "precision": [
+                0.908485856905158,
+                1.0
+            ],
+            "coverage": [
+                0.3135,
+                0.0445
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "15": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                5,
+                2
+            ],
+            "precision": [
+                0.893646408839779,
+                0.9770408163265306
+            ],
+            "coverage": [
+                0.2593,
+                0.1346
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "16": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                0
+            ],
+            "feature": [
+                4,
+                7
+            ],
+            "precision": [
+                0.916988416988417,
+                0.983957219251337
+            ],
+            "coverage": [
+                0.1134,
+                0.0631
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "17": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                5,
+                7
+            ],
+            "precision": [
+                0.9080824088748018,
+                0.963963963963964
+            ],
+            "coverage": [
+                0.2654,
+                0.1216
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "18": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0,
+                6,
+                0,
+                1,
+                2,
+                4,
+                4,
+                1,
+                9
+            ],
+            "feature": [
+                8,
+                3,
+                0,
+                5,
+                7,
+                1,
+                2,
+                6,
+                4,
+                11
+            ],
+            "precision": [
+                0.27586206896551724,
+                0.535650623885918,
+                0.6896046852122987,
+                0.6449491930663479,
+                0.6954887218045113,
+                0.759493670886076,
+                0.813953488372093,
+                0.7846750727449079,
+                0.9025974025974026,
+                0.9531615925058547
+            ],
+            "coverage": [
+                0.0491,
+                0.0299,
+                0.016,
+                0.0142,
+                0.0142,
+                0.0085,
+                0.0057,
+                0.0055,
+                0.0032,
+                0.0032
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "19": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                3
+            ],
+            "feature": [
+                3,
+                10
+            ],
+            "precision": [
+                0.8922056384742952,
+                0.9537366548042705
+            ],
+            "coverage": [
+                0.0325,
+                0.0151
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "20": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                4
+            ],
+            "feature": [
+                4,
+                2
+            ],
+            "precision": [
+                0.9262899262899262,
+                0.9903381642512077
+            ],
+            "coverage": [
+                0.1097,
+                0.0646
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "21": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                3
+            ],
+            "feature": [
+                0,
+                5
+            ],
+            "precision": [
+                0.8939179632248939,
+                1.0
+            ],
+            "coverage": [
+                0.0611,
+                0.0162
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "22": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                1
+            ],
+            "feature": [
+                3,
+                5
+            ],
+            "precision": [
+                0.9001996007984032,
+                0.961864406779661
+            ],
+            "coverage": [
+                0.327,
+                0.1481
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "23": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                2,
+                3
+            ],
+            "feature": [
+                2,
+                8,
+                10
+            ],
+            "precision": [
+                0.8782722513089005,
+                0.9116809116809117,
+                0.95
+            ],
+            "coverage": [
+                0.5463,
+                0.507,
+                0.2579
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "24": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0,
+                6,
+                0,
+                2,
+                4,
+                9
+            ],
+            "feature": [
+                2,
+                3,
+                0,
+                5,
+                1,
+                6,
+                11
+            ],
+            "precision": [
+                0.31367144432194044,
+                0.5853256389117889,
+                0.7596017069701281,
+                0.825136612021858,
+                0.8854748603351955,
+                0.9380804953560371,
+                0.9602649006622517
+            ],
+            "coverage": [
+                0.1689,
+                0.0859,
+                0.0526,
+                0.0478,
+                0.0301,
+                0.0274,
+                0.0262
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "25": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                1
+            ],
+            "feature": [
+                4,
+                3
+            ],
+            "precision": [
+                0.9462025316455697,
+                1.0
+            ],
+            "coverage": [
+                0.1111,
+                0.0536
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "26": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                4,
+                2
+            ],
+            "precision": [
+                0.8886792452830189,
+                0.9577464788732394
+            ],
+            "coverage": [
+                0.3307,
+                0.2206
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "27": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                2,
+                3
+            ],
+            "precision": [
+                0.9362745098039216,
+                1.0
+            ],
+            "coverage": [
+                0.1261,
+                0.045
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "28": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                0,
+                6,
+                5,
+                4
+            ],
+            "feature": [
+                2,
+                3,
+                0,
+                5,
+                4
+            ],
+            "precision": [
+                0.4187102633969119,
+                0.7351524879614767,
+                0.6764282285165627,
+                0.9213836477987422,
+                1.0
+            ],
+            "coverage": [
+                0.0164,
+                0.0111,
+                0.0072,
+                0.0005,
+                0.0005
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "29": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                0,
+                2
+            ],
+            "precision": [
+                0.9475409836065574,
+                0.9882352941176471
+            ],
+            "coverage": [
+                0.0491,
+                0.0314
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "30": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                0
+            ],
+            "feature": [
+                2,
+                10
+            ],
+            "precision": [
+                0.8990990990990991,
+                0.9891304347826086
+            ],
+            "coverage": [
+                0.5385,
+                0.0793
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "31": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                2,
+                4
+            ],
+            "precision": [
+                0.9251870324189526,
+                0.984375
+            ],
+            "coverage": [
+                0.13,
+                0.0738
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "32": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                3
+            ],
+            "feature": [
+                0,
+                5
+            ],
+            "precision": [
+                0.9338235294117647,
+                0.9888268156424581
+            ],
+            "coverage": [
+                0.0494,
+                0.0209
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "33": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                2,
+                2
+            ],
+            "feature": [
+                3,
+                5,
+                8
+            ],
+            "precision": [
+                0.9106145251396648,
+                0.949685534591195,
+                0.9826388888888888
+            ],
+            "coverage": [
+                0.3158,
+                0.0152,
+                0.0146
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "34": {
+            "__class__": "Explanation",
+            "names": [
+                2,
+                0
+            ],
+            "feature": [
+                3,
+                7
+            ],
+            "precision": [
+                0.8783930510314875,
+                0.9644970414201184
+            ],
+            "coverage": [
+                0.1897,
+                0.1096
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "35": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                3,
+                7
+            ],
+            "precision": [
+                0.9279279279279279,
+                0.9864864864864865
+            ],
+            "coverage": [
+                0.3126,
+                0.1413
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "36": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                2,
+                3
+            ],
+            "precision": [
+                0.9453376205787781,
+                1.0
+            ],
+            "coverage": [
+                0.1299,
+                0.0446
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "37": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                4,
+                2
+            ],
+            "precision": [
+                0.8768292682926829,
+                0.9720930232558139
+            ],
+            "coverage": [
+                0.3276,
+                0.2191
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "38": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                0
+            ],
+            "feature": [
+                8,
+                5
+            ],
+            "precision": [
+                0.8673323823109843,
+                1.0
+            ],
+            "coverage": [
+                0.0337,
+                0.0215
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "39": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                3,
+                4
+            ],
+            "precision": [
+                0.9071969696969697,
+                0.9753086419753086
+            ],
+            "coverage": [
+                0.3173,
+                0.0477
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "40": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                3
+            ],
+            "feature": [
+                3,
+                5
+            ],
+            "precision": [
+                0.9181636726546906,
+                0.9833333333333333
+            ],
+            "coverage": [
+                0.3258,
+                0.1293
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "41": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                7
+            ],
+            "feature": [
+                8,
+                4
+            ],
+            "precision": [
+                0.8673323823109843,
+                1.0
+            ],
+            "coverage": [
+                0.0312,
+                0.0081
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "42": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                1
+            ],
+            "feature": [
+                2,
+                4
+            ],
+            "precision": [
+                0.8761528326745718,
+                0.9637681159420289
+            ],
+            "coverage": [
+                0.5544,
+                0.2162
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "43": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                1
+            ],
+            "feature": [
+                4,
+                3
+            ],
+            "precision": [
+                0.937046004842615,
+                0.9921875
+            ],
+            "coverage": [
+                0.1143,
+                0.056
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "44": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                5,
+                7
+            ],
+            "precision": [
+                0.9073724007561437,
+                0.9840425531914894
+            ],
+            "coverage": [
+                0.2598,
+                0.1193
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "45": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                6,
+                1,
+                7,
+                0,
+                2,
+                2,
+                3,
+                1
+            ],
+            "feature": [
+                2,
+                0,
+                7,
+                4,
+                1,
+                6,
+                3,
+                10,
+                5
+            ],
+            "precision": [
+                0.3677012098895318,
+                0.4907749077490775,
+                0.5438236801640185,
+                0.694,
+                0.5623762376237624,
+                0.696969696969697,
+                0.7645502645502645,
+                0.818359375,
+                0.984
+            ],
+            "coverage": [
+                0.1705,
+                0.0871,
+                0.0636,
+                0.0219,
+                0.0017,
+                0.0002,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "46": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                3,
+                4
+            ],
+            "precision": [
+                0.9034941763727121,
+                0.9841269841269841
+            ],
+            "coverage": [
+                0.0305,
+                0.0068
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "47": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                4
+            ],
+            "feature": [
+                10,
+                2
+            ],
+            "precision": [
+                0.9099836333878887,
+                0.9908256880733946
+            ],
+            "coverage": [
+                0.1514,
+                0.0823
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "48": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                2,
+                7
+            ],
+            "feature": [
+                2,
+                8,
+                0
+            ],
+            "precision": [
+                0.8852459016393442,
+                0.922879177377892,
+                0.9722222222222222
+            ],
+            "coverage": [
+                0.5352,
+                0.4954,
+                0.0252
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "49": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                1
+            ],
+            "feature": [
+                3,
+                4
+            ],
+            "precision": [
+                0.9133709981167608,
+                0.9836065573770492
+            ],
+            "coverage": [
+                0.3222,
+                0.0845
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "50": {
+            "__class__": "Explanation",
+            "names": [
+                5,
+                0,
+                0,
+                4,
+                6
+            ],
+            "feature": [
+                2,
+                3,
+                5,
+                4,
+                0
+            ],
+            "precision": [
+                0.37801831806827646,
+                0.5324849296718017,
+                0.6602760736196319,
+                0.9333333333333333,
+                0.9766355140186916
+            ],
+            "coverage": [
+                0.0643,
+                0.0361,
+                0.0313,
+                0.0128,
+                0.0094
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "51": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                0,
+                6,
+                5,
+                4
+            ],
+            "feature": [
+                2,
+                3,
+                0,
+                5,
+                4
+            ],
+            "precision": [
+                0.3903810118675828,
+                0.7559681697612732,
+                0.6982591876208898,
+                0.9298701298701298,
+                0.9933774834437086
+            ],
+            "coverage": [
+                0.0146,
+                0.0095,
+                0.0064,
+                0.001,
+                0.0009
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "52": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                1
+            ],
+            "feature": [
+                0,
+                3
+            ],
+            "precision": [
+                0.9150197628458498,
+                1.0
+            ],
+            "coverage": [
+                0.0836,
+                0.0804
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "53": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                4
+            ],
+            "feature": [
+                4,
+                2
+            ],
+            "precision": [
+                0.9423076923076923,
+                0.9832402234636871
+            ],
+            "coverage": [
+                0.1146,
+                0.0713
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "54": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                3
+            ],
+            "feature": [
+                4,
+                2
+            ],
+            "precision": [
+                0.9351620947630923,
+                0.98
+            ],
+            "coverage": [
+                0.1172,
+                0.03
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "55": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                2,
+                3
+            ],
+            "precision": [
+                0.923679060665362,
+                0.9683794466403162
+            ],
+            "coverage": [
+                0.1272,
+                0.0469
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "56": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                0,
+                0,
+                0
+            ],
+            "feature": [
+                2,
+                3,
+                9,
+                5
+            ],
+            "precision": [
+                0.3931149361465852,
+                0.7367303609341825,
+                0.8217592592592593,
+                0.9895833333333334
+            ],
+            "coverage": [
+                0.0174,
+                0.0128,
+                0.0014,
+                0.0014
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "57": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                1
+            ],
+            "feature": [
+                2,
+                4
+            ],
+            "precision": [
+                0.88,
+                0.9714285714285714
+            ],
+            "coverage": [
+                0.5544,
+                0.2155
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "58": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                1
+            ],
+            "feature": [
+                5,
+                3
+            ],
+            "precision": [
+                0.8938826466916354,
+                0.9920634920634921
+            ],
+            "coverage": [
+                0.2686,
+                0.1525
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "59": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                5,
+                3
+            ],
+            "precision": [
+                0.9161676646706587,
+                0.9766081871345029
+            ],
+            "coverage": [
+                0.142,
+                0.125
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "60": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                3,
+                5
+            ],
+            "feature": [
+                2,
+                10,
+                1
+            ],
+            "precision": [
+                0.8808411214953271,
+                0.9166666666666666,
+                0.9528301886792453
+            ],
+            "coverage": [
+                0.5371,
+                0.2696,
+                0.0137
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "61": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                5,
+                2
+            ],
+            "precision": [
+                0.9059500959692899,
+                0.9851851851851852
+            ],
+            "coverage": [
+                0.2654,
+                0.1422
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "62": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                3
+            ],
+            "feature": [
+                3,
+                5
+            ],
+            "precision": [
+                0.9001584786053882,
+                1.0
+            ],
+            "coverage": [
+                0.3196,
+                0.1278
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "63": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                3
+            ],
+            "feature": [
+                3,
+                5
+            ],
+            "precision": [
+                0.8958630527817404,
+                1.0
+            ],
+            "coverage": [
+                0.3231,
+                0.1287
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "64": {
+            "__class__": "Explanation",
+            "names": [
+                2
+            ],
+            "feature": [
+                0
+            ],
+            "precision": [
+                0.9504950495049505
+            ],
+            "coverage": [
+                0.0248
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "65": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                4
+            ],
+            "feature": [
+                4,
+                2
+            ],
+            "precision": [
+                0.9135559921414538,
+                0.9885057471264368
+            ],
+            "coverage": [
+                0.1118,
+                0.0737
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "66": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                0,
+                5
+            ],
+            "feature": [
+                9,
+                3,
+                2
+            ],
+            "precision": [
+                0.3887375113533152,
+                0.6048600105652404,
+                0.9836065573770492
+            ],
+            "coverage": [
+                0.0251,
+                0.0165,
+                0.0031
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "67": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                5,
+                7
+            ],
+            "precision": [
+                0.937125748502994,
+                1.0
+            ],
+            "coverage": [
+                0.2599,
+                0.1226
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "68": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                3,
+                7
+            ],
+            "precision": [
+                0.9117082533589251,
+                0.9725274725274725
+            ],
+            "coverage": [
+                0.3158,
+                0.1478
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "69": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                0
+            ],
+            "feature": [
+                3,
+                7
+            ],
+            "precision": [
+                0.9086378737541528,
+                0.9858490566037735
+            ],
+            "coverage": [
+                0.0315,
+                0.0234
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "70": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                0,
+                2
+            ],
+            "precision": [
+                0.9358024691358025,
+                0.9875
+            ],
+            "coverage": [
+                0.0478,
+                0.031
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "71": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                3
+            ],
+            "feature": [
+                3,
+                0
+            ],
+            "precision": [
+                0.9261477045908184,
+                0.9847328244274809
+            ],
+            "coverage": [
+                0.3193,
+                0.0429
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "72": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                4
+            ],
+            "feature": [
+                5,
+                2
+            ],
+            "precision": [
+                0.8930741190765492,
+                0.9773755656108597
+            ],
+            "coverage": [
+                0.264,
+                0.135
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "73": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                4
+            ],
+            "feature": [
+                10,
+                2
+            ],
+            "precision": [
+                0.884450784593438,
+                0.9821428571428571
+            ],
+            "coverage": [
+                0.1394,
+                0.0799
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "74": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                2,
+                2
+            ],
+            "feature": [
+                2,
+                3,
+                8
+            ],
+            "precision": [
+                0.8945454545454545,
+                0.9475409836065574,
+                0.9782608695652174
+            ],
+            "coverage": [
+                0.555,
+                0.1165,
+                0.109
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "75": {
+            "__class__": "Explanation",
+            "names": [
+                5,
+                0,
+                0,
+                4,
+                4,
+                1
+            ],
+            "feature": [
+                2,
+                3,
+                5,
+                4,
+                10,
+                7
+            ],
+            "precision": [
+                0.3553223388305847,
+                0.7096069868995634,
+                0.6446229913473424,
+                0.8651685393258427,
+                0.9385964912280702,
+                0.9832635983263598
+            ],
+            "coverage": [
+                0.0561,
+                0.0338,
+                0.0278,
+                0.0117,
+                0.0022,
+                0.0022
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "76": {
+            "__class__": "Explanation",
+            "names": [
+                7,
+                0,
+                6,
+                0,
+                6,
+                0,
+                9
+            ],
+            "feature": [
+                4,
+                3,
+                0,
+                5,
+                10,
+                2,
+                11
+            ],
+            "precision": [
+                0.3266701735928459,
+                0.557315233785822,
+                0.667584940312213,
+                0.7918313570487484,
+                0.799554565701559,
+                0.9182389937106918,
+                0.9554655870445344
+            ],
+            "coverage": [
+                0.1336,
+                0.0765,
+                0.0535,
+                0.0483,
+                0.0191,
+                0.0013,
+                0.0013
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "77": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                3
+            ],
+            "feature": [
+                3,
+                5
+            ],
+            "precision": [
+                0.9220183486238532,
+                0.9556786703601108
+            ],
+            "coverage": [
+                0.3169,
+                0.131
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "78": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                0,
+                0,
+                6,
+                5,
+                9
+            ],
+            "feature": [
+                9,
+                3,
+                5,
+                10,
+                0,
+                11
+            ],
+            "precision": [
+                0.42330677290836655,
+                0.8090128755364807,
+                0.7103202846975089,
+                0.9343065693430657,
+                0.9257142857142857,
+                0.9567901234567902
+            ],
+            "coverage": [
+                0.0236,
+                0.0164,
+                0.0151,
+                0.0049,
+                0.0005,
+                0.0005
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "79": {
+            "__class__": "Explanation",
+            "names": [
+                5,
+                0,
+                4
+            ],
+            "feature": [
+                2,
+                5,
+                4
+            ],
+            "precision": [
+                0.3484055211803903,
+                0.7068004459308808,
+                0.963302752293578
+            ],
+            "coverage": [
+                0.0601,
+                0.0292,
+                0.0126
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "80": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                2,
+                2
+            ],
+            "feature": [
+                2,
+                8,
+                10
+            ],
+            "precision": [
+                0.870020964360587,
+                0.9154285714285715,
+                0.9590643274853801
+            ],
+            "coverage": [
+                0.5477,
+                0.5099,
+                0.0388
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "81": {
+            "__class__": "Explanation",
+            "names": [
+                5,
+                0,
+                6,
+                4,
+                0
+            ],
+            "feature": [
+                2,
+                3,
+                0,
+                4,
+                5
+            ],
+            "precision": [
+                0.3449564134495641,
+                0.5383740761796475,
+                0.692741935483871,
+                0.8305439330543933,
+                0.979253112033195
+            ],
+            "coverage": [
+                0.0594,
+                0.0344,
+                0.0271,
+                0.0117,
+                0.0088
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "82": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                2
+            ],
+            "feature": [
+                2,
+                10
+            ],
+            "precision": [
+                0.9188514357053683,
+                0.9603174603174603
+            ],
+            "coverage": [
+                0.1251,
+                0.0075
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "83": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                1
+            ],
+            "feature": [
+                0,
+                3
+            ],
+            "precision": [
+                0.9290953545232273,
+                1.0
+            ],
+            "coverage": [
+                0.048,
+                0.0392
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "84": {
+            "__class__": "Explanation",
+            "names": [
+                7,
+                0,
+                1
+            ],
+            "feature": [
+                4,
+                5,
+                2
+            ],
+            "precision": [
+                0.3344867358708189,
+                0.6502242152466368,
+                0.9526315789473684
+            ],
+            "coverage": [
+                0.1375,
+                0.0718,
+                0.0239
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "85": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                2,
+                2
+            ],
+            "feature": [
+                5,
+                3,
+                8
+            ],
+            "precision": [
+                0.9,
+                0.9491525423728814,
+                0.9878419452887538
+            ],
+            "coverage": [
+                0.2704,
+                0.1005,
+                0.0927
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "86": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                2,
+                4
+            ],
+            "precision": [
+                0.9419354838709677,
+                0.9808612440191388
+            ],
+            "coverage": [
+                0.1318,
+                0.0752
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "87": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                1
+            ],
+            "feature": [
+                0,
+                4
+            ],
+            "precision": [
+                0.8988391376451078,
+                0.9736842105263158
+            ],
+            "coverage": [
+                0.0635,
+                0.0194
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "88": {
+            "__class__": "Explanation",
+            "names": [
+                1
+            ],
+            "feature": [
+                3
+            ],
+            "precision": [
+                0.961038961038961
+            ],
+            "coverage": [
+                0.3243
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "89": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0,
+                5,
+                7
+            ],
+            "feature": [
+                2,
+                3,
+                5,
+                4
+            ],
+            "precision": [
+                0.3463780183180683,
+                0.6273209549071618,
+                0.6407103825136612,
+                0.9597989949748744
+            ],
+            "coverage": [
+                0.1689,
+                0.09,
+                0.0117,
+                0.0022
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "90": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0
+            ],
+            "feature": [
+                3,
+                7
+            ],
+            "precision": [
+                0.908344733242134,
+                0.9760956175298805
+            ],
+            "coverage": [
+                0.3208,
+                0.1502
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "91": {
+            "__class__": "Explanation",
+            "names": [
+                2,
+                0
+            ],
+            "feature": [
+                3,
+                7
+            ],
+            "precision": [
+                0.8906030855539971,
+                0.9672131147540983
+            ],
+            "coverage": [
+                0.1858,
+                0.1083
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "92": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                0
+            ],
+            "feature": [
+                2,
+                4
+            ],
+            "precision": [
+                0.8819018404907976,
+                0.952054794520548
+            ],
+            "coverage": [
+                0.5432,
+                0.0865
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "93": {
+            "__class__": "Explanation",
+            "names": [
+                6,
+                0,
+                6,
+                4,
+                0
+            ],
+            "feature": [
+                2,
+                3,
+                0,
+                10,
+                5
+            ],
+            "precision": [
+                0.36617842876165113,
+                0.6110154905335629,
+                0.7867469879518072,
+                0.8846153846153846,
+                0.9786585365853658
+            ],
+            "coverage": [
+                0.0162,
+                0.0114,
+                0.0076,
+                0.0008,
+                0.0008
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "94": {
+            "__class__": "Explanation",
+            "names": [
+                0,
+                0
+            ],
+            "feature": [
+                8,
+                3
+            ],
+            "precision": [
+                0.8746594005449592,
+                0.9959919839679359
+            ],
+            "coverage": [
+                0.0323,
+                0.0231
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "95": {
+            "__class__": "Explanation",
+            "names": [
+                5,
+                0,
+                6,
+                4,
+                2,
+                9
+            ],
+            "feature": [
+                2,
+                5,
+                0,
+                6,
+                1,
+                11
+            ],
+            "precision": [
+                0.3608627038400842,
+                0.7057387057387058,
+                0.8355640535372849,
+                0.8702127659574468,
+                0.9288025889967637,
+                0.9607142857142857
+            ],
+            "coverage": [
+                0.0589,
+                0.0272,
+                0.0199,
+                0.0178,
+                0.0097,
+                0.0087
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "96": {
+            "__class__": "Explanation",
+            "names": [
+                4,
+                2,
+                1
+            ],
+            "feature": [
+                2,
+                5,
+                4
+            ],
+            "precision": [
+                0.8885941644562334,
+                0.9486404833836858,
+                1.0
+            ],
+            "coverage": [
+                0.5435,
+                0.0193,
+                0.0048
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "97": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                1
+            ],
+            "feature": [
+                4,
+                5
+            ],
+            "precision": [
+                0.9361702127659575,
+                0.9844559585492227
+            ],
+            "coverage": [
+                0.3303,
+                0.0637
+            ],
+            "prediction": 0,
+            "user_defined": false
+        },
+        "98": {
+            "__class__": "Explanation",
+            "names": [
+                1,
+                0,
+                5,
+                6,
+                1,
+                0
+            ],
+            "feature": [
+                2,
+                3,
+                5,
+                0,
+                1,
+                4
+            ],
+            "precision": [
+                0.34509112286890065,
+                0.6648291069459757,
+                0.629976580796253,
+                0.8692098092643051,
+                0.9465648854961832,
+                0.9795918367346939
+            ],
+            "coverage": [
+                0.1702,
+                0.0857,
+                0.0103,
+                0.0052,
+                0.0007,
+                0.0002
+            ],
+            "prediction": 1,
+            "user_defined": false
+        },
+        "99": {
+            "__class__": "Explanation",
+            "names": [
+                3,
+                6
+            ],
+            "feature": [
+                2,
+                4
+            ],
+            "precision": [
+                0.9376558603491272,
+                0.9702127659574468
+            ],
+            "coverage": [
+                0.126,
+                0.0279
             ],
             "prediction": 0,
             "user_defined": false

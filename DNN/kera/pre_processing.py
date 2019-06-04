@@ -112,6 +112,7 @@ class Datamanager():
         # col 2 (state weighting?) and 4 (duplicate of 5), not usefull.
         columns_to_remove = ["fnlwgt","education-num"] # column names do we not want to keep
         categorical_features = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11] # features that are catagorical (non-continous) after transform
+        self.non_categorical = [0,10] # features that are categorical
         non_categorical = [0, 10] # Rest are categorical
         education_map = smart_dict({ # Mapping between category (simplification)
             '10th': 'Dropout', '11th': 'Dropout', '12th': 'Dropout', '1st-4th':
@@ -433,7 +434,39 @@ class Datamanager():
         # then we need to get original values for columns: Age and HoursPerWeek.
         # we can find these from the
 
+    # Take a 
+    def decode_row(self, feature, value):
+        # If a ordinal feature, we need to discretizie and return the categorie. 
+        # If a categorical feature, we need to deco
+        print(feature,value)
+        if(feature in self.non_categorical): # encode ..
+            #TODO: decode encoded value ..
+            # We need to discretisize the value
+            m = np.zeros(12) # one for each categorie
+            m[feature] = value # change the value at a particular instance to our value.
+            print(m)
+            m = self.ret.ordinal_discretizer.discretize(m)
+            v_dec = m[feature] # get value at position m
+        else:
+            v_dec = self.ret.categorical_names[feature][value] # from feature f, get value v
+        return v_dec
 
+    def encode_row(self, feature, value):
+        # Decode a feature value: e.g. feature 2, value "Male", or feature 0, value 25, to encoded categorie.
+        if(feature in self.non_categorical):
+            m = np.zeros(12) # one for each categorie
+            m[feature] = value # change the value at a particular instance to our value.
+            m = self.ret.ordinal_discretizer.discretize(m)
+            #print(self.ret.ordinal_decoder.items())
+            v_enc = int(m[feature]) # get value at position m
+            #print(self.ret.categorical_names[feature][v_enc])
+        else:
+            #print(self.ret.categorical_names[feature])
+            m = [value]
+            v_enc = self.ret.categorical_encoders[feature].transform(np.asarray(m)) # get encoder for feature, and get encoding for value.
+            #v_dec = self.ret.categorical_names[feature][value] # from feature f, get value v
+            v_enc = v_enc[0] # get element
+        return v_enc # return the value in encoded format
 
 def read_data_pd(name,columns,header, encoding="latin-1"):
     # UnicodeDecodeError with 'utf-8': codec can't decode byte 0xe5, invalid continuation byte

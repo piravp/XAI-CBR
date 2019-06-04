@@ -150,16 +150,14 @@ class Experiments():
             case_objects.append(Case(age=inc[0], workclass=inc[1], education=inc[2], martial_status=inc[3], occupation=inc[4],
                 relationship=inc[5], race=inc[6], sex=inc[7], capital_gain=inc[8], capital_loss=inc[9],
                 hours_per_week=inc[10],country=inc[11],
-                weight=attributions[i], prediction = predictions[i], explanation = exp_id))
+                weight=attributions[i], prediction = predictions[i], explanation = exp_id, KB=KB))
         return case_objects
 
-    
-    def divide_batches(self, l, n): 
+    def divide_batches(self, l, n): # length l, n is split.
         # looping till length l 
         for i in range(0, len(l), n):  
             yield l[i:i + n] 
     
-
     def generate_cases(self, N, N_T, unique=False, compress=True):
         # Genererate case objects from these.   
         """ 
@@ -395,7 +393,7 @@ class Experiments():
         # print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
 
 
-    def run_experiment_1(self, N, N_T, M, project, jar, storage=False): # N is number of cases in casebase, M is number of retrievals
+    def run_experiment_1(self, N, N_T, M, project, jar, storage=False, unique=True, compress=True): # N is number of cases in casebase, M is number of retrievals
         """ 
             ? Test whether or not we are able to use previous explanations in the CBR system 
             
@@ -427,9 +425,8 @@ class Experiments():
 
         self.KB_test = knowledge_base.KnowledgeBase("exp1_test")
         self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
-        
-        init_cases = self.generate_init_cases(N)
-        test_cases = self.generate_test_cases(N_T,init_cases=init_cases) 
+
+        init_cases, test_cases = self.generate_cases(N, N_T, unique=unique,compress=compress)
         
         print(len(init_cases), len(test_cases))
 
@@ -483,19 +480,20 @@ class Experiments():
         # Genererate case objects from these.   
         # N, N_T, unique=False, compress=True
         init_cases, test_cases = self.generate_cases(N, N_T, unique=unique,compress=compress)
-        print(len(init_cases), len(test_cases))
         ################### STARTING EXPERIMENT ###################
 
-        print("Generating",N,"cases completed")
+        print("Generating",N,"cases and",N_T, " test cases completed")
         print("Cosine Similarity, self:",test_cases[0].checkCosineDistance(test_cases[0]))
         print("Eucluidian similarity, self:", test_cases[0].checkEuclidianDistance(test_cases[0]))
 
-        print(test_cases[0])
-
-        measurements = []
-        measurements_hits = []
-        measurements_top_k = []
-
+        def experiment_4(cases, test_case, query, measurements_dict, n):
+            for k, (sim, i) in enumerate(query): # query results, (similarity, case index)
+                case = cases[i] # get case nr i. 
+                exp_case = self.KB.get(case.explanation) # get Explanations from the cases KB
+                exp_test_case = self.KB_test.get(test_case.explanation)
+                if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
+                    measurements_dict[n][k] += 1 
+            
         measurements_dict_top_k_e = defaultdict(list) # dictionary of lists.
         measurements_dict_top_k_c = defaultdict(list) # dictionary of lists.
         measurements_dict_top_k_n = defaultdict(list) # dictionary of lists.
@@ -505,20 +503,19 @@ class Experiments():
         for n in range(M,N+M,M): # Loop trough the all test_cases.
             # We don't need to add cases to MyCBR in this experiment, but simply only use a section of the CaseBase list at a time.
             cases = init_cases[0:n] # Keep track of the CaseBase
-            top_hits = 0 # count how many of the explanations are similar enough to be used again.
-            possible_hits = 0 # count wheter or not any of the explanations present could be used to explain.
-            top_k = 0 # if we hid the target from the top k cases.
+
             measurements_dict_top_k_e[n] = [0]*len(cases) # empty list of K elements.
             measurements_dict_top_k_c[n] = [0]*len(cases) # empty list of K elements.
-            measurements_dict_top_k_n[n] = [0]*len(cases) # empty list of K elements.
             measurements_dict_top_k_cp[n] = [0]*len(cases) # empty list of K elements.
+            measurements_dict_top_k_n[n] = [0]*len(cases) # empty list of K elements.
+            
             # We need query every case
             for t_c in test_cases:
                 # Query the cases for most similar case.
                 query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0]) # sort by distance
                 query_c = sorted([(t_c.checkCosineDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
                 query_cp = sorted([(t_c.checkCosinePrediction(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
-                query_n = range(0,len(cases)) # simply the cases index, unsorted, baseline. 
+                query_n = [ (0,i) for i in range(0,len(cases)) ] # simply the cases index, unsorted, baseline. 
                 # Check if the explanation from query_c top works
                 top_case = cases[query_c[0][1]] # get ID of best case
                 distance = query_c[0][0]
@@ -529,86 +526,94 @@ class Experiments():
                 if(exp_test_case.check_similarity(exp_val_case)):
                     print("EQUAL:",exp_test_case.exp_map["feature"] ,"==", exp_val_case.exp_map["feature"],"case:",query_c[0][1],"d:", distance)
                 
-                for k, (sim, i) in enumerate(query_e): # query results, (similarity, case index)
-                    case = cases[i] # get case nr i. 
-                    exp_case = self.KB.get(case.explanation) # 
+                experiment_4(cases, t_c, query_e, measurements_dict_top_k_e, n)
+                experiment_4(cases, t_c, query_c, measurements_dict_top_k_c, n)
+                experiment_4(cases, t_c, query_cp, measurements_dict_top_k_cp, n)
+                experiment_4(cases, t_c, query_n, measurements_dict_top_k_n, n)
 
-                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
-                        measurements_dict_top_k_e[n][k] += 1 
-                
-                for k, (sim, i) in enumerate(query_c): # query results, (similarity, case index)
-                    case = cases[i] # get case nr i. 
-                    exp_case = self.KB.get(case.explanation) # 
-
-                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
-                        measurements_dict_top_k_c[n][k] += 1 
-                
-                for k, (sim, i) in enumerate(query_cp): # query results, (similarity, case index)
-                    case = cases[i] # get case nr i. 
-                    exp_case = self.KB.get(case.explanation) # 
-
-                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
-                        measurements_dict_top_k_cp[n][k] += 1 
-
-                for k in (query_n): # query results, (similarity, case index)
-                    case = cases[k] # get case nr i. 
-                    exp_case = self.KB.get(case.explanation) # 
-
-                    if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
-                        measurements_dict_top_k_n[n][k] += 1 
-
-
-                #if(distance > 0.2):
-                #    continue # go to next iteration, we didnt find an fitting explanation
-                #print("Distance",query_c[0][0])
-                #print(top_case)
-                #print(t_c)
-                #Test the explanation against the test_case
-                #print(self.KB_test.get(t_c.explanation))
-                #print(self.KB.get(top_case.explanation))
-
-            print("")
+        print("")
         print("Euclidian")
-        show_results(measurements_dict_top_k_e)
+        show_results(measurements_dict_top_k_e, N_T)
         print("Cosine")
-        show_results(measurements_dict_top_k_c)
+        show_results(measurements_dict_top_k_c, N_T)
         print("Cosine Prediction")
-        show_results(measurements_dict_top_k_cp)
+        show_results(measurements_dict_top_k_cp, N_T)
         print("None (random)")
-        show_results(measurements_dict_top_k_n)
+        show_results(measurements_dict_top_k_n, N_T)
         
 
     def run_experiment_5(self, N, N_T, M, unique=True, compress=True):
         """
             ? Test whether we need to present the user with previous cases, aswell as the current explanation.
-            
         """
 
         np.random.seed(1) # init seed
         #Load the case-base system
 
         # Init knowledge base for validation data
-        self.KB = knowledge_base.KnowledgeBase("exp4")
+        self.KB = knowledge_base.KnowledgeBase("exp5")
         self.KB.reset_knowledge() # empty the knowledge-base before we begin.
 
-        self.KB_test = knowledge_base.KnowledgeBase("exp4_test")
+        self.KB_test = knowledge_base.KnowledgeBase("exp5_test")
         self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
 
         # Genererate case objects from these.   
         # N, N_T, unique=False, compress=True
         init_cases, test_cases = self.generate_cases(N, N_T, unique=unique,compress=compress)
-        print(len(init_cases), len(test_cases))
 
-        measurements_dict_top_k_e = defaultdict(list) # dictionary of lists.
-        measurements_dict_top_k_c = defaultdict(list) # dictionary of lists.
-        measurements_dict_top_k_n = defaultdict(list) # dictionary of lists.
-        measurements_dict_top_k_cp = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_e = defaultdict(tuple) # dictionary of lists.
+        measurements_dict_top_k_p = defaultdict(int) # dictionary of lists.
+
+        measurements_dict_top_k_c = defaultdict(tuple) # dictionary of lists.
+        measurements_dict_top_k_n = defaultdict(tuple) # dictionary of lists.
+        measurements_dict_top_k_cp = defaultdict(tuple) # dictionary of lists.
     
         # Randomly check similarity between two cases
+        def check_difference(query, test_case, cases, m_dict, m2_dict, n, n_t):
+            #k_list = [] # keep track of p,precision scores
+            for k, (sim, i) in enumerate(query): # query results, (similarity, case index)
+                case = cases[i] # get case nr i. 
+                exp_case = self.KB.get(case.explanation) # get Explanations from the cases KB
+                exp_test_case = self.KB_test.get(test_case.explanation)
+
+                # Store both values
+                p, precision = test_case.checkAnchorFitting(case, preprocess = self.dataman)
+                #N_T, n, p,k # Need a matrix per test_query...
+                #k_list.append()
+                m_dict[n,n_t,k] = (p,precision)
+                if(p != 0):
+                    m2_dict[n,k] += 1 # how many cases we got a partial match with the case instance
+
         
-        print(test_cases[1].checkSimilarity(init_cases[0], self.KB_test, self.KB))
+        # We want to check similarity between the explanations in the CBR system
+        #print(test_cases[1].checkAnchorFitting(init_cases[0], preprocess = self.dataman))
+
+        for n in range(M,N+M,M): # Loop trough the CaseBase batches (different inits).
+            cases = init_cases[0:n] # Keep track of the CaseBase
+
+            #measurements_dict_top_k_e[n] = [0]*len(cases) # empty list of K elements.
+            #measurements_dict_top_k_c[n] = [0]*len(cases) # empty list of K elements.
+            #measurements_dict_top_k_cp[n] = [0]*len(cases) # empty list of K elements.
+            #measurements_dict_top_k_n[n] = [0]*len(cases) # empty list of K elements.
+
+            for n_t, t_c in enumerate(test_cases): # Try every test_case against the case_base
+                query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0]) # sort by distance
+                query_c = sorted([(t_c.checkCosineDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_cp = sorted([(t_c.checkCosinePrediction(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_n = [ (0,i) for i in range(0,len(cases)) ] # simply the cases index, unsorted, baseline. 
+                
+
+                check_difference(query_e, t_c, cases, measurements_dict_top_k_e,measurements_dict_top_k_p, n, n_t)
+
+        print(measurements_dict_top_k_e)
+        print(measurements_dict_top_k_p)
+        print([p for (n,k),p in measurements_dict_top_k_p.items()])
+
+        for n in np.unique([n for n, k in measurements_dict_top_k_p.keys()]): # get unique n keys.
+            # TODO: Add zeros to a list and print..
+            print([p for (n_i,k),p in measurements_dict_top_k_p.items() if n_i == n])
             
-    def run_experiment_6(self,project,jar,storage=False):
+    def run_experiment_6(self, project, jar, storage=False):
         """
             ? Test how the system perform with no initial casebase, and retaining each instance. 
         """
@@ -650,9 +655,9 @@ def check_positive(value):
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     return ivalue
 
-def show_results(dictionary):
+def show_results(dictionary, n):
     for key, item in dictionary.items():
-        print("k {} {} {}".format(key,item,sum(item)))
+        print("k {} {} {}/{}".format(key, item, sum(item), n))
         # Want to calculate partial sums.
         # 5 added cases at a time.
         partial_sums = []
@@ -729,8 +734,8 @@ if __name__ == "__main__":
         finally:
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_4"):
-        N = 80 # number of total cases to test
-        N_T = 80 # number of test_cases
+        N = 100 # number of total cases to test
+        N_T = 100 # number of test_cases
         M = 10 # amount of casebase cases we add per test.
         experiments.run_experiment_4(N=N,N_T=N_T,M=M, unique=True)
     # elif(args.experiment == "full"):
