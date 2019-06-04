@@ -103,8 +103,6 @@ class RESTApi:
     # }
     # An instance is created by providing conceptID, casebaseID and arbitrary caseID(string) and doing a PUT call
     def addInstancesJSON(self, casebaseID, conceptID, cases):
-        print({"cases" : json.dumps(cases)})
-
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances' 
                 .format(conceptID, casebaseID), params={"cases" : json.dumps(cases)})
         return r.text
@@ -112,16 +110,19 @@ class RESTApi:
 
 
     def addInstancesCase(self, casebaseID, conceptID, case):
-        print(json.dumps(case.instanceJson()))
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances?' 
                 .format(conceptID, casebaseID), params={"cases" : json.dumps(case.instanceJson())})
         return r.text
 
     def addInstancesCases(self, casebaseID, conceptID, cases):
-        # Requires "cases":{"cases":[{c1}{c2}]}
+        # Requires this format
+        #           "cases":'cases':[{c1}{c2}]
+        #           {'cases':[{'Age':10},{'Age':30}]}
+        #           "cases"={'cases':[{'Age':10},{'Age':30}]}
         caseAsJson = {
             "cases":cases
         }
+        
         r = requests.post(url='http://localhost:8080/concepts/{}/casebases/{}/instances?' 
                 .format(conceptID, casebaseID), params={"cases" : json.dumps(caseAsJson,default=Case.default)})
         return r.text
