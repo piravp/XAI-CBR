@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<Project name="adult_sim" author="" >
+<Project name="adult_sim_bad" author="" >
 <svs>
   <sv name="_unknown_"/>
   <sv name="_undefined_"/>
@@ -943,21 +943,21 @@
       <fct name="AgeFunc" type="Integer" ltype="POLYNOMIAL_WITH" lparam="7.0" rtype="POLYNOMIAL_WITH" rparam="7.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
     </desc>
     <amalgam name="GlobalFunc" type="EUCLIDEAN" active="true" >
-      <entry name="CapitalGain" active="true" fct="CapGainFunc" weight="1.0"/>
+      <entry name="CapitalGain" active="true" fct="BadCapGain" weight="1.0"/>
       <entry name="Workclass" active="true" fct="default function" weight="1.0"/>
-      <entry name="CapitalLoss" active="true" fct="CapLossFunc" weight="1.0"/>
+      <entry name="CapitalLoss" active="true" fct="BadCapLoss" weight="1.0"/>
       <entry name="Explanation" active="false" fct="default function" weight="1.0"/>
-      <entry name="Sex" active="true" fct="SexFunc" weight="1.0"/>
-      <entry name="Prediction" active="true" fct="PredFunc" weight="1.0"/>
-      <entry name="HoursPerWeek" active="true" fct="default function" weight="1.0"/>
+      <entry name="Sex" active="true" fct="BadSex" weight="1.0"/>
+      <entry name="Prediction" active="true" fct="BadPred" weight="1.0"/>
+      <entry name="HoursPerWeek" active="false" fct="BadHPW" weight="1.0"/>
       <entry name="Weight" active="false" fct="default function" weight="1.0"/>
-      <entry name="MaritalStatus" active="true" fct="default function" weight="1.0"/>
-      <entry name="Occupation" active="true" fct="default function" weight="1.0"/>
-      <entry name="Education" active="true" fct="EducationFunc" weight="1.0"/>
-      <entry name="Relationship" active="true" fct="default function" weight="1.0"/>
-      <entry name="Race" active="true" fct="default function" weight="1.0"/>
-      <entry name="Country" active="true" fct="CountryFunc" weight="1.0"/>
-      <entry name="Age" active="true" fct="AgeFunc" weight="1.0"/>
+      <entry name="MaritalStatus" active="true" fct="BadMarital" weight="1.0"/>
+      <entry name="Occupation" active="true" fct="BadOccupation" weight="1.0"/>
+      <entry name="Education" active="true" fct="BadEducation" weight="1.0"/>
+      <entry name="Relationship" active="true" fct="BadRel" weight="1.0"/>
+      <entry name="Race" active="true" fct="BadRace" weight="1.0"/>
+      <entry name="Country" active="true" fct="BadCountry" weight="1.0"/>
+      <entry name="Age" active="true" fct="BadAgeFunc" weight="1.0"/>
     </amalgam>
   </concept>
 </model>

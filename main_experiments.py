@@ -446,7 +446,7 @@ class Experiments():
         # self.KB.reset_knowledge() # empty the knowledge-base before we begin.
 
         self.KB_test = knowledge_base.KnowledgeBase("exp_sim_test")
-        # self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
+        self.KB_test.reset_knowledge() # empty the knowledge-base before we begin.
 
 
         _dummy, test_cases = self.generate_cases(N=1, N_T=N_T)
@@ -477,7 +477,6 @@ class Experiments():
 
     # Note that there are no persistent effects as myCBR is run with save(storage) flag set to false
     def addTestCaseTemporarily(self, testCase, topK):
-        print('\nRunning function addTestCaseTemp()...')
         caseID = self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=[testCase])
         caseID = eval(caseID)[0] #Convert from string to list and get only item
         print('caseID', caseID)
@@ -512,10 +511,13 @@ class Experiments():
             valExpId = int(res["case"]["Explanation"])
             exp_val = self.KB.get(valExpId)
             print(exp_val.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
+            # Delete case from case-base after getting explanation
+            self.CBR.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID=casename)
+
             print()
             # print(index)
 
-        #TODO: Hours per week er tom i case-basen. Fiks.
+        #TODO: Case må slettes etter å ha lagt inn
         
 
 
@@ -783,6 +785,8 @@ if __name__ == "__main__":
     parser_rest = subparsers.add_parser("start_server")
     parser_fill = subparsers.add_parser("exp_fill")
     parser_sim = subparsers.add_parser("exp_sim")
+    parser_sim_bad = subparsers.add_parser("exp_sim_bad")
+    parser_sim_bad2 = subparsers.add_parser("exp_sim_bad2")
     parser_1 = subparsers.add_parser("exp_1")
     #parser_1.add_argument("-N","--num_cases",help="number of cases we initiate with", default=4,
     #                type=check_positive)
@@ -815,9 +819,23 @@ if __name__ == "__main__":
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_sim"):
         print("Starting experiment sim with verbose", args.verbose)
-        project = projects/"adult_sim"/"adult_sim.prj"
+        project = projects/"adult_sim"/"adult_sim"/"adult_sim.prj"
         try:
             experiments.run_experiment_sim(N_T=2, project=project.absolute(), jar=jar.absolute())
+        finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
+            experiments.stop_MyCBR()
+    elif(args.experiment == "exp_sim_bad"):
+        print("Starting experiment sim with verbose", args.verbose)
+        project = projects/"adult_sim"/"adult_sim_bad"/"adult_sim_bad.prj"
+        try:
+            experiments.run_experiment_sim(N_T=2, project=project.absolute(), jar=jar.absolute())
+        finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
+            experiments.stop_MyCBR()
+    elif(args.experiment == "exp_sim_bad2"):
+        print("Starting experiment sim with verbose", args.verbose)
+        project = projects/"adult_sim"/"adult_sim_bad2"/"adult_sim_bad2.prj"
+        try:
+            experiments.run_experiment_sim(N_T=11, project=project.absolute(), jar=jar.absolute())
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_1"): # Test multiple different value combinations.
@@ -859,3 +877,15 @@ if __name__ == "__main__":
     elif(args.experiment == "test"):
         experiments.run_test()
     
+# Eksperiment med å endre på threshold for å se om forklaringen blir bedre med lavere/høyere
+
+# Oppdatere userdefined knowledge i knowledge-basen
+
+
+# Ulike mål om det passer:
+# - Helt identiske
+# - 
+
+
+# ----------------
+# Viktigste står først for anchor
