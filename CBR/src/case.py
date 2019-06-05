@@ -4,9 +4,9 @@ from scipy import spatial
 import numpy as np
 
 class Case(json.JSONEncoder):
-    def __init__(self, age:int, workclass:str, education:str, martial_status:str, occupation:str,
-        relationship:str, race:str, sex:str, capital_gain:str, capital_loss:str,
-        hours_per_week:int,country:str, explanation:int, prediction:int, weight, KB, similarity=None, caseID=None):
+    def __init__(self, age:int, capital_gain:str,  capital_loss:str, country:str,  education:str, explanation:int, 
+        hours_per_week:int, martial_status:str,  occupation:str, prediction:int, race:str, relationship:str, 
+        sex:str, weight, workclass:str, KB, similarity=None, caseID=None):
         # column index: age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)
         #self.column_index = ()

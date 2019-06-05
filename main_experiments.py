@@ -489,12 +489,11 @@ class Experiments():
         # Print explanation
 
         # Explanation for test case
-        print('\nEXPLANATION FOR TEST CASE:')
+        print('----EXPLANATION FOR TEST CASE:----')
         testExpId = testCase.explanation 
         exp = self.KB_test.get(testExpId)
         # print(exp)
         print(exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
-        print('---')
 
         # # Explanation for val case (in case-base)
         # res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID='Person-cb010')
@@ -503,19 +502,23 @@ class Experiments():
         # print(test_exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
         # print()
 
-        print('\TOP K MOST SIMILAR VALIDATION CASES:')        
+        print('----TOP K MOST SIMILAR VALIDATION CASES:----')  
         for casename, row in df.iterrows():
             # Explanation for val case (in case-base)
-            print(casename, row.to_string())
+            print('*', casename, row.to_string())
             res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID=casename)
-            valExpId = int(res["case"]["Explanation"])
+            res = res["case"]
+            c = Case( res['Age'], res['CapitalGain'], res['CapitalLoss'], res['Country'], res['Education'], 
+                       res['Explanation'], res['HoursPerWeek'], res['MaritalStatus'], res['Occupation'],
+                        res['Prediction'], res['Race'], res['Relationship'], res['Sex'], res['Weight'], 
+                         res['Workclass'], self.KB)
+            
+            valExpId = c.explanation #int(res["case"]["Explanation"])
             exp_val = self.KB.get(valExpId)
             print(exp_val.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
             # Delete case from case-base after getting explanation
             self.CBR.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID=casename)
 
-            print()
-            # print(index)
 
         #TODO: Case må slettes etter å ha lagt inn
         
