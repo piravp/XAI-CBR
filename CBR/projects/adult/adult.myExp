@@ -2,66 +2,66 @@
 <Project name="adult" author="" >
 <exp obj="Person" type="Concept" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Sex" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="MaritalStatus" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Occupation" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Explanation" c="Person" type="AttributeDesc" >
   <desc>
-                                                      </desc>
+&#10;                                                        </desc>
 </exp>
 <exp obj="HoursPerWeek" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Weight" c="Person" type="AttributeDesc" >
   <desc>
-                  </desc>
+&#10;                    </desc>
 </exp>
 <exp obj="Age" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="CapitalGain" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Prediction" c="Person" type="AttributeDesc" >
   <desc>
-      </desc>
+&#10;        </desc>
 </exp>
 <exp obj="Race" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Education" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Country" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Relationship" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="CapitalLoss" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 <exp obj="Workclass" c="Person" type="AttributeDesc" >
   <desc>
-                                                          </desc>
+&#10;                                                            </desc>
 </exp>
 </Project>

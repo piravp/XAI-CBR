@@ -139,6 +139,12 @@ class RESTApi:
         res = self.getAllInstancesInCaseBase(conceptID, casebaseID)
         return res.shape[0]
 
+    # Get one specific instance
+    def getSingleInstance(self, conceptID, casebaseID, instanceID):
+        res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/instances/{}'
+                    .format(conceptID, casebaseID, instanceID))
+        return res.json()
+
     # Return ALL instances
     def getInstances(self, conceptID):
         res = requests.get('http://localhost:8080/concepts/{}/instances'.format(conceptID))
@@ -181,7 +187,7 @@ class RESTApi:
     # ----------------------------------------------------------------------------- #
     def retrieve_k_sim_byID(self, conceptID, casebaseID, queryID, k):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/retrievalByID?caseID={}&k={}'
-                    .format(conceptID, casebaseID, queryID, k))
+                    .format(conceptID, casebaseID, queryID, k+1))
         raw = pd.DataFrame(res.json())
         results = raw.apply(pd.to_numeric, errors='coerce').fillna(raw).sort_values(by='similarCases', ascending=False)
         return results
@@ -198,9 +204,10 @@ class RESTApi:
 # res = api.addAttribute(conceptID='Person', attrName='Education', attrJSON={"type": "Symbol", "allowedValues": ["High school", "Bachelor", "Master"]})
 # res = api.retrieve_k_sim_byID(conceptID='Person', casebaseID='cb0', queryID='Person-cb018', k=5)
 # res = api.getAllInstancesInCaseBase(conceptID='Person', casebaseID='cb0')
-# res = api.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID='Person-cb03')
+# res = api.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID='Person-cb08')
 # res = api.getCaseBaseSize(conceptID='Person', casebaseID='cb0')
 # res = api.modifyAttributeInCase(casebaseID='cb0', conceptID='Person', caseID='Person-cb08', attributeName='Age', value=25)
+# res = api.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID='Person-cb050')
 
 # print(res)
 # api.plot_retrieve_k_sim_byID(res)
