@@ -209,37 +209,6 @@ class Experiments():
                 weight=attributions[i], prediction = predictions[i], explanation = exp_id, KB=KB))
         return case_objects
 
-    # def generate_init_cases(self,N, compress=True):
-    #     """ 
-    #         N is number of cases to generate
-    #         Generate initial cases from validation data to query the CBR system with.
-    #         Returns a list of case objects.
-    #     """
-    #     # Select random number of indexes from validation indexes
-    #     idx_cases_val = np.random.choice(self.dataset.validation_idx, N, replace=False)# non repeating instances
-
-    #     # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input.
-    #     init_cases = self.dataset.data_test_full.values[idx_cases_val]
-    #     init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
-
-    #     cases = self.get_cases(instances = init_cases, encoding=init_cases_enc, KB = self.KB, compress=compress)
-    #     return cases 
-
-    # def generate_test_cases(self, N, compress=True):
-    #     """ 
-    #         N is number of cases to generate
-    #         Generate initial knowledge cases from test data to be put into the CBR system.
-    #         Returns a list of case objects.
-    #     """
-    #     # select random number of index from test indexes, to vertify the similarity.
-    #     idx_cases_test = np.random.choice(self.dataset.test_idx, N, replace=False)# non repeating instances
-
-    #     test_cases = self.dataset.data_test_full.values[idx_cases_test]
-    #     test_cases_enc = self.dataset.data_test_enc_full[idx_cases_test]
-
-    #     cases_test = self.get_cases(instances = test_cases, encoding=test_cases_enc, KB = self.KB_test, compress=compress)
-    #     return cases_test
-
     def generate_cases(self, N, N_T, unique=False, compress=True):
         # Genererate case objects from these.   
         """ 
@@ -282,79 +251,6 @@ class Experiments():
 
         return cases, cases_test
 
-    def run_test(self):
-        print(self.dataset.__dict__.keys())
-        # simply test some different things.
-        np.random.seed(1) # init seed
-        # Say we want to select X number of instances and put into the CaseBase.
-        # Get cases from validation dataset, and prediction from
-
-        self.dataset.data_validation # Attributes, encoded and all
-        self.dataset.validation_labels # labels, 0s and 1s
-        
-        n = 10
-
-        # Select random number of indexes from validation indexes
-        idx_cases_val = np.random.choice(self.dataset.validation_idx,n,replace=False)# non repeating instances
-        idx_cases_val = np.sort(idx_cases_val) # easier to work with
-
-        # select random number of index from test indexes, to vertify the similarity.
-        idx_cases_test = np.random.choice(self.dataset.test_idx,n,replace=False)# non repeating instances
-        idx_cases_test = np.sort(idx_cases_test) # easier to work with
-
-        # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input.
-        init_cases = self.dataset.data_test_full.values[idx_cases_val]
-        init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
-        init_cases_labels = self.dataset.labels_test[idx_cases_val] # labels corresponding to input.
-
-        test_cases = self.dataset.data_test_full.values[idx_cases_test]
-        test_cases_enc = self.anchors_explainer.encoder.transform(self.dataset.data_test_enc_full[idx_cases_test])
-
-        # Now we can generate cases from these lists, and vertify their results in the next examples.
-
-        # Generate cases from the list, with or without explanation parts.
-
-        start = time.clock()
-        attributions = self.get_attribution_multiple(init_cases_enc)
-        end = time.clock()
-        print("Seconds used to generate attribution weights:", end-start)
-
-        start = time.clock()
-        explanations = []
-        predictions = []
-        # Generate explanations for each case.
-        for i, instance in enumerate(init_cases_enc):
-            exp = self.anchors_explainer.explain_instance(instance, self.bb.predict, threshold=0.95,verbose=False)
-            custom_exp = explanation.Explanation(**exp.exp_map)
-            explanations.append(custom_exp)
-            predictions.append(custom_exp.exp_map['prediction']) 
-            print("Generated explanation for case {}.".format(i))
-        end = time.clock()
-        print("Seconds used to generate anchor explanations:", end-start)
-
-        # Create cases from these
-
-        initial_case_objects = [] # list of cases
-
-        for i, inc in enumerate(init_cases):  
-            initial_case_objects.append(Case(age=inc[0], workclass=inc[1], education=inc[2], martial_status=inc[3], occupation=inc[4],
-                relationship=inc[5], race=inc[6], sex=inc[7], capital_gain=inc[8], capital_loss=inc[9],
-                hours_per_week=inc[10],country=inc[11],
-                weight=str(attributions[i]), prediction = predictions[i], explanation = i))
-
-        print(json.dumps(initial_case_objects[0], default=Case.default))
-        print(json.dumps(initial_case_objects, default=Case.default))
-        #print(json.dumps(initial_case_objects, default=Case.default))
-        conceptID = self.CBR.getConceptID()
-        casebaseID = self.CBR.getCaseBaseID()
-        
-        print(conceptID, casebaseID)
-        print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
-        
-        # We need to get representations that can be used.
-        
-        # generate cases from these
-        # We need to get the prediction from test_cases.
         
     # ----------------------------------------------------------------------------------------------------- #
     #                               E  X  P  E  R  I  M  E  N  T  S                                         #
@@ -415,7 +311,6 @@ class Experiments():
             print(self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=batch))
             print()
 
-
     def run_experiment_sim(self, N_T, project, jar, storage=False):
         """
             Experiment to check if similarity measures are useful
@@ -474,7 +369,6 @@ class Experiments():
 
         # print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
 
-
     # Note that there are no persistent effects as myCBR is run with save(storage) flag set to false
     def addTestCaseTemporarily(self, testCase, topK):
         caseID = self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=[testCase])
@@ -487,7 +381,6 @@ class Experiments():
 
 
         # Print explanation
-
         # Explanation for test case
         print('----EXPLANATION FOR TEST CASE:----')
         testExpId = testCase.explanation 
@@ -495,13 +388,7 @@ class Experiments():
         # print(exp)
         print(exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
 
-        # # Explanation for val case (in case-base)
-        # res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID='Person-cb010')
-        # valExpId = int(res["case"]["Explanation"])
-        # test_exp = self.KB.get(valExpId)
-        # print(test_exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
-        # print()
-
+        # Explanation for val cases
         print('----TOP K MOST SIMILAR VALIDATION CASES:----')  
         for casename, row in df.iterrows():
             # Explanation for val case (in case-base)
@@ -519,8 +406,8 @@ class Experiments():
             # Delete case from case-base after getting explanation
             self.CBR.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID=casename)
 
-
-        #TODO: Case må slettes etter å ha lagt inn
+            partial = testCase.checkSimilarityPartialExplanation(c)
+            print('Partial', partial)
         
 
 
@@ -672,7 +559,6 @@ class Experiments():
         print("None (random)")
         show_results(measurements_dict_top_k_n, N_T)
         
-
     def run_experiment_5(self, N, N_T, M, unique=True, compress=True):
         """
             ? Test whether we need to present the user with previous cases, aswell as the current explanation.
@@ -748,12 +634,6 @@ class Experiments():
         """
             ? Test how the system perform with no initial casebase, and retaining each instance. 
         """
-
-    def run_experiment_x(self):
-        """
-        
-        """
-        np.random.seed(1) # init seed
         
 
 def check_contains(element, elements): # CHeck a list of numpy arrays contains a numpy array. 
@@ -833,7 +713,7 @@ if __name__ == "__main__":
         print("Starting experiment sim with verbose", args.verbose)
         project = projects/"adult_sim"/"adult_sim"/"adult_sim.prj"
         try:
-            experiments.run_experiment_sim(N_T=2, project=project.absolute(), jar=jar.absolute())
+            experiments.run_experiment_sim(N_T=10, project=project.absolute(), jar=jar.absolute())
         finally: # Incase the experiment fails for some reason, try to stop the MyCBR rest API server
             experiments.stop_MyCBR()
     elif(args.experiment == "exp_sim_bad"):
@@ -889,15 +769,3 @@ if __name__ == "__main__":
     elif(args.experiment == "test"):
         experiments.run_test()
     
-# Eksperiment med å endre på threshold for å se om forklaringen blir bedre med lavere/høyere
-
-# Oppdatere userdefined knowledge i knowledge-basen
-
-
-# Ulike mål om det passer:
-# - Helt identiske
-# - 
-
-
-# ----------------
-# Viktigste står først for anchor
