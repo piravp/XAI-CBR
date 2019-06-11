@@ -634,7 +634,7 @@ class Experiments():
         """
             ? Test how the system perform with no initial casebase, and retaining each instance. 
         """
-        
+
 
 def check_contains(element, elements): # CHeck a list of numpy arrays contains a numpy array. 
     for e in elements: # check against everyone in elements.
@@ -673,7 +673,6 @@ if __name__ == "__main__":
 
     subparsers = parser.add_subparsers(title="action", dest="experiment", help="experiment to run")
 
-    parser_test = subparsers.add_parser("test")
     parser_rest = subparsers.add_parser("start_server")
     parser_fill = subparsers.add_parser("exp_fill")
     parser_sim = subparsers.add_parser("exp_sim")
@@ -766,6 +765,3 @@ if __name__ == "__main__":
         project = projects/"adult"/"adult.prj"
         # Start Java program in the same terminal, for easy of use
         experiments.start_server(project.absolute(),jar.absolute())
-    elif(args.experiment == "test"):
-        experiments.run_test()
-    

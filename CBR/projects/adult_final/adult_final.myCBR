@@ -1,0 +1,970 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Project name="adult_final" author="" >
+<svs>
+  <sv name="_unknown_"/>
+  <sv name="_undefined_"/>
+  <sv name="_others_"/>
+<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="_unknown_">
+</qsym>
+<qsym name="_undefined_">
+</qsym>
+<qsym name="_others_">
+</qsym>
+</fct>
+</svs>
+<model>
+  <concept name="Person">
+    <desc name="CapitalGain" type="Symbol" mult="false" >
+      <symbol value="High" />
+      <symbol value="Low" />
+      <symbol value="None" />
+<fct name="BadCapGain2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="High">
+<csym name="High" sim="0.0"/>
+</qsym>
+<qsym name="Low">
+<csym name="Low" sim="0.0"/>
+</qsym>
+<qsym name="None">
+<csym name="None" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="BadCapGain" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="High">
+<csym name="Low" sim="1.0"/>
+<csym name="None" sim="1.0"/>
+</qsym>
+<qsym name="Low">
+<csym name="High" sim="1.0"/>
+<csym name="None" sim="1.0"/>
+</qsym>
+<qsym name="None">
+<csym name="High" sim="1.0"/>
+<csym name="Low" sim="1.0"/>
+</qsym>
+</fct>
+<fct name="CapGainFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="High">
+<csym name="Low" sim="0.5"/>
+</qsym>
+<qsym name="Low">
+<csym name="High" sim="0.5"/>
+<csym name="None" sim="0.5"/>
+</qsym>
+<qsym name="None">
+<csym name="Low" sim="0.5"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="Workclass" type="Symbol" mult="false" >
+      <symbol value="Self-emp-inc" />
+      <symbol value="Federal-gov" />
+      <symbol value="Local-gov" />
+      <symbol value="Private" />
+      <symbol value="Without-pay" />
+      <symbol value="Self-emp-not-inc" />
+      <symbol value="State-gov" />
+<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Self-emp-inc">
+</qsym>
+<qsym name="Federal-gov">
+</qsym>
+<qsym name="Local-gov">
+</qsym>
+<qsym name="Private">
+</qsym>
+<qsym name="Without-pay">
+</qsym>
+<qsym name="Self-emp-not-inc">
+</qsym>
+<qsym name="State-gov">
+</qsym>
+</fct>
+<fct name="BadWorkclass" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Self-emp-inc">
+<csym name="Federal-gov" sim="1.0"/>
+<csym name="Local-gov" sim="1.0"/>
+<csym name="Private" sim="1.0"/>
+<csym name="Without-pay" sim="1.0"/>
+<csym name="Self-emp-not-inc" sim="1.0"/>
+<csym name="State-gov" sim="1.0"/>
+</qsym>
+<qsym name="Federal-gov">
+<csym name="Self-emp-inc" sim="1.0"/>
+<csym name="Local-gov" sim="1.0"/>
+<csym name="Private" sim="1.0"/>
+<csym name="Without-pay" sim="1.0"/>
+<csym name="Self-emp-not-inc" sim="1.0"/>
+<csym name="State-gov" sim="1.0"/>
+</qsym>
+<qsym name="Local-gov">
+<csym name="Self-emp-inc" sim="1.0"/>
+<csym name="Federal-gov" sim="1.0"/>
+<csym name="Private" sim="1.0"/>
+<csym name="Without-pay" sim="1.0"/>
+<csym name="Self-emp-not-inc" sim="1.0"/>
+<csym name="State-gov" sim="1.0"/>
+</qsym>
+<qsym name="Private">
+<csym name="Self-emp-inc" sim="1.0"/>
+<csym name="Federal-gov" sim="1.0"/>
+<csym name="Local-gov" sim="1.0"/>
+<csym name="Without-pay" sim="1.0"/>
+<csym name="Self-emp-not-inc" sim="1.0"/>
+<csym name="State-gov" sim="1.0"/>
+</qsym>
+<qsym name="Without-pay">
+<csym name="Self-emp-inc" sim="1.0"/>
+<csym name="Federal-gov" sim="1.0"/>
+<csym name="Local-gov" sim="1.0"/>
+<csym name="Private" sim="1.0"/>
+<csym name="Self-emp-not-inc" sim="1.0"/>
+<csym name="State-gov" sim="1.0"/>
+</qsym>
+<qsym name="Self-emp-not-inc">
+<csym name="Self-emp-inc" sim="1.0"/>
+<csym name="Federal-gov" sim="1.0"/>
+<csym name="Local-gov" sim="1.0"/>
+<csym name="Private" sim="1.0"/>
+<csym name="Without-pay" sim="1.0"/>
+<csym name="State-gov" sim="1.0"/>
+</qsym>
+<qsym name="State-gov">
+<csym name="Self-emp-inc" sim="1.0"/>
+<csym name="Federal-gov" sim="1.0"/>
+<csym name="Local-gov" sim="1.0"/>
+<csym name="Private" sim="1.0"/>
+<csym name="Without-pay" sim="1.0"/>
+<csym name="Self-emp-not-inc" sim="1.0"/>
+</qsym>
+</fct>
+<fct name="BadWorkclass2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Self-emp-inc">
+<csym name="Self-emp-inc" sim="0.0"/>
+</qsym>
+<qsym name="Federal-gov">
+<csym name="Federal-gov" sim="0.0"/>
+</qsym>
+<qsym name="Local-gov">
+<csym name="Local-gov" sim="0.0"/>
+</qsym>
+<qsym name="Private">
+<csym name="Private" sim="0.0"/>
+</qsym>
+<qsym name="Without-pay">
+<csym name="Without-pay" sim="0.0"/>
+</qsym>
+<qsym name="Self-emp-not-inc">
+<csym name="Self-emp-not-inc" sim="0.0"/>
+</qsym>
+<qsym name="State-gov">
+<csym name="State-gov" sim="0.0"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="CapitalLoss" type="Symbol" mult="false" >
+      <symbol value="High" />
+      <symbol value="Low" />
+      <symbol value="None" />
+<fct name="BadCapLoss2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="High">
+<csym name="High" sim="0.0"/>
+</qsym>
+<qsym name="Low">
+<csym name="Low" sim="0.0"/>
+</qsym>
+<qsym name="None">
+<csym name="None" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="CapLossFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="High">
+<csym name="Low" sim="0.5"/>
+</qsym>
+<qsym name="Low">
+<csym name="High" sim="0.5"/>
+<csym name="None" sim="0.5"/>
+</qsym>
+<qsym name="None">
+<csym name="Low" sim="0.5"/>
+</qsym>
+</fct>
+<fct name="BadCapLoss" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="High">
+<csym name="Low" sim="1.0"/>
+<csym name="None" sim="1.0"/>
+</qsym>
+<qsym name="Low">
+<csym name="High" sim="1.0"/>
+<csym name="None" sim="1.0"/>
+</qsym>
+<qsym name="None">
+<csym name="High" sim="1.0"/>
+<csym name="Low" sim="1.0"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="Explanation" type="String" mult="false" >
+      <fct name="default function" type="String" symm="true" config="EQUALITY" n="3" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    </desc>
+    <desc name="Sex" type="Symbol" mult="false" >
+      <symbol value="Female" />
+      <symbol value="Male" />
+<fct name="SexFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Female">
+</qsym>
+<qsym name="Male">
+</qsym>
+</fct>
+<fct name="BadSex" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Female">
+<csym name="Male" sim="1.0"/>
+</qsym>
+<qsym name="Male">
+<csym name="Female" sim="1.0"/>
+</qsym>
+</fct>
+<fct name="BadSex2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Female">
+<csym name="Female" sim="0.0"/>
+</qsym>
+<qsym name="Male">
+<csym name="Male" sim="0.0"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="Prediction" type="Symbol" mult="false" >
+      <symbol value="0" />
+      <symbol value="1" />
+<fct name="PredFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="0">
+</qsym>
+<qsym name="1">
+</qsym>
+</fct>
+<fct name="BadPred2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="0">
+<csym name="0" sim="0.0"/>
+</qsym>
+<qsym name="1">
+<csym name="1" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="BadPred" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="0">
+<csym name="1" sim="1.0"/>
+</qsym>
+<qsym name="1">
+<csym name="0" sim="1.0"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="HoursPerWeek" type="Integer" min="0" max="100" mult="false" >
+      <fct name="BadHPW2" type="Integer" ltype="CONSTANT" lparam="0.0" rtype="CONSTANT" rparam="0.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+      <fct name="HPWFunc3" type="Integer" ltype="POLYNOMIAL_WITH" lparam="20.0" rtype="POLYNOMIAL_WITH" rparam="20.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+      <fct name="BadHPW" type="Integer" ltype="CONSTANT" lparam="1.0" rtype="CONSTANT" rparam="1.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    </desc>
+    <desc name="Weight" type="String" mult="false" >
+      <fct name="default function" type="String" symm="true" config="EQUALITY" n="3" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    </desc>
+    <desc name="MaritalStatus" type="Symbol" mult="false" >
+      <symbol value="Widowed" />
+      <symbol value="Separated" />
+      <symbol value="Married" />
+      <symbol value="Never-Married" />
+<fct name="BadMarital2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Widowed">
+<csym name="Widowed" sim="0.0"/>
+</qsym>
+<qsym name="Separated">
+<csym name="Separated" sim="0.0"/>
+</qsym>
+<qsym name="Married">
+<csym name="Married" sim="0.0"/>
+</qsym>
+<qsym name="Never-Married">
+<csym name="Never-Married" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Widowed">
+</qsym>
+<qsym name="Separated">
+</qsym>
+<qsym name="Married">
+</qsym>
+<qsym name="Never-Married">
+</qsym>
+</fct>
+<fct name="BadMarital" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Widowed">
+<csym name="Separated" sim="1.0"/>
+<csym name="Married" sim="1.0"/>
+<csym name="Never-Married" sim="1.0"/>
+</qsym>
+<qsym name="Separated">
+<csym name="Widowed" sim="1.0"/>
+<csym name="Married" sim="1.0"/>
+<csym name="Never-Married" sim="1.0"/>
+</qsym>
+<qsym name="Married">
+<csym name="Widowed" sim="1.0"/>
+<csym name="Separated" sim="1.0"/>
+<csym name="Never-Married" sim="1.0"/>
+</qsym>
+<qsym name="Never-Married">
+<csym name="Widowed" sim="1.0"/>
+<csym name="Separated" sim="1.0"/>
+<csym name="Married" sim="1.0"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="Occupation" type="Symbol" mult="false" >
+      <symbol value="Sales" />
+      <symbol value="Professional" />
+      <symbol value="Service" />
+      <symbol value="Blue-Collar" />
+      <symbol value="Admin" />
+      <symbol value="White-Collar" />
+      <symbol value="Military" />
+      <symbol value="Other" />
+<fct name="BadOccupation2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Sales">
+<csym name="Sales" sim="0.0"/>
+</qsym>
+<qsym name="Professional">
+<csym name="Professional" sim="0.0"/>
+</qsym>
+<qsym name="Service">
+<csym name="Service" sim="0.0"/>
+</qsym>
+<qsym name="Blue-Collar">
+<csym name="Blue-Collar" sim="0.0"/>
+</qsym>
+<qsym name="Admin">
+<csym name="Admin" sim="0.0"/>
+</qsym>
+<qsym name="White-Collar">
+<csym name="White-Collar" sim="0.0"/>
+</qsym>
+<qsym name="Military">
+<csym name="Military" sim="0.0"/>
+</qsym>
+<qsym name="Other">
+<csym name="Other" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="BadOccupation" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Sales">
+<csym name="Professional" sim="1.0"/>
+<csym name="Service" sim="1.0"/>
+<csym name="Blue-Collar" sim="1.0"/>
+<csym name="Admin" sim="1.0"/>
+<csym name="White-Collar" sim="1.0"/>
+<csym name="Military" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Professional">
+<csym name="Sales" sim="1.0"/>
+<csym name="Service" sim="1.0"/>
+<csym name="Blue-Collar" sim="1.0"/>
+<csym name="Admin" sim="1.0"/>
+<csym name="White-Collar" sim="1.0"/>
+<csym name="Military" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Service">
+<csym name="Sales" sim="1.0"/>
+<csym name="Professional" sim="1.0"/>
+<csym name="Blue-Collar" sim="1.0"/>
+<csym name="Admin" sim="1.0"/>
+<csym name="White-Collar" sim="1.0"/>
+<csym name="Military" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Blue-Collar">
+<csym name="Sales" sim="1.0"/>
+<csym name="Professional" sim="1.0"/>
+<csym name="Service" sim="1.0"/>
+<csym name="Admin" sim="1.0"/>
+<csym name="White-Collar" sim="1.0"/>
+<csym name="Military" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Admin">
+<csym name="Sales" sim="1.0"/>
+<csym name="Professional" sim="1.0"/>
+<csym name="Service" sim="1.0"/>
+<csym name="Blue-Collar" sim="1.0"/>
+<csym name="White-Collar" sim="1.0"/>
+<csym name="Military" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="White-Collar">
+<csym name="Sales" sim="1.0"/>
+<csym name="Professional" sim="1.0"/>
+<csym name="Service" sim="1.0"/>
+<csym name="Blue-Collar" sim="1.0"/>
+<csym name="Admin" sim="1.0"/>
+<csym name="Military" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Military">
+<csym name="Sales" sim="1.0"/>
+<csym name="Professional" sim="1.0"/>
+<csym name="Service" sim="1.0"/>
+<csym name="Blue-Collar" sim="1.0"/>
+<csym name="Admin" sim="1.0"/>
+<csym name="White-Collar" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Other">
+<csym name="Sales" sim="1.0"/>
+<csym name="Professional" sim="1.0"/>
+<csym name="Service" sim="1.0"/>
+<csym name="Blue-Collar" sim="1.0"/>
+<csym name="Admin" sim="1.0"/>
+<csym name="White-Collar" sim="1.0"/>
+<csym name="Military" sim="1.0"/>
+</qsym>
+</fct>
+<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Sales">
+</qsym>
+<qsym name="Professional">
+</qsym>
+<qsym name="Service">
+</qsym>
+<qsym name="Blue-Collar">
+</qsym>
+<qsym name="Admin">
+</qsym>
+<qsym name="White-Collar">
+</qsym>
+<qsym name="Military">
+</qsym>
+<qsym name="Other">
+</qsym>
+</fct>
+    </desc>
+    <desc name="Education" type="Symbol" mult="false" >
+      <symbol value="Masters" />
+      <symbol value="High School grad" />
+      <symbol value="Associates" />
+      <symbol value="Prof-School" />
+      <symbol value="Bachelors" />
+      <symbol value="Doctorate" />
+      <symbol value="Dropout" />
+<fct name="BadEducation" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Masters">
+<csym name="High School grad" sim="1.0"/>
+<csym name="Associates" sim="1.0"/>
+<csym name="Prof-School" sim="1.0"/>
+<csym name="Bachelors" sim="1.0"/>
+<csym name="Doctorate" sim="1.0"/>
+<csym name="Dropout" sim="1.0"/>
+</qsym>
+<qsym name="High School grad">
+<csym name="Masters" sim="1.0"/>
+<csym name="Associates" sim="1.0"/>
+<csym name="Prof-School" sim="1.0"/>
+<csym name="Bachelors" sim="1.0"/>
+<csym name="Doctorate" sim="1.0"/>
+<csym name="Dropout" sim="1.0"/>
+</qsym>
+<qsym name="Associates">
+<csym name="Masters" sim="1.0"/>
+<csym name="High School grad" sim="1.0"/>
+<csym name="Prof-School" sim="1.0"/>
+<csym name="Bachelors" sim="1.0"/>
+<csym name="Doctorate" sim="1.0"/>
+<csym name="Dropout" sim="1.0"/>
+</qsym>
+<qsym name="Prof-School">
+<csym name="Masters" sim="1.0"/>
+<csym name="High School grad" sim="1.0"/>
+<csym name="Associates" sim="1.0"/>
+<csym name="Bachelors" sim="1.0"/>
+<csym name="Doctorate" sim="1.0"/>
+<csym name="Dropout" sim="1.0"/>
+</qsym>
+<qsym name="Bachelors">
+<csym name="Masters" sim="1.0"/>
+<csym name="High School grad" sim="1.0"/>
+<csym name="Associates" sim="1.0"/>
+<csym name="Prof-School" sim="1.0"/>
+<csym name="Doctorate" sim="1.0"/>
+<csym name="Dropout" sim="1.0"/>
+</qsym>
+<qsym name="Doctorate">
+<csym name="Masters" sim="1.0"/>
+<csym name="High School grad" sim="1.0"/>
+<csym name="Associates" sim="1.0"/>
+<csym name="Prof-School" sim="1.0"/>
+<csym name="Bachelors" sim="1.0"/>
+<csym name="Dropout" sim="1.0"/>
+</qsym>
+<qsym name="Dropout">
+<csym name="Masters" sim="1.0"/>
+<csym name="High School grad" sim="1.0"/>
+<csym name="Associates" sim="1.0"/>
+<csym name="Prof-School" sim="1.0"/>
+<csym name="Bachelors" sim="1.0"/>
+<csym name="Doctorate" sim="1.0"/>
+</qsym>
+</fct>
+<fct name="EducationFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Masters">
+<csym name="High School grad" sim="0.3"/>
+<csym name="Associates" sim="0.6"/>
+<csym name="Prof-School" sim="0.8"/>
+<csym name="Bachelors" sim="0.8"/>
+<csym name="Doctorate" sim="0.6"/>
+<csym name="Dropout" sim="0.4"/>
+</qsym>
+<qsym name="High School grad">
+<csym name="Masters" sim="0.3"/>
+<csym name="Associates" sim="0.6"/>
+<csym name="Prof-School" sim="0.2"/>
+<csym name="Bachelors" sim="0.4"/>
+<csym name="Doctorate" sim="0.2"/>
+<csym name="Dropout" sim="0.8"/>
+</qsym>
+<qsym name="Associates">
+<csym name="Masters" sim="0.6"/>
+<csym name="High School grad" sim="0.6"/>
+<csym name="Prof-School" sim="0.4"/>
+<csym name="Bachelors" sim="0.8"/>
+<csym name="Doctorate" sim="0.2"/>
+<csym name="Dropout" sim="0.8"/>
+</qsym>
+<qsym name="Prof-School">
+<csym name="Masters" sim="0.8"/>
+<csym name="High School grad" sim="0.2"/>
+<csym name="Associates" sim="0.4"/>
+<csym name="Bachelors" sim="0.6"/>
+<csym name="Doctorate" sim="0.8"/>
+<csym name="Dropout" sim="0.2"/>
+</qsym>
+<qsym name="Bachelors">
+<csym name="Masters" sim="0.8"/>
+<csym name="High School grad" sim="0.4"/>
+<csym name="Associates" sim="0.8"/>
+<csym name="Prof-School" sim="0.6"/>
+<csym name="Doctorate" sim="0.4"/>
+<csym name="Dropout" sim="0.6"/>
+</qsym>
+<qsym name="Doctorate">
+<csym name="Masters" sim="0.6"/>
+<csym name="High School grad" sim="0.2"/>
+<csym name="Associates" sim="0.2"/>
+<csym name="Prof-School" sim="0.8"/>
+<csym name="Bachelors" sim="0.4"/>
+<csym name="Dropout" sim="0.1"/>
+</qsym>
+<qsym name="Dropout">
+<csym name="Masters" sim="0.4"/>
+<csym name="High School grad" sim="0.8"/>
+<csym name="Associates" sim="0.8"/>
+<csym name="Prof-School" sim="0.2"/>
+<csym name="Bachelors" sim="0.6"/>
+<csym name="Doctorate" sim="0.1"/>
+</qsym>
+</fct>
+<fct name="BadEducation2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Masters">
+<csym name="Masters" sim="0.0"/>
+</qsym>
+<qsym name="High School grad">
+<csym name="High School grad" sim="0.0"/>
+</qsym>
+<qsym name="Associates">
+<csym name="Associates" sim="0.0"/>
+</qsym>
+<qsym name="Prof-School">
+<csym name="Prof-School" sim="0.0"/>
+</qsym>
+<qsym name="Bachelors">
+<csym name="Bachelors" sim="0.0"/>
+</qsym>
+<qsym name="Doctorate">
+<csym name="Doctorate" sim="0.0"/>
+</qsym>
+<qsym name="Dropout">
+<csym name="Dropout" sim="0.0"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="Relationship" type="Symbol" mult="false" >
+      <symbol value="Wife" />
+      <symbol value="Unmarried" />
+      <symbol value="Own-child" />
+      <symbol value="Husband" />
+      <symbol value="Not-in-family" />
+      <symbol value="Other-relative" />
+<fct name="BadRel" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Wife">
+<csym name="Unmarried" sim="1.0"/>
+<csym name="Own-child" sim="1.0"/>
+<csym name="Husband" sim="1.0"/>
+<csym name="Not-in-family" sim="1.0"/>
+<csym name="Other-relative" sim="1.0"/>
+</qsym>
+<qsym name="Unmarried">
+<csym name="Wife" sim="1.0"/>
+<csym name="Own-child" sim="1.0"/>
+<csym name="Husband" sim="1.0"/>
+<csym name="Not-in-family" sim="1.0"/>
+<csym name="Other-relative" sim="1.0"/>
+</qsym>
+<qsym name="Own-child">
+<csym name="Wife" sim="1.0"/>
+<csym name="Unmarried" sim="1.0"/>
+<csym name="Husband" sim="1.0"/>
+<csym name="Not-in-family" sim="1.0"/>
+<csym name="Other-relative" sim="1.0"/>
+</qsym>
+<qsym name="Husband">
+<csym name="Wife" sim="1.0"/>
+<csym name="Unmarried" sim="1.0"/>
+<csym name="Own-child" sim="1.0"/>
+<csym name="Not-in-family" sim="1.0"/>
+<csym name="Other-relative" sim="1.0"/>
+</qsym>
+<qsym name="Not-in-family">
+<csym name="Wife" sim="1.0"/>
+<csym name="Unmarried" sim="1.0"/>
+<csym name="Own-child" sim="1.0"/>
+<csym name="Husband" sim="1.0"/>
+<csym name="Other-relative" sim="1.0"/>
+</qsym>
+<qsym name="Other-relative">
+<csym name="Wife" sim="1.0"/>
+<csym name="Unmarried" sim="1.0"/>
+<csym name="Own-child" sim="1.0"/>
+<csym name="Husband" sim="1.0"/>
+<csym name="Not-in-family" sim="1.0"/>
+</qsym>
+</fct>
+<fct name="BadRel2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Wife">
+<csym name="Wife" sim="0.0"/>
+</qsym>
+<qsym name="Unmarried">
+<csym name="Unmarried" sim="0.0"/>
+</qsym>
+<qsym name="Own-child">
+<csym name="Own-child" sim="0.0"/>
+</qsym>
+<qsym name="Husband">
+<csym name="Husband" sim="0.0"/>
+</qsym>
+<qsym name="Not-in-family">
+<csym name="Not-in-family" sim="0.0"/>
+</qsym>
+<qsym name="Other-relative">
+<csym name="Other-relative" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Wife">
+</qsym>
+<qsym name="Unmarried">
+</qsym>
+<qsym name="Own-child">
+</qsym>
+<qsym name="Husband">
+</qsym>
+<qsym name="Not-in-family">
+</qsym>
+<qsym name="Other-relative">
+</qsym>
+</fct>
+    </desc>
+    <desc name="Race" type="Symbol" mult="false" >
+      <symbol value="Amer-Indian-Eskimo" />
+      <symbol value="Asian-Pac-Islander" />
+      <symbol value="Black" />
+      <symbol value="White" />
+      <symbol value="Other" />
+<fct name="BadRace2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Amer-Indian-Eskimo">
+<csym name="Amer-Indian-Eskimo" sim="0.0"/>
+</qsym>
+<qsym name="Asian-Pac-Islander">
+<csym name="Asian-Pac-Islander" sim="0.0"/>
+</qsym>
+<qsym name="Black">
+<csym name="Black" sim="0.0"/>
+</qsym>
+<qsym name="White">
+<csym name="White" sim="0.0"/>
+</qsym>
+<qsym name="Other">
+<csym name="Other" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="default function" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Amer-Indian-Eskimo">
+</qsym>
+<qsym name="Asian-Pac-Islander">
+</qsym>
+<qsym name="Black">
+</qsym>
+<qsym name="White">
+</qsym>
+<qsym name="Other">
+</qsym>
+</fct>
+<fct name="BadRace" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Amer-Indian-Eskimo">
+<csym name="Asian-Pac-Islander" sim="1.0"/>
+<csym name="Black" sim="1.0"/>
+<csym name="White" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Asian-Pac-Islander">
+<csym name="Amer-Indian-Eskimo" sim="1.0"/>
+<csym name="Black" sim="1.0"/>
+<csym name="White" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Black">
+<csym name="Amer-Indian-Eskimo" sim="1.0"/>
+<csym name="Asian-Pac-Islander" sim="1.0"/>
+<csym name="White" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="White">
+<csym name="Amer-Indian-Eskimo" sim="1.0"/>
+<csym name="Asian-Pac-Islander" sim="1.0"/>
+<csym name="Black" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Other">
+<csym name="Amer-Indian-Eskimo" sim="1.0"/>
+<csym name="Asian-Pac-Islander" sim="1.0"/>
+<csym name="Black" sim="1.0"/>
+<csym name="White" sim="1.0"/>
+</qsym>
+</fct>
+    </desc>
+    <desc name="Country" type="Symbol" mult="false" >
+      <symbol value="Euro-west" />
+      <symbol value="Euro-south" />
+      <symbol value="South-America" />
+      <symbol value="China" />
+      <symbol value="United-States" />
+      <symbol value="Euro-east" />
+      <symbol value="SE-Asia" />
+      <symbol value="British-Commonwealth" />
+      <symbol value="Latin-America" />
+      <symbol value="Other" />
+<fct name="BadCountry2" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Euro-west">
+<csym name="Euro-west" sim="0.0"/>
+</qsym>
+<qsym name="Euro-south">
+<csym name="Euro-south" sim="0.0"/>
+</qsym>
+<qsym name="South-America">
+<csym name="South-America" sim="0.0"/>
+</qsym>
+<qsym name="China">
+<csym name="China" sim="0.0"/>
+</qsym>
+<qsym name="United-States">
+<csym name="United-States" sim="0.0"/>
+</qsym>
+<qsym name="Euro-east">
+<csym name="Euro-east" sim="0.0"/>
+</qsym>
+<qsym name="SE-Asia">
+<csym name="SE-Asia" sim="0.0"/>
+</qsym>
+<qsym name="British-Commonwealth">
+<csym name="British-Commonwealth" sim="0.0"/>
+</qsym>
+<qsym name="Latin-America">
+<csym name="Latin-America" sim="0.0"/>
+</qsym>
+<qsym name="Other">
+<csym name="Other" sim="0.0"/>
+</qsym>
+</fct>
+<fct name="BadCountry" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Euro-west">
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Euro-south">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="South-America">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="China">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="United-States">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Euro-east">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="SE-Asia">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="British-Commonwealth">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Latin-America">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Other" sim="1.0"/>
+</qsym>
+<qsym name="Other">
+<csym name="Euro-west" sim="1.0"/>
+<csym name="Euro-south" sim="1.0"/>
+<csym name="South-America" sim="1.0"/>
+<csym name="China" sim="1.0"/>
+<csym name="United-States" sim="1.0"/>
+<csym name="Euro-east" sim="1.0"/>
+<csym name="SE-Asia" sim="1.0"/>
+<csym name="British-Commonwealth" sim="1.0"/>
+<csym name="Latin-America" sim="1.0"/>
+</qsym>
+</fct>
+<fct name="CountryFunc" type="Symbol" mt="PARTNER_QUERY" r="REUSE" t="MAX" symm="true">
+<qsym name="Euro-west">
+</qsym>
+<qsym name="Euro-south">
+</qsym>
+<qsym name="South-America">
+</qsym>
+<qsym name="China">
+</qsym>
+<qsym name="United-States">
+</qsym>
+<qsym name="Euro-east">
+</qsym>
+<qsym name="SE-Asia">
+</qsym>
+<qsym name="British-Commonwealth">
+</qsym>
+<qsym name="Latin-America">
+</qsym>
+<qsym name="Other">
+</qsym>
+</fct>
+    </desc>
+    <desc name="Age" type="Integer" min="5" max="90" mult="false" >
+      <fct name="BadAgeFunc" type="Integer" ltype="CONSTANT" lparam="1.0" rtype="CONSTANT" rparam="1.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+      <fct name="AgeAdvFunc" type="AdvancedInteger" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX">
+        <point x="-85.0" y="0.0" />
+        <point x="-50.0" y="0.03" />
+        <point x="-28.0" y="0.05" />
+        <point x="0.0" y="1.0" />
+        <point x="28.0" y="0.05" />
+        <point x="50.0" y="0.03" />
+        <point x="85.0" y="0.0" />
+      </fct>
+      <fct name="BadAge2" type="Integer" ltype="CONSTANT" lparam="0.0" rtype="CONSTANT" rparam="0.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+      <fct name="AgeFunc" type="Integer" ltype="POLYNOMIAL_WITH" lparam="14.0" rtype="POLYNOMIAL_WITH" rparam="14.0" mode="DIFFERENCE" symm="true" mt="PARTNER_QUERY" r="REUSE" t="MAX" />
+    </desc>
+    <amalgam name="GlobalFunc" type="EUCLIDEAN" active="true" >
+      <entry name="CapitalGain" active="true" fct="CapGainFunc" weight="1.0"/>
+      <entry name="Workclass" active="true" fct="default function" weight="1.0"/>
+      <entry name="CapitalLoss" active="true" fct="CapLossFunc" weight="1.0"/>
+      <entry name="Explanation" active="false" fct="default function" weight="1.0"/>
+      <entry name="Sex" active="true" fct="SexFunc" weight="1.0"/>
+      <entry name="Prediction" active="true" fct="PredFunc" weight="1.0"/>
+      <entry name="HoursPerWeek" active="true" fct="default function" weight="1.0"/>
+      <entry name="Weight" active="false" fct="default function" weight="1.0"/>
+      <entry name="MaritalStatus" active="true" fct="default function" weight="1.0"/>
+      <entry name="Occupation" active="true" fct="default function" weight="1.0"/>
+      <entry name="Education" active="true" fct="EducationFunc" weight="1.0"/>
+      <entry name="Relationship" active="true" fct="default function" weight="1.0"/>
+      <entry name="Race" active="true" fct="default function" weight="1.0"/>
+      <entry name="Country" active="true" fct="CountryFunc" weight="1.0"/>
+      <entry name="Age" active="true" fct="AgeFunc" weight="1.0"/>
+    </amalgam>
+  </concept>
+</model>
+<hierarchy>
+  <fct name="default function" type="Taxonomy" mt="PARTNER_QUERY" r="REUSE" t="MAX" qconfig="INNER_NODES_ANY" cconfig="INNER_NODES_ANY" top="inheritanceDesc" sim="0.0" symm="true" >
+    <node name="Person" sim="1.0" parent="inheritanceDesc" />
+  </fct>
+</hierarchy>
+<cases no="5" cb="cb0"/>
+</Project>
