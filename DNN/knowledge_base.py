@@ -1,4 +1,4 @@
-# Reposible for storing the knowledge base ( of explanatory knowledge)
+# Reposible for storing the explanation base ( of explanatory knowledge)
 # The data is stored in a json file.
 import pathlib
 from pathlib import Path

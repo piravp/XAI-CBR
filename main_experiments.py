@@ -42,6 +42,8 @@ from keras import backend as K
 from keras.models import Model
 
 from collections import defaultdict
+import operator
+import matplotlib.pyplot as plt
 
 class Experiments():
     def __init__(self, verbose=False):
@@ -390,7 +392,7 @@ class Experiments():
         # Select cases from indexes, on the dataset before splitting, in readable form and encoded for black-box input. Validation set.
         init_cases = self.dataset.data_test_full.values[idx_cases_val]
         init_cases_enc = self.dataset.data_test_enc_full[idx_cases_val]
-       
+
         #Generate validation cases.
         attributions = self.get_attribution_multiple(init_cases_enc)
         explanations, predictions = self.get_explanation_prediction(init_cases_enc)
@@ -466,8 +468,6 @@ class Experiments():
 
         # print(self.CBR.getAlgamationFunctions(conceptID = conceptID))
 
-
-    
     def addTestCaseTemporarily(self, testCase):
         print('\nRunning function addTestCaseTemp()...')
         caseID = self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=[testCase])
@@ -531,7 +531,7 @@ class Experiments():
         conceptID = self.CBR.getConceptID()
         casebaseID = self.CBR.getCaseBaseID()
         print(conceptID, casebaseID)
-        
+
         # Check whether or not the casebase if filled with cases or not.
         size = self.CBR.getCaseBaseSize(conceptID = conceptID, casebaseID = casebaseID)
         if(size != 0):
@@ -556,7 +556,7 @@ class Experiments():
             print("Cases added:",self.CBR.addInstancesCases(casebaseID = casebaseID, conceptID = conceptID, cases=init_cases[n-M:n]))
 
         # INIT EXPERIMENT:
-    
+
         # Randomly select N from validation set.
         
         # Randomly select M from test set to check against.
@@ -585,7 +585,7 @@ class Experiments():
 
         """
         ############# initializing #############
-        np.random.seed(1) # init seed
+        np.random.seed(3) # init seed
         #Load the case-base system
 
         # Init knowledge base for validation data
@@ -601,14 +601,17 @@ class Experiments():
         ################### STARTING EXPERIMENT ###################
 
         print("Generating",N,"cases and",N_T, " test cases completed")
-        print("Cosine Similarity, self:",test_cases[0].checkCosineDistance(test_cases[0]))
-        print("Eucluidian similarity, self:", test_cases[0].checkEuclidianDistance(test_cases[0]))
+        #print("Cosine Similarity, self:",test_cases[0].checkCosineDistance(test_cases[0]))
+        #print("Eucluidian similarity, self:", test_cases[0].checkEuclidianDistance(test_cases[0]))
 
-        def experiment_4(cases, test_case, query, measurements_dict, n):
-            for k, (sim, i) in enumerate(query): # query results, (similarity, case index)
-                case = cases[i] # get case nr i. 
+        # Want to generate a plot per case_base fill instance. One with 5,10,15,20,25,30 etc.
+
+        def experiment_4(cases, test_case, query, measurements_dict, n): # n is number of cases in casebase
+            for k, (sim, i) in enumerate(query): # query index, (similarity, case index)
+                case = cases[i] # get case nr i from CaseBase
                 exp_case = self.KB.get(case.explanation) # get Explanations from the cases KB
                 exp_test_case = self.KB_test.get(test_case.explanation)
+                
                 if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
                     measurements_dict[n][k] += 1 
             
@@ -629,8 +632,8 @@ class Experiments():
             
             # We need query every case
             for t_c in test_cases:
-                # Query the cases for most similar case.
-                query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0]) # sort by distance
+                # Query the cases for most similar case ranking and sort
+                query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
                 query_c = sorted([(t_c.checkCosineDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
                 query_cp = sorted([(t_c.checkCosinePrediction(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
                 query_n = [ (0,i) for i in range(0,len(cases)) ] # simply the cases index, unsorted, baseline. 
@@ -643,11 +646,93 @@ class Experiments():
                 exp_val_case = self.KB.get(top_case.explanation)
                 if(exp_test_case.check_similarity(exp_val_case)):
                     print("EQUAL:",exp_test_case.exp_map["feature"] ,"==", exp_val_case.exp_map["feature"],"case:",query_c[0][1],"d:", distance)
+                    print(exp_test_case.exp_map["precision"], exp_val_case.exp_map["precision"])
                 
                 experiment_4(cases, t_c, query_e, measurements_dict_top_k_e, n)
                 experiment_4(cases, t_c, query_c, measurements_dict_top_k_c, n)
                 experiment_4(cases, t_c, query_cp, measurements_dict_top_k_cp, n)
                 experiment_4(cases, t_c, query_n, measurements_dict_top_k_n, n)
+        
+        # Generate a figure for each dictionary
+
+        plt.figure(1) # create figure of ID 1
+        #print(dict_c.items())
+        plt.set_aspect('equal')
+        #exit()
+        for sp, c in enumerate(measurements_dict_top_k_e.keys()):
+            #print(sp+1, len(measurements_dict_top_k_e.keys()), 1)
+            
+            plt.subplot(len(measurements_dict_top_k_e.keys()),1, sp+1) # create subplot nrows, ncols , index 
+            plt.plot(range(1,c+1), measurements_dict_top_k_e[c], 'k--') # center line
+            plt.plot(range(1,c+1), measurements_dict_top_k_c[c], 'b--') # center line
+            plt.plot(range(1,c+1), measurements_dict_top_k_cp[c], 'r--') # center line
+            plt.plot(range(1,c+1), measurements_dict_top_k_n[c], 'g--') # center line
+            plt.ylabel('hits')
+            plt.xlabel('cases')
+        plt.legend(['Euclidian', 'Cosine','CosinePred','None'], loc='lower right')
+        plt.show()
+        """
+        plt.subplot(1, 5, 1) # create subplot nrows, ncols , index 
+        plt.hist(x = measurements_dict_top_k_e[5])
+        plt.hist(x = measurements_dict_top_k_c[5])
+        plt.hist(x = measurements_dict_top_k_cp[5])
+        plt.hist(x = measurements_dict_top_k_n[5])
+        #plt.axvline(x=5,linestyle=":",color="g")
+        plt.title('explanation hits from query')
+        plt.ylabel('hits')
+        plt.xlabel('cases')
+        plt.legend(['training', 'validation','checkpoint'], loc='lower right')
+        # We need to get each
+
+        plt.subplot(1, 5, 2) # create subplot nrows, ncols , index 
+        plt.plot(measurements_dict_top_k_e[5],range(1,6), 'k--') # center line
+        plt.plot(measurements_dict_top_k_c[5],range(1,6), 'k--') # center line
+        plt.plot(measurements_dict_top_k_cp[5],range(1,6), 'k--') # center line
+        plt.plot(measurements_dict_top_k_n[5],range(1,6), 'k--') # center line
+        #plt.bar(x=range(5),height=measurements_dict_top_k_e[5]) #
+        #plt.bar(x=range(20),height=measurements_dict_top_k_e[20]) # 
+        #plt.axvline(x=5,linestyle=":",color="g")
+        plt.title('explanation hits from query')
+        plt.ylabel('hits')
+        plt.xlabel('cases')
+        plt.legend(['training', 'validation','checkpoint'], loc='lower right')
+
+        plt.subplot(1, 5, 3) # create subplot nrows, ncols , index 
+        plt.plot(measurements_dict_top_k_e[5*2],range(1,5*2+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_c[5*2],range(1,5*2+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_cp[5*2],range(1,5*2+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_n[5*2],range(1,5*2+1), 'k--') # center line
+        #plt.axvline(x=5,linestyle=":",color="g")
+        plt.title('explanation hits from query')
+        plt.ylabel('hits')
+        plt.xlabel('cases')
+        plt.legend(['training', 'validation','checkpoint'], loc='lower right')
+
+        plt.subplot(1, 5, 4) # create subplot nrows, ncols , index 
+        plt.plot(measurements_dict_top_k_e[5*3],range(1,5*3+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_c[5*3],range(1,5*3+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_cp[5*3],range(1,5*3+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_n[5*3],range(1,5*3+1), 'k--') # center line
+        #plt.axvline(x=5,linestyle=":",color="g")
+        plt.title('explanation hits from query')
+        plt.ylabel('hits')
+        plt.xlabel('cases')
+        plt.legend(['training', 'validation','checkpoint'], loc='lower right')
+
+        plt.subplot(1, 5, 5) # create subplot nrows, ncols , index 
+        plt.plot(measurements_dict_top_k_e[5*4],range(1,5*4+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_c[5*4],range(1,5*4+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_cp[5*4],range(1,5*4+1), 'k--') # center line
+        plt.plot(measurements_dict_top_k_n[5*4],range(1,5*4+1), 'k--') # center line
+        #plt.axvline(x=5,linestyle=":",color="g")
+        plt.title('explanation hits from query')
+        plt.ylabel('hits')
+        plt.xlabel('cases')
+        plt.legend(['training', 'validation','checkpoint'], loc='lower right')
+        """
+        
+
+        print(measurements_dict_top_k_e.keys(),measurements_dict_top_k_e.items())
 
         print("")
         print("Euclidian")
@@ -658,11 +743,15 @@ class Experiments():
         show_results(measurements_dict_top_k_cp, N_T)
         print("None (random)")
         show_results(measurements_dict_top_k_n, N_T)
+    
+        #plot_results(measurements_dict_top_k_e, measurements_dict_top_k_c, measurements_dict_top_k_cp, measurements_dict_top_k_n, N_T)
         
 
     def run_experiment_5(self, N, N_T, M, unique=True, compress=True):
         """
-            ? Test whether we need to present the user with previous cases, aswell as the current explanation.
+            ? Test whether the partial fit against the current case. 
+            # Need to test if prediction is correct aswell.
+
         """
 
         np.random.seed(1) # init seed
@@ -678,6 +767,8 @@ class Experiments():
         # Genererate case objects from these.   
         # N, N_T, unique=False, compress=True
         init_cases, test_cases = self.generate_cases(N, N_T, unique=unique,compress=compress)
+
+        print(self.KB_test.get(4).get_explanation(self.dataset.feature_names, self.dataset.categorical_names))
 
         measurements_dict_top_k_e = defaultdict(tuple) # dictionary of lists.
         measurements_dict_top_k_p = defaultdict(int) # dictionary of lists.
@@ -699,7 +790,7 @@ class Experiments():
                 #N_T, n, p,k # Need a matrix per test_query...
                 #k_list.append()
                 m_dict[n,n_t,k] = (p,precision)
-                if(p != 0):
+                if(p != 0): # only add if prediction on class is has a partial match with the case itself.
                     m2_dict[n,k] += 1 # how many cases we got a partial match with the case instance
 
         
@@ -721,16 +812,29 @@ class Experiments():
                 query_n = [ (0,i) for i in range(0,len(cases)) ] # simply the cases index, unsorted, baseline. 
                 
 
-                check_difference(query_e, t_c, cases, measurements_dict_top_k_e,measurements_dict_top_k_p, n, n_t)
-
+                check_difference(query_e, t_c, cases, measurements_dict_top_k_e, measurements_dict_top_k_p, n, n_t)
+        print("BEGIN TEST")
         print(measurements_dict_top_k_e)
+        print("")
         print(measurements_dict_top_k_p)
         print([p for (n,k),p in measurements_dict_top_k_p.items()])
 
+        #print(sorted(measurements_dict_top_k_p.items(),key=operator.itemgetter(0,1)))
+        # sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
         for n in np.unique([n for n, k in measurements_dict_top_k_p.keys()]): # get unique n keys.
+            print("n",end=": ")
+            for k in range(n): # 0-4. 
+                print(measurements_dict_top_k_p.get((n,k),0),"", end="")
+            print()
+                #print(sorted(measurements_dict_top_k_p.items(),key=operator.itemgetter(0,1)))
             # TODO: Add zeros to a list and print..
-            print([p for (n_i,k),p in measurements_dict_top_k_p.items() if n_i == n])
-            
+            # get sorted list with n_i == n
+            #sorted_x = sorted([p for (n_i, q),p in sorted(measurements_dict_top_k_p.items(),key=operator.itemgetter(1)) if n_i == n], key=lambda param: param[0][1]) # sort by q ranking 
+            #print(sorted_x)
+            #print("k",n)
+            #print([p for (n_i,k),p in measurements_dict_top_k_p.items() if n_i == n])
+
+
     def run_experiment_6(self, project, jar, storage=False):
         """
             ? Test how the system perform with no initial casebase, and retaining each instance. 
@@ -762,7 +866,23 @@ def check_positive(value):
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     return ivalue
 
-def show_results(dictionary, n):
+def plot_results(dict_e, dict_c, dict_cp, dict_n, n_t):
+    plt.figure(1) # create figure of ID 1
+    #print(dict_c.items())
+    #exit()
+    plt.subplot(1, 3, 1) # create subplot nrows, ncols , index 
+    plt.bar(x=range(5),height=dict_e[5]) #
+    plt.bar(x=range(20),height=dict_e[20]) # 
+    #plt.axvline(x=5,linestyle=":",color="g")
+    plt.title('explanation hits from query')
+    plt.ylabel('hits')
+    plt.xlabel('cases')
+    plt.legend(['training', 'validation','checkpoint'], loc='lower right')
+    # We need to get each
+    
+    plt.show()
+
+def show_results(dictionary, n): # n is the 
     for key, item in dictionary.items():
         print("k {} {} {}/{}".format(key, item, sum(item), n))
         # Want to calculate partial sums.
@@ -784,6 +904,7 @@ if __name__ == "__main__":
     parser_rest = subparsers.add_parser("start_server")
     parser_fill = subparsers.add_parser("exp_fill")
     parser_sim = subparsers.add_parser("exp_sim")
+
     parser_1 = subparsers.add_parser("exp_1")
     #parser_1.add_argument("-N","--num_cases",help="number of cases we initiate with", default=4,
     #                type=check_positive)
@@ -807,6 +928,7 @@ if __name__ == "__main__":
     projects = parent/"CBR"/"projects"
     # Java runnable file of MyCBR REst
     jar = parent/"CBR"/"libs"/"mycbr-rest"/"target"/"mycbr-rest-1.0-SNAPSHOT.jar"
+    # Do the experment that was asked of by the user.
     if(args.experiment == "exp_fill"):
         print("Starting experiment fill with verbose", args.verbose)
         project = projects/"adult_fill"/"adult_fill.prj"
@@ -838,16 +960,11 @@ if __name__ == "__main__":
             experiments.run_experiment_2(project=project.absolute(), jar=jar.absolute())
         finally:
             experiments.stop_MyCBR()
-    elif(args.experiment == "exp_4"):
-        N = 100 # number of total cases to test
-        N_T = 100 # number of test_cases
-        M = 10 # amount of casebase cases we add per test.
+    elif(args.experiment == "exp_4"): # 50 50
+        N = 50 # number of total cases to test against
+        N_T = 50 # number of test_cases
+        M = 5 # amount of casebase cases we add per test.
         experiments.run_experiment_4(N=N,N_T=N_T,M=M, unique=True)
-    # elif(args.experiment == "full"):
-    #     try:
-    #         experiments.run_test_full(N=100, project=project.absolute(), jar=jar.absolute())
-    #     finally:
-    #         experiments.stop_MyCBR()
     elif(args.experiment == "exp_5"):
         N = 10 # number of total cases to test
         N_T = 10 # number of test_cases

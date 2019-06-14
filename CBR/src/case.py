@@ -73,7 +73,6 @@ class Case(json.JSONEncoder):
             return True
         return False
 
-
     def checkCosineDistance(self,other):
         return spatial.distance.cosine(self.weight, other.weight)
 
@@ -107,6 +106,11 @@ class Case(json.JSONEncoder):
         return partial_fit
 
     def checkAnchorFitting(self, other, preprocess):
+        """ 
+            check whether or not an anchor can fit on self.
+            return anchor size and precision of fit.
+            return anchor_size,(precision, coverage)
+        """
         # self should be a test_case, and other a case from the CBR
         # check if the others explanation fit on our case, and how much
         # We need to decode our self, and check against the others explanation.
@@ -126,13 +130,12 @@ class Case(json.JSONEncoder):
             v_dec = preprocess.encode_row(f,self.columns[f])
 
             if(v != v_dec):
-                if(partial_fit == 0):
-                    return partial_fit, 0
-                return partial_fit, np.around(exp_o.precision(partial_fit-1), decimals=3)
+                if(partial_fit == 0): # if didnt fit our instance.
+                    return partial_fit, (0,0)
+                return partial_fit, (np.around(exp_o.precision(partial_fit-1), decimals=3),np.around(exp_o.coverage(partial_fit-1), decimals=3))
             else:
                 partial_fit += 1
-        return partial_fit, np.around(exp_o.precision(partial_fit-1), decimals=3)
-
+        return partial_fit,  (np.around(exp_o.precision(partial_fit-1), decimals=3),np.around(exp_o.coverage(partial_fit-1), decimals=3))
 
     def isSolved(self):
         # Simply check whether or not this particular case has a solution

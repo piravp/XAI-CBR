@@ -54,7 +54,6 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
     
     def get_explanation_encoded(self):
         # first we need to join feature = name,
-        # 
         tmp = []
         names = self.names()
         for i,f in enumerate(self.features()):
