@@ -6,7 +6,7 @@ import numpy as np
 class Case(json.JSONEncoder):
     def __init__(self, age:int, capital_gain:str,  capital_loss:str, country:str,  education:str, explanation:int, 
         hours_per_week:int, martial_status:str,  occupation:str, prediction:int, race:str, relationship:str, 
-        sex:str, weight, workclass:str, KB, similarity=None, caseID=None):
+        sex:str, weight, workclass:str, EB, similarity=None, caseID=None):
         # column index: age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)
         #self.column_index = ()
@@ -35,7 +35,7 @@ class Case(json.JSONEncoder):
         else:
             self.weight = weight                # [a,b,c,d,e,f,g,h,i,j] 12 weights, one per attribute. age - country
         # Soulution part
-        self.explanation = explanation      # id pointer to knowledge base. self.KB.get(self.explanation) return Explanation object.
+        self.explanation = explanation      # id pointer to knowledge base. self.EB.get(self.explanation) return Explanation object.
         # TODO: Turn String to int values.
         #age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)
@@ -55,8 +55,8 @@ class Case(json.JSONEncoder):
         }
         self.discretizise = [0,10] # features that need to be discretisized.
 
-        if(KB is not None):
-            self.KB = KB # knowledge_base, that we keep the different explanations in.
+        if(EB is not None):
+            self.EB = EB # knowledge_base, that we keep the different explanations in.
 
     def check_equal(self,other): # check if a case is exactly the same as this one.
         if( self.age            == other.age            and
@@ -92,8 +92,8 @@ class Case(json.JSONEncoder):
             return 0 # return -1, as in the prediction is not even correct.
         # Check the similarity between this case and another.
         # Return partial or exact match between anchors.
-        exp_s = self.KB.get(self.explanation)
-        exp_o = other.KB.get(other.explanation)
+        exp_s = self.EB.get(self.explanation)
+        exp_o = other.EB.get(other.explanation)
 
         partial_fit = 0
 
@@ -119,7 +119,7 @@ class Case(json.JSONEncoder):
         if(self.prediction != other.prediction): # if not even similar prediction, we might as well return with a low similarity score.
             return 0,0 # return -1, as in the prediction is not even correct
         #check if explanation fits
-        exp_o = other.KB.get(other.explanation)
+        exp_o = other.EB.get(other.explanation)
         # e.g exp.features() -> [4,5], attribute 4 and 5.
         partial_fit = 0 # [0,1,2] only 0 if first feature anchor fit
         #print(exp_o.get_explanation_encoded())
