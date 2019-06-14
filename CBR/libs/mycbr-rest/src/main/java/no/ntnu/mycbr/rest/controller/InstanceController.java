@@ -90,9 +90,9 @@ public class InstanceController {
         ICaseBase cb = p.getCaseBases().get(casebaseID);
         if (cb.containsCase(instanceID) == null) // IF casebase does not contain the InstanceID
             return false;
-        System.out.println(cb.getCases().size());
+        // System.out.println(cb.getCases().size());
         p.getCaseBases().get(casebaseID).removeCase(instanceID);
-        System.out.println(cb.getCases().size());
+        // System.out.println(cb.getCases().size());
         // Save changes to .prj file
         if(App.saveBoolean){
             p.save();

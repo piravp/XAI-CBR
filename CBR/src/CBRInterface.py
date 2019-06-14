@@ -207,9 +207,14 @@ class RESTApi:
 # res = api.deleteInstance(casebaseID='cb0', conceptID='Person', instanceID='Person-cb08')
 # res = api.getCaseBaseSize(conceptID='Person', casebaseID='cb0')
 # res = api.modifyAttributeInCase(casebaseID='cb0', conceptID='Person', caseID='Person-cb08', attributeName='Age', value=25)
-# res = api.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID='Person-cb050')
-
-# print(res)
+# res = api.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID='Person-cb010')
+# res = res["case"]
+# c = Case( res['Age'], res['CapitalGain'], res['CapitalLoss'], res['Country'], res['Education'], 
+#           res['Explanation'], res['HoursPerWeek'], res['MaritalStatus'], res['Occupation'],
+#           res['Prediction'], res['Race'], res['Relationship'], res['Sex'], res['Weight'], res['Workclass'])
+# print(type(res), res)
+# print()
+# print(c)
 # api.plot_retrieve_k_sim_byID(res)
 
 

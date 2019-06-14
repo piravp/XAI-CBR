@@ -80,6 +80,10 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             Check if two explanations fit on eachother
             fully if partial index not set, assumes p is not too large for both
         """
+        # print('from check_similarity() in explanation.py:')
+        # print(self.features(), other.features())
+        # print(self.names(), other.names())
+
         if( self.features(p) == other.features(p) and
             self.names(p)    == other.names(p)):
             return True

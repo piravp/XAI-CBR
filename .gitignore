@@ -34,3 +34,6 @@ src/deepexplain
 
 *.pyc
 __pycache__
+
+# Knowledge base
+*.json

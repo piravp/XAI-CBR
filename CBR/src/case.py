@@ -4,9 +4,9 @@ from scipy import spatial
 import numpy as np
 
 class Case(json.JSONEncoder):
-    def __init__(self, age:int, workclass:str, education:str, martial_status:str, occupation:str,
-        relationship:str, race:str, sex:str, capital_gain:str, capital_loss:str,
-        hours_per_week:int,country:str, explanation:int, prediction:int, weight, KB, similarity=None, caseID=None):
+    def __init__(self, age:int, capital_gain:str,  capital_loss:str, country:str,  education:str, explanation:int, 
+        hours_per_week:int, martial_status:str,  occupation:str, prediction:int, race:str, relationship:str, 
+        sex:str, weight, workclass:str, KB, similarity=None, caseID=None):
         # column index: age, workclass, education, martial_status, occupation, relationship, race, sex, 
         #               capital_gain, capital_loss, hours_per_week, country, prediction(salary)
         #self.column_index = ()
@@ -28,7 +28,7 @@ class Case(json.JSONEncoder):
         self.hours_per_week=hours_per_week  # integer <0,+>
         self.country = country              # 'British-Commonwealth', 'China', 'Euro_east', 'Euro_south', 'Euro_west',
                                             #+'Latin-America', 'Other', 'SE-Asia', 'South-America', 'United-States'
-        self.prediction = prediction        # 0, 1 [ < 50 000,  >=50 000]
+        self.prediction = int(prediction)        # 0, 1 [ < 50 000,  >=50 000]
         if(isinstance(weight, str)):
             # Need to map the list from "[a,b,c,]" to [a,b,c]
             self.weight = ast.literal_eval(weight)
@@ -88,6 +88,7 @@ class Case(json.JSONEncoder):
     # We want to figure out if the partial explanation holds related to its own.
     def checkSimilarityPartialExplanation(self, other): 
         if(self.prediction != other.prediction): # if not even similar prediction, we might as well return with a low similarity score.
+            # print('Different predictions')
             return 0 # return -1, as in the prediction is not even correct.
         # Check the similarity between this case and another.
         # Return partial or exact match between anchors.
@@ -97,12 +98,13 @@ class Case(json.JSONEncoder):
         partial_fit = 0
 
         limit = len(exp_s.features()) # don't want to overeach
-        for exp in range(len(exp_o.features())): # if partial explanation fit, we can use it for generating an explanation.
+        for exp in range(1, len(exp_o.features()+1)): # if partial explanation fit, we can use it to generate an explanation.
             if(exp >= limit):
                 print(exp_o.features(limit))
             if(exp_o.check_similarity(exp_s)):
                 partial_fit = exp
 
+        # print('SAME PREDICTIONS')
         return partial_fit
 
     def checkAnchorFitting(self, other, preprocess):
