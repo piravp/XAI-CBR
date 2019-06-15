@@ -24,6 +24,11 @@ class ExplanationBase(json.JSONEncoder, json.JSONDecoder):
 
         self.name = file_name
         filepath = folderpath/self.name
+
+        # Check if folder exists
+        if(not folderpath.exists()):
+            os.makedirs(folderpath)
+
         # file_name is where we will store the knowlede base.
         # Either create a new file, if file_name do not already exist
         if(not filepath.exists()):

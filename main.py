@@ -2,7 +2,7 @@
     This is the main file used to reproduce results presented in the thesis.
     By seeding the randomization at each step the results are guaranteed to be reproduceable.
 
-    ONLY TESTED IN WINDOWS
+    Only tested on Windows OS, anything else could fail at the MyCBR shutdown step.
 
     For more Info see README file.
 """
@@ -36,6 +36,9 @@ from keras import backend as K
 from keras.models import Model
 
 from collections import defaultdict
+#import operator
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 class Main():
     def __init__(self, verbose=False):
@@ -55,7 +58,7 @@ class Main():
                     self.dataset.data_validation, self.dataset.validation_labels) # Fit the labels to the explainer.
         self.anchors_explainer = explainer
 
-        #* Init integrated gradients
+        #* Init integrated gradients variable
         cat_names = sorted(self.dataset.categorical_names.keys())
         self.n_values = [len(self.dataset.categorical_names[i]) for i in cat_names]
 
@@ -83,7 +86,7 @@ class Main():
         count = 0
         while(status == 404 or status == 500): # if not sucessfull, keep sleeping
             count += 1
-            time.sleep(5)
+            time.sleep(5) # 5 seconds
             status = self.CBR.checkStatus()
             if(count == 8):
                 print("Took too long time to start up project")
@@ -116,15 +119,14 @@ class Main():
     # ----------------------------------------------------------------------------------------------------- #
 
     def get_attribution(self, instance):
-        # Get attribution from an instance on the black box (ANN)
-        #attribution_weights_full = []
+        """
+            Get attribution from one instances using Integraded Gradients. 
+        """
         with DeepExplain(session=K.get_session()) as de: # Init session, to keep gradients.
             input_tensors = self.bb.model.inputs
             output_layer = self.bb.model.outputs
             fModel = Model(inputs=input_tensors, outputs=output_layer)
             target_tensor = fModel(input_tensors)
-
-            # TODO: Handle multiple instances at once, to save processing time.
 
             attribution_weights_instance = []
             instance = instance.reshape(1,-1)
@@ -142,6 +144,9 @@ class Main():
         return attribution_weights_instance # return list of attributions.
 
     def get_attribution_multiple(self, instances, compress=True):
+        """
+            Get attribution from multiple instances using Integraded Gradients. 
+        """
         attribution_weights_full = []
         with DeepExplain(session=K.get_session()) as de:
             input_tensors = self.bb.model.inputs
@@ -304,7 +309,6 @@ class Main():
             print(self.CBR.addInstancesCases(casebaseID='cb0', conceptID='Person', cases=batch))
             print()
 
-   
 
     def run_retrieve(self, N_T, k, project, jar, storage):
         """
@@ -402,6 +406,99 @@ class Main():
             # partial = testCase.checkSimilarityPartialExplanation(c)
             # print('Partial', partial)
 
+    def run_weight_test(self, N, N_T, M, unique=True, compress=True):
+        """
+            ? Test whether the attribution score can be used for retrieval alone on the CaseBase
+
+        """
+        ############# initializing #############
+        np.random.seed(1) # init seed
+
+        # Init explanation base for validation data
+        self.EB = explanation_base.ExplanationBase("epx_weight")
+        self.EB.reset_knowledge() # empty the explanation-base before we begin.
+
+        self.EB_test = explanation_base.ExplanationBase("epx_weight_test")
+        self.EB_test.reset_knowledge() # empty the explanation-base before we begin.
+
+        # Genererate case objects from these.   
+        # N, N_T, unique=False, compress=True
+        print("Init generating cases, this should take approximatly", N+N_T,"seconds")
+        t = time.time()
+        init_cases, test_cases = self.generate_cases(N, N_T, unique=unique,compress=compress)
+        ################### STARTING EXPERIMENT ###################
+        print("Generating", N, "cases and", N_T, "test cases completed in", time.time()-t,"seconds")
+        #print("Cosine Similarity, self:",test_cases[0].checkCosineDistance(test_cases[0]))
+        #print("Eucluidian similarity, self:", test_cases[0].checkEuclidianDistance(test_cases[0]))
+
+        # Want to generate a plot per case_base fill instance. One with 5,10,15,20,25,30 etc.
+
+        def experiment_4(cases, test_case, query, measurements_dict, n): # n is number of cases in casebase
+            for k, (sim, i) in enumerate(query): # query index, (similarity, case index)
+                case = cases[i] # get case nr i from CaseBase
+                exp_case = self.EB.get(case.explanation) # get Explanations from the cases EB
+                exp_test_case = self.EB_test.get(test_case.explanation)
+                
+                if(exp_test_case.check_similarity(exp_case)): # if explanation in query at k fit.
+                    measurements_dict[n][k] += 1 
+            
+        measurements_dict_top_k_e = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_c = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_n = defaultdict(list) # dictionary of lists.
+        measurements_dict_top_k_cp = defaultdict(list) # dictionary of lists.
+
+        # * PERFORM EXPERIMENT
+        for n in range(M,N+M,M): # Loop trough the all test_cases.
+            # We don't need to add cases to MyCBR in this experiment, but simply only use a section of the CaseBase list at a time.
+            cases = init_cases[0:n] # Keep track of the CaseBase
+
+            measurements_dict_top_k_e[n] = [0]*len(cases) # empty list of K elements.
+            measurements_dict_top_k_c[n] = [0]*len(cases) # empty list of K elements.
+            measurements_dict_top_k_cp[n] = [0]*len(cases) # empty list of K elements.
+            measurements_dict_top_k_n[n] = [0]*len(cases) # empty list of K elements.
+            
+            # We need query every case
+            for t_c in test_cases:
+                # Query the cases for most similar case ranking and sort distances
+                query_e = sorted([(t_c.checkEuclidianDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_c = sorted([(t_c.checkCosineDistance(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_cp = sorted([(t_c.checkCosinePrediction(c),i) for i,c in enumerate(cases)], key=lambda param: param[0])
+                query_n = [ (0,i) for i in range(0,len(cases)) ] # simply the cases index, unsorted, baseline. 
+
+                # Run test on each measurment dictionary to get results.
+                experiment_4(cases, t_c, query_e, measurements_dict_top_k_e, n)
+                experiment_4(cases, t_c, query_c, measurements_dict_top_k_c, n)
+                experiment_4(cases, t_c, query_cp, measurements_dict_top_k_cp, n)
+                experiment_4(cases, t_c, query_n, measurements_dict_top_k_n, n)
+        
+        # what should be drawn and properties regarding each plot
+        measurements = [measurements_dict_top_k_e, measurements_dict_top_k_c, measurements_dict_top_k_cp, measurements_dict_top_k_n]
+        lines = ['mo','cD','g^','r*']
+        size = [10,10,10,10]
+        fig, subs = plt.subplots(len(measurements_dict_top_k_e.keys()), 1) # create one subplot for each case-base test.
+        
+
+        fig.suptitle('Test against 50 test cases, +10 in Case-Base per graph', fontsize=13)
+        for i,sub in enumerate(subs): # itterate over the subplots
+            for c, measurement in enumerate(measurements): # loop though measurment data and calculate top k slices.
+                partial_sums = [] # top k cases
+                for k in range(M,len(measurement[(i+1)*M])+M,M): # calculate slices
+                    partial_sums.append(sum(measurement[(i+1)*M][0:k])) # get slices from measurements.
+                sub.plot(range(M,len(partial_sums)*M+1,M), partial_sums, lines[c],markersize=size[c]) # center line
+
+            sub.set_xticks(range(M,len(partial_sums)*M+1,M)) # set ticks to number of cases in each test.
+            sub.set_ylabel("hits") 
+            sub.set_ylim(bottom=0) 
+            sub.yaxis.set_major_locator(MaxNLocator(integer=True)) # create good y-axis labels.
+        fig.legend(('Euclidian', 'Cosine','CosinePred','None(random)'), loc='upper right') # mark each plot
+        plt.xlabel("hits in top k results from query") 
+        plt.show()
+
+def check_contains(element, elements): # CHeck a list of numpy arrays contains a numpy array. 
+    for e in elements: # check against everyone in elements.
+        if(np.array_equal(e,element)):
+            return True
+    return False
 
 if __name__ == "__main__":
     ############ Create Argument Parser ############
@@ -413,6 +510,7 @@ if __name__ == "__main__":
 
     fill_final = subparsers.add_parser("fill_final")
     retrieve = subparsers.add_parser("retrieve")
+    test_weight = subparsers.add_parser("test_weight")
 
     args = parser.parse_args() # Get arguments from command line
 
@@ -437,3 +535,8 @@ if __name__ == "__main__":
             main.run_retrieve(N_T=1, k=1, project=project.absolute(), jar=jar.absolute(), storage=False)
         finally: # In case the command fails for some reason, try to stop the MyCBR rest API server
             main.stop_MyCBR()
+    elif(args.main == "test_weight"):
+        N = 50 # number of total cases to test against
+        N_T = 50 # number of test_cases
+        M = 10 # amount of casebase cases we add per test.
+        main.run_weight_test(N=N,N_T=N_T,M=M, unique=True)

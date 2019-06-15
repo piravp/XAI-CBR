@@ -87,31 +87,36 @@ class Case(json.JSONEncoder):
 
     # We want to figure out if the partial explanation holds related to its own.
     def checkSimilarityPartialExplanation(self, other): 
+        exp_s = self.EB.get(self.explanation)
+        exp_o = other.EB.get(other.explanation)
+
         if(self.prediction != other.prediction): # if not even similar prediction, we might as well return with a low similarity score.
             # print('Different predictions')
             return 0 # return -1, as in the prediction is not even correct.
         # Check the similarity between this case and another.
         # Return partial or exact match between anchors.
-        exp_s = self.EB.get(self.explanation)
-        exp_o = other.EB.get(other.explanation)
+        
 
-        partial_fit = 0
+        partial_fit = 0 # feature a_i = feature b_i, and value x_i = value y_i.
 
         limit = len(exp_s.features()) # don't want to overeach
-        for exp in range(1, len(exp_o.features()+1)): # if partial explanation fit, we can use it to generate an explanation.
-            if(exp >= limit):
-                print(exp_o.features(limit))
-            if(exp_o.check_similarity(exp_s)):
-                partial_fit = exp
-
+        # loop trough the features of self
+        for i,f in enumerate(exp_o.features()):
+            if(i == limit): # if we have reached limit, exit
+                return partial_fit
+            if(exp_o.features()[i] == exp_s.features()[i]):
+                # check if value is same aswell
+                if(exp_o.names()[i] == exp_s.names()[i]):
+                    partial_fit +=1 # for every instance that fit
+        return partial_fit # at index 0, we didnt fit etc.
         # print('SAME PREDICTIONS')
-        return partial_fit
 
     def checkAnchorFitting(self, other, preprocess):
         """ 
             check whether or not an anchor can fit on self.
             return anchor size and precision of fit.
-            return anchor_size,(precision, coverage)
+            return anchor_size,(precision, coverage) 
+            e.g. anchor_size of 2 is partial fit for the two first features.
         """
         # self should be a test_case, and other a case from the CBR
         # check if the others explanation fit on our case, and how much

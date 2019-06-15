@@ -48,9 +48,6 @@ class BlackBox():
         if(verbose):
             print(self.model.summary())
 
-        #self.input_shape= (height, width, depth)
-        #if(K.image_data_format()=="channels_first"):
-        #    self.input_shape = (depth, height, width)
     def compile(self,**args): 
         self.model.compile(**args)
 
@@ -62,10 +59,10 @@ class BlackBox():
     def store(self,epoch):
         # Store model at specific filepath.
         save_dir = "models/"+self.name
-        if not os.path.exists(save_dir):
+        if not os.path.exists(save_dir): # check if save directory exists
             os.makedirs(save_dir)
         model_path = save_dir+"/"+self.name#+".json"
-        if not os.path.exists(model_path):
+        if not os.path.exists(model_path): # check if model path already exists.
             with open(model_path,"w") as json_file: # save model
                 json_file.write(self.model.to_json()) # write model to json file
 
@@ -160,6 +157,7 @@ class BlackBox():
         if(verbose > 0):
             import matplotlib.pyplot as plt
             plt.figure(1)
+            
             plt.subplot(131)
             plt.plot(history.history['acc'])
             plt.plot(history.history['val_acc'])
@@ -202,6 +200,7 @@ class BlackBox():
 
     def check_if_persist(self,path):
         # Check if accuracy on test set is above 85 % otherwise we delete the model.
+        #this is to keep only the best models, at 85% treshold.
         #acc = int(self.acc_test*10**4) # get 4 decimal places as integer.
         if(os.path.isfile(path+"-"+str(self.acc)+".hdf5")):
             if(self.acc < 8500): # if accuracy is less, we simply remove the model
@@ -234,20 +233,6 @@ def generator(x, y, batch_size):
         #Randomly select batch_size number of sentences
         indx = np.random.choice(x.shape[0], batch_size, replace=False)
         yield x[indx], y[indx] # return selected data and corresponding labes
-
-
-    #def predict(self,**kwargs): # return (N,1) ndarray
-    #    return self.model.predict_classes(**kwargs)
-    """ # TODO: Fix
-    def predict(self,**kwargs): # use model to do a prediction.
-        print("p_kwargs",kwargs)
-        return self.model.predict(**kwargs)
-    
-    def predict_classes(self,**kwargs): # use model to do a prediction
-        print("c_kwargs",kwargs)
-        return self.model.predict_classes(**kwargs)[0]
-        # We need to return int value of class (not probability mappings)
-    """
 
 sgd = SGD(lr=0.01)
 rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)

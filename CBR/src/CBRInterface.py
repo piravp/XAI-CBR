@@ -143,6 +143,7 @@ class RESTApi:
     def getSingleInstance(self, conceptID, casebaseID, instanceID):
         res = requests.get('http://localhost:8080/concepts/{}/casebases/{}/instances/{}'
                     .format(conceptID, casebaseID, instanceID))
+        
         return res.json()
 
     # Return ALL instances

@@ -43,7 +43,7 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             exp_map['prediction'] = int(prediction)
             super(Explanation, self).__init__(type_='tabular', exp_map=exp_map, as_html=None)
 
-    def get_explanation(self,decoder_f, decoder_v, partial_index=None):
+    def get_explanation(self, decoder_f, decoder_v, partial_index=None):
         # return string: "a"="1" AND "b"="2"
         feature = self.features(partial_index)
         names = self.names(partial_index)
@@ -80,10 +80,6 @@ class Explanation(anchor_explanation.AnchorExplanation, json.JSONEncoder): # ext
             Check if two explanations fit on eachother
             fully if partial index not set, assumes p is not too large for both
         """
-        # print('from check_similarity() in explanation.py:')
-        # print(self.features(), other.features())
-        # print(self.names(), other.names())
-
         if( self.features(p) == other.features(p) and
             self.names(p)    == other.names(p)):
             return True
