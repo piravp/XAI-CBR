@@ -55,7 +55,7 @@ class Main():
         self.dataset.class_names, self.dataset.feature_names,
         self.dataset.data_train, self.dataset.categorical_names)
         
-        #! Explainer.encoder.transform return sparse matrix, instead of dense np.array
+        #! Note: anchors_explainer.encoder.transform return sparse matrix, instead of dense np.array
         explainer.fit(self.dataset.data_train, self.dataset.train_labels, 
                     self.dataset.data_validation, self.dataset.validation_labels) # Fit the labels to the explainer.
         self.anchors_explainer = explainer
@@ -90,7 +90,7 @@ class Main():
             count += 1
             time.sleep(5) # 5 seconds
             status = self.CBR.checkStatus()
-            if(count == 8):
+            if(count == 8): # Timeout from CBR system after 40 seconds.
                 print("Took too long time to start up project")
                 self.stop_MyCBR()
                 exit()
@@ -109,7 +109,7 @@ class Main():
         subprocess.call(["java","-DMYCBR.PROJECT.FILE={}".format(project.absolute()),
                             "-Dsave={}".format(storage),"-jar",str(jar.absolute())])
         #self.start_MyCBR(project=project,jar=jar)
-        self.myCBR_running() # Continue running.
+        self.myCBR_running() # Wait for the CBR project to be ready.
 
         conceptID = self.CBR.getConceptID()
         casebaseID = self.CBR.getCaseBaseID()
