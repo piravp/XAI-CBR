@@ -28,6 +28,7 @@ from DNN.kera import network                                # Import black-box (
 from DNN.kera import pre_processing                         # Import dataset preprocessing
 from DNN.Induction.Anchor import anchor_tabular, utils      # Explanatory framework (anchor)
 from DNN import explanation_base, explanation
+from DNN.explanation import Explanation
 from CBR.src import CBRInterface                            # Interface against myCBR's REST API
 from CBR.src.case import Case
 # Integrated gradients
@@ -39,6 +40,7 @@ from collections import defaultdict
 #import operator
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+
 
 class Main():
     def __init__(self, verbose=False):
@@ -258,7 +260,7 @@ class Main():
             Populate case-base with N cases (with cases from validation set).
         """
         # Init random seed for consistency
-        np.random.seed(2) 
+        np.random.seed(99) 
 
         # Start CBR project
         self.start_MyCBR(project, jar, storage) 
@@ -299,7 +301,9 @@ class Main():
         cases, _ = self.generate_cases(N=N, N_T=1)
         self.EB_test.reset_knowledge() # empty the explanation-base for the test (required to have N_T > 0)
 
-        
+        for c in cases:
+            print(c, '\n')
+
         # Add all of the cases (from validation set) to the case-base
         # NOTE! HTTP header is limited to about 10 cases, so adding cases need to be done in batches of max 10.
         batch_size = 10
@@ -313,10 +317,14 @@ class Main():
     def run_retrieve(self, N_T, k, project, jar, storage):
         """
             Retrieve k most similar cases
+            # 1. Retreve cases from CB
+            # 2. Perform k most similar and find most similar cases
+            # 3. Retrieve explanation for most similar case
+            # 4. Present explanation to user
         """
 
         # Init same seed every time for consistency
-        np.random.seed(2) 
+        np.random.seed(99) 
 
         # Start CBR project
         self.start_MyCBR(project, jar, storage) 
@@ -351,16 +359,13 @@ class Main():
         for i in range(0, N_T):
             print(">>>>>>>>> Adding test case {} <<<<<<<<<<<<<".format(i))
             t_case = test_cases[i]
+            # Show query case
+            # print(t_case)
             self.retrieve(testCase=t_case, topK=k)
             print('\n\n')
 
-        # self.CBR.retrieve_k_sim_byID(conceptID=conceptID, casebaseID=casebaseID, queryID='', k=5)
-        # 1. Retreve cases from CB
-        # 2. Perform k most similar and find most similar cases
-        # 3. Retrieve explanation for most similar case
-        # 4. Present explanation to user
-
     
+    # Helper used in run_retrieve
     def retrieve(self, testCase, topK):
         """
             As the retrieve function implemented in myCBR's REST API does not support sending a query, 
@@ -383,13 +388,14 @@ class Main():
         print(exp.get_explanation(self.dataset.feature_names,self.dataset.categorical_names), '\n')
 
         # Explanation for cases in cb
-        print('----TOP K MOST SIMILAR CASES:----')  
+        print('----MOST SIMILAR CASE:----')  
         for casename, row in df.iterrows():
             # Explanation for val case (in case-base)
             print('*', casename, row.to_string())
             res = self.CBR.getSingleInstance(conceptID='Person', casebaseID='cb0', instanceID=casename)
-            print(res)
             res = res["case"]
+            # The case itself
+            # print(res)
             c = Case( res['Age'], res['CapitalGain'], res['CapitalLoss'], res['Country'], res['Education'], 
                        res['Explanation'], res['HoursPerWeek'], res['MaritalStatus'], res['Occupation'],
                         res['Prediction'], res['Race'], res['Relationship'], res['Sex'], res['Weight'], 
@@ -397,6 +403,10 @@ class Main():
             
             valExpId = c.explanation #int(res["case"]["Explanation"])
             exp_val = self.EB.get(valExpId)
+            # Precision, coverage, etc
+            print(explanation.Explanation(**exp_val.exp_map))
+            # Human readable rules
+            print("\nEXPLANATION:")
             print(exp_val.get_explanation(self.dataset.feature_names,self.dataset.categorical_names))
             # Delete case from case-base after getting explanation, so next test-case is not affected
             # (Note that even though the addition of test-cases are not persistent, the case is going to 
@@ -506,14 +516,11 @@ if __name__ == "__main__":
     parser.add_argument("-v","--verbose",default=False, type=bool)
     subparsers = parser.add_subparsers(title="action", dest="main", help="main to run")
 
-
-
     fill_final = subparsers.add_parser("fill_final")
     retrieve = subparsers.add_parser("retrieve")
     test_weight = subparsers.add_parser("test_weight")
 
     args = parser.parse_args() # Get arguments from command line
-
 
     if(args.main is None):
         raise ValueError("The main arguments are required to run. Type -h for help")
